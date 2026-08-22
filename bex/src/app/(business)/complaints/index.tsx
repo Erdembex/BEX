@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppHeader } from '@/components/navigation/AppHeader';
@@ -56,7 +50,7 @@ export default function BusinessComplaintsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <AppHeader title={t('businessComplaintsScreen.headerTitle')} showMenu={false} onBack={() => router.back()} />
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -110,7 +104,7 @@ export default function BusinessComplaintsScreen() {
           ))
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

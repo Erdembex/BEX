@@ -1,13 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -99,7 +92,7 @@ export default function AdminSubscriptionsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <FlatList
         data={requests}
         keyExtractor={(item) => item.businessId}
@@ -154,7 +147,7 @@ export default function AdminSubscriptionsScreen() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

@@ -26,6 +26,14 @@ public class MediaUploadController {
         return new UploadResponse(mediaStorageService.storeUserFiles(principal.userId(), files));
     }
 
+    @PostMapping(value = "/submission", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('INDIVIDUAL')")
+    public UploadResponse uploadSubmissionDocuments(@CurrentUser UserPrincipal principal,
+                                                    @RequestParam("files") MultipartFile[] files) {
+        return new UploadResponse(
+            mediaStorageService.storeUserSubmissionDocuments(principal.userId(), files));
+    }
+
     @PostMapping(value = "/cv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('INDIVIDUAL')")
     public UploadResponse uploadCv(@CurrentUser UserPrincipal principal,

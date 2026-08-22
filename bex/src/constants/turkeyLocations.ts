@@ -100,3 +100,11 @@ export function findNearestCity(lat: number, lng: number): string {
   }
   return best;
 }
+
+/** İl merkez koordinatı (harita sınırı için) */
+export function getCityCenter(city: string): { lat: number; lng: number } {
+  const matched = matchCity(city) ?? city;
+  const coords = cityCoords[matched];
+  if (coords) return coords;
+  return { lat: 39.9334, lng: 32.8597 };
+}

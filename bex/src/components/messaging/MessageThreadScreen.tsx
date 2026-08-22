@@ -1,11 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
@@ -70,17 +65,17 @@ export function MessageThreadScreen({
 
   if (allowed === null) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.center}>
           <ActivityIndicator color={Colors.primary} />
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (!allowed) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Text style={styles.backText}>←</Text>
@@ -94,12 +89,12 @@ export function MessageThreadScreen({
             {t('messageThreadScreen.notOpenedText')}
           </Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>←</Text>
@@ -125,7 +120,7 @@ export function MessageThreadScreen({
         priorUnread={priorUnread}
         messagingAudience={messagingAudience}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

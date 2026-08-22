@@ -21,6 +21,7 @@ export function CategoryFilter({ selected, onSelect }: CategoryFilterProps) {
   return (
     <ScrollView
       horizontal
+      nestedScrollEnabled
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
     >

@@ -8,6 +8,7 @@ import {
   TextInputProps,
 } from 'react-native';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '../../theme';
+import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -29,9 +30,9 @@ const useStyles = createThemedStyles((Colors) => ({
     color: Colors.textPrimary,
   },
   container: {
-    height: 54,
+    minHeight: 54,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1.5,
@@ -46,7 +47,7 @@ const useStyles = createThemedStyles((Colors) => ({
   },
   containerFocused: {
     borderColor: Colors.borderFocus,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.surface,
   },
   containerError: {
     borderColor: Colors.error,
@@ -54,9 +55,11 @@ const useStyles = createThemedStyles((Colors) => ({
   },
   input: {
     flex: 1,
-    ...Typography.bodyLarge,
+    fontFamily: Typography.bodyLarge.fontFamily,
+    fontSize: Typography.bodyLarge.fontSize,
     color: Colors.textPrimary,
-    paddingVertical: 0,
+    paddingVertical: textInputPaddingVertical,
+    ...readableTextInputStyle,
   },
   inputMultiline: {
     minHeight: 96,
@@ -69,10 +72,12 @@ const useStyles = createThemedStyles((Colors) => ({
   },
   leftIcon: {
     marginRight: 2,
+    alignSelf: 'center',
   },
   rightIcon: {
     marginLeft: 8,
     padding: 4,
+    alignSelf: 'center',
   },
   passwordToggle: {
     fontSize: 16,

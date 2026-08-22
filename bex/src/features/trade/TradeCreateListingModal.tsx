@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -16,7 +16,7 @@ import { demoStore } from '@/lib/demoStore';
 import { shouldUseDemoData } from '@/lib/devMode';
 import { Coupon } from '@/types';
 import { tradeRepository } from './tradeRepository';
-import { tradeTheme, TradeTheme } from './tradeTheme';
+import { getTradeInputStyle, useTradeTheme, TradeTheme } from './tradeTheme';
 import { CreateTradeListingInput } from './types';
 import { useTranslation } from '@/i18n';
 
@@ -35,6 +35,8 @@ export function TradeCreateListingModal({
   onClose,
   onCreated,
 }: TradeCreateListingModalProps) {
+  const theme = useTradeTheme();
+  const inputStyle = useMemo(() => getTradeInputStyle(theme), [theme]);
   const { t } = useTranslation();
   const { showToast } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -112,7 +114,7 @@ export function TradeCreateListingModal({
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <Pressable onPress={(event) => event.stopPropagation()}>
             <Box
-              backgroundColor="surface"
+              backgroundColor="tradePanel"
               borderTopLeftRadius="xl"
               borderTopRightRadius="xl"
               padding="lg"
@@ -126,13 +128,13 @@ export function TradeCreateListingModal({
                   width={40}
                   height={4}
                   borderRadius="full"
-                  backgroundColor="border"
+                  backgroundColor="tradeInputBorder"
                   alignSelf="center"
                   marginBottom="md"
                 />
 
                 <Text variant="headingSmall">{t('tradeCreateListingModal.title')}</Text>
-                <Text variant="bodyMuted" marginTop="xs" marginBottom="md">
+                <Text variant="body" marginTop="xs" marginBottom="md" style={{ color: theme.colors.tradeMuted }}>
                   {t('tradeCreateListingModal.subtitle')}
                 </Text>
 
@@ -156,12 +158,14 @@ export function TradeCreateListingModal({
                           padding="sm"
                           borderRadius="md"
                           marginBottom="sm"
-                          borderWidth={1}
-                          borderColor={selected ? 'tradePrimary' : 'border'}
-                          backgroundColor={selected ? 'tradePrimaryLight' : 'background'}
+                          borderWidth={selected ? 2 : 1}
+                          borderColor={selected ? 'tradeCardSelectedBorder' : 'tradeInputBorder'}
+                          backgroundColor={selected ? 'tradeCardSelected' : 'tradeCard'}
                         >
                           <Text variant="label">{coupon.rewardDescription}</Text>
-                          <Text variant="caption">{t('tradeCreateListingModal.usesLeft', { count: coupon.totalUses - coupon.usedCount })}</Text>
+                          <Text variant="caption" style={{ color: theme.colors.tradeMuted }}>
+                            {t('tradeCreateListingModal.usesLeft', { count: coupon.totalUses - coupon.usedCount })}
+                          </Text>
                         </Box>
                       </TouchableOpacity>
                     );
@@ -175,7 +179,7 @@ export function TradeCreateListingModal({
                   value={title}
                   onChangeText={setTitle}
                   placeholder={t('tradeCreateListingModal.titlePlaceholder')}
-                  placeholderTextColor={tradeTheme.colors.textMuted}
+                  placeholderTextColor="#7A8490"
                   style={inputStyle}
                 />
 
@@ -186,7 +190,7 @@ export function TradeCreateListingModal({
                   value={description}
                   onChangeText={setDescription}
                   placeholder={t('tradeCreateListingModal.descriptionPlaceholder')}
-                  placeholderTextColor={tradeTheme.colors.textMuted}
+                  placeholderTextColor="#7A8490"
                   multiline
                   style={[inputStyle, { minHeight: 72, textAlignVertical: 'top' }]}
                 />
@@ -198,7 +202,7 @@ export function TradeCreateListingModal({
                   value={suggestedTrade}
                   onChangeText={setSuggestedTrade}
                   placeholder={t('tradeCreateListingModal.suggestedTradePlaceholder')}
-                  placeholderTextColor={tradeTheme.colors.textMuted}
+                  placeholderTextColor="#7A8490"
                   style={inputStyle}
                 />
 
@@ -207,9 +211,15 @@ export function TradeCreateListingModal({
                   onPress={handleSubmit}
                   loading={submitting}
                   disabled={submitting || coupons.length === 0}
-                  style={{ marginTop: 16, marginBottom: 8 }}
+                  style={{
+                    marginTop: 16,
+                    marginBottom: 8,
+                    backgroundColor: theme.colors.tradeCta,
+                    borderColor: theme.colors.tradeCta,
+                  }}
+                  textStyle={{ color: theme.colors.tradeCtaText }}
                 />
-                <Button title={t('tradeCreateListingModal.cancel')} variant="ghost" onPress={handleClose} />
+                <Button title={t('tradeCreateListingModal.cancel')} variant="outline" onPress={handleClose} />
               </ScrollView>
             </Box>
           </Pressable>
@@ -219,12 +229,3 @@ export function TradeCreateListingModal({
   );
 }
 
-const inputStyle = {
-  backgroundColor: tradeTheme.colors.background,
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: tradeTheme.colors.border,
-  padding: 12,
-  color: tradeTheme.colors.text,
-  marginBottom: 4,
-} as const;

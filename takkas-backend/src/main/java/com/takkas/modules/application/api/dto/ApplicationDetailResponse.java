@@ -10,5 +10,6 @@ public record ApplicationDetailResponse(
     List<Skill> skills, String bio, String coverLetter,
     ApplicationStatus status, Instant appliedAt,
     String submissionText, List<String> submissionImageUrls,
+    List<String> submissionAttachmentUrls, List<String> submissionLinks,
     Instant submittedAt, String reviewNote, Instant reviewedAt,
     UUID listingId, UUID businessId, boolean feedbackSubmittedByMe) {}

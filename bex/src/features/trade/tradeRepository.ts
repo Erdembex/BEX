@@ -43,6 +43,17 @@ function avatarInitial(name: string): string {
   return (trimmed[0] ?? '?').toUpperCase();
 }
 
+function lockCouponForTrade(couponId: string): void {
+  demoStore.updateCoupon(couponId, { status: 'locked' });
+}
+
+function unlockCouponFromTrade(couponId: string): void {
+  const coupon = demoStore.getCouponById(couponId);
+  if (coupon?.status === 'locked') {
+    demoStore.updateCoupon(couponId, { status: 'active' });
+  }
+}
+
 function toPublicOffer(record: TradeOfferRecord): TradeOffer {
   return {
     id: record.id,
@@ -273,6 +284,15 @@ export const tradeRepository = {
     }
 
     if (shouldUseDemoData()) {
+      const listing = demoStore.getTradeListings().find((item) => item.id === listingId);
+      if (listing) {
+        unlockCouponFromTrade(listing.couponId);
+        demoStore.getTradeOffers()
+          .filter((offer) => offer.listingId === listingId && offer.status === 'pending')
+          .forEach((offer) => {
+            if (offer.counterCouponId) unlockCouponFromTrade(offer.counterCouponId);
+          });
+      }
       demoStore.setTradeListings(
         demoStore.getTradeListings().filter((item) => item.id !== listingId)
       );
@@ -340,6 +360,7 @@ export const tradeRepository = {
       const id = demoStore.nextTradeId('tl');
       demoStore.setTradeListings([{ id, ...record }, ...demoStore.getTradeListings()]);
       demoStore.setTradeListingSecret(id, privateCoupon);
+      lockCouponForTrade(input.couponId);
       return id;
     }
 
@@ -417,6 +438,7 @@ export const tradeRepository = {
     if (shouldUseDemoData()) {
       const id = demoStore.nextTradeId('to');
       demoStore.setTradeOffers([{ id, ...offerBase }, ...demoStore.getTradeOffers()]);
+      lockCouponForTrade(counterCoupon.id);
       demoStore.setTradeListings(
         demoStore.getTradeListings().map((item) =>
           item.id === listingId ? { ...item, offerCount: item.offerCount + 1 } : item
@@ -547,6 +569,7 @@ export const tradeRepository = {
           item.id === offerId ? { ...item, status: 'rejected' } : item
         )
       );
+      if (offer.counterCouponId) unlockCouponFromTrade(offer.counterCouponId);
 
       await notifyTradeOfferRejected({
         fromUserId: offer.fromUserId,
@@ -616,7 +639,10 @@ export const tradeRepository = {
         demoStore.getTradeOffers().map((item) => {
           if (item.listingId !== listing.id) return item;
           if (item.id === offerId) return { ...item, status: 'accepted' };
-          if (item.status === 'pending') return { ...item, status: 'rejected' };
+          if (item.status === 'pending') {
+            if (item.counterCouponId) unlockCouponFromTrade(item.counterCouponId);
+            return { ...item, status: 'rejected' };
+          }
           return item;
         })
       );

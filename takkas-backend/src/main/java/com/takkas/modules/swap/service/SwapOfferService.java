@@ -5,6 +5,7 @@ import com.takkas.common.exception.*;
 import com.takkas.modules.coupon.CouponFacade;
 import com.takkas.modules.swap.api.dto.*;
 import com.takkas.modules.swap.domain.SwapOffer;
+import com.takkas.modules.swap.domain.SwapOfferMessage;
 import com.takkas.modules.swap.domain.enums.SwapOfferStatus;
 import com.takkas.modules.swap.mapper.SwapMapper;
 import com.takkas.modules.swap.repository.*;
@@ -22,6 +23,7 @@ public class SwapOfferService {
 
     private final SwapListingRepository swapListingRepository;
     private final SwapOfferRepository swapOfferRepository;
+    private final SwapOfferMessageRepository swapOfferMessageRepository;
     private final CouponFacade couponFacade;
     private final DomainEventPublisher eventPublisher;
 
@@ -32,12 +34,20 @@ public class SwapOfferService {
         if (listing.isOwnedBy(offererId)) throw new BusinessRuleException("Kendi takas ilanınıza teklif yapamazsınız.");
         if (swapOfferRepository.existsBySwapListingIdAndOffererId(swapListingId, offererId))
             throw new BusinessRuleException("Bu ilana zaten teklif gönderdiniz.");
-        var coupon = couponFacade.getCouponForSwap(req.offeredCouponId(), offererId);
+        var coupon = couponFacade.getActiveCouponForSwap(req.offeredCouponId(), offererId);
         if (swapOfferRepository.existsByOfferedCouponIdAndStatus(req.offeredCouponId(), SwapOfferStatus.PENDING))
             throw new BusinessRuleException("Bu kupon başka bir bekleyen teklifte kullanılıyor.");
         var saved = swapOfferRepository.save(SwapOffer.builder()
             .swapListing(listing).offererId(offererId)
             .offeredCouponId(req.offeredCouponId()).message(req.message()).build());
+        if (req.message() != null && !req.message().isBlank()) {
+            swapOfferMessageRepository.save(SwapOfferMessage.builder()
+                .swapOfferId(saved.getId())
+                .senderId(offererId)
+                .body(req.message().trim())
+                .build());
+        }
+        couponFacade.lockForSwap(req.offeredCouponId(), offererId);
         eventPublisher.publish(new SwapOfferReceivedEvent(
             saved.getId(), swapListingId, listing.getOwnerId(), offererId));
         return SwapMapper.toOfferResponse(saved, coupon);
@@ -50,6 +60,7 @@ public class SwapOfferService {
         var offer = swapOfferRepository.findById(swapOfferId)
             .orElseThrow(() -> new ResourceNotFoundException("Teklif bulunamadı."));
         offer.reject();
+        couponFacade.unlockFromSwap(offer.getOfferedCouponId());
         eventPublisher.publish(new SwapOfferRejectedEvent(swapOfferId, swapListingId, offer.getOffererId()));
     }
 

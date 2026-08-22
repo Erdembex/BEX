@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +21,8 @@ public interface CouponRepository extends JpaRepository<Coupon, UUID> {
     Optional<Coupon> findByApplicationId(UUID applicationId);
     boolean existsByApplicationId(UUID applicationId);
     Optional<Coupon> findByIdAndOwnerIdAndStatus(UUID id, UUID ownerId, CouponStatus status);
+
+    Optional<Coupon> findByIdAndOwnerIdAndStatusIn(UUID id, UUID ownerId, Collection<CouponStatus> statuses);
 
     @Query("SELECT c FROM Coupon c WHERE c.status = 'ACTIVE' AND c.expiresAt < :now")
     List<Coupon> findExpiredActiveCoupons(@Param("now") Instant now);

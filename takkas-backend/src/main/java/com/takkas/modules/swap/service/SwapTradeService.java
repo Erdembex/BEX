@@ -49,6 +49,7 @@ public class SwapTradeService {
             .forEach(pending -> {
                 if (!pending.getId().equals(swapOfferId)) {
                     pending.reject();
+                    couponFacade.unlockFromSwap(pending.getOfferedCouponId());
                     eventPublisher.publish(new SwapOfferRejectedEvent(
                         pending.getId(), swapListingId, pending.getOffererId()));
                 }

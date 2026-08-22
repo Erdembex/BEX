@@ -1,13 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { adminRepository } from '@/features/admin';
@@ -75,7 +68,7 @@ export default function AdminUsersScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.back}>{t('adminUsersScreen.back')}</Text>
@@ -134,7 +127,7 @@ export default function AdminUsersScreen() {
           )}
         />
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
 

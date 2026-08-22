@@ -1,11 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import {
@@ -102,9 +97,9 @@ export default function TaskDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <TaskDetailSkeleton />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
@@ -122,7 +117,7 @@ export default function TaskDetailScreen() {
   const diffColor = getDifficultyColor(task.difficulty);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <TouchableOpacity onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>{t('taskDetailScreen.back')}</Text>
@@ -236,7 +231,7 @@ export default function TaskDetailScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

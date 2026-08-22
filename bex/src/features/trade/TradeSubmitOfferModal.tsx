@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
-  KeyboardAvoidingView,
-  Platform,
   TextInput,
   ScrollView,
   TouchableOpacity,
@@ -17,11 +15,13 @@ import { createBox } from '@shopify/restyle';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/common/Toast';
+import { router, Href } from 'expo-router';
 import { demoStore } from '@/lib/demoStore';
 import { shouldUseDemoData } from '@/lib/devMode';
 import { Coupon } from '@/types';
 import { tradeRepository } from './tradeRepository';
-import { tradeTheme, TradeTheme } from './tradeTheme';
+import { swapChatHref } from './swapChatNavigation';
+import { getTradeInputStyle, getTradeSheetStyle, useTradeTheme, TradeTheme } from './tradeTheme';
 import { TradeListing } from './types';
 import { useTranslation } from '@/i18n';
 
@@ -43,6 +43,7 @@ export function TradeSubmitOfferModal({
   onClose,
   onSubmitted,
 }: TradeSubmitOfferModalProps) {
+  const theme = useTradeTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
@@ -51,6 +52,33 @@ export function TradeSubmitOfferModal({
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
+
+  const inputStyle = useMemo(() => getTradeInputStyle(theme), [theme]);
+  const sheetStyle = useMemo(() => getTradeSheetStyle(theme), [theme]);
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        overlay: { flex: 1, justifyContent: 'flex-end' },
+        backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
+        handle: {
+          width: 40,
+          height: 4,
+          borderRadius: 999,
+          backgroundColor: theme.colors.tradeInputBorder,
+          alignSelf: 'center',
+          marginBottom: theme.spacing.md,
+        },
+        infoBox: {
+          backgroundColor: theme.colors.tradeInfoBg,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: theme.colors.tradeAccentBorder,
+          padding: 12,
+          marginBottom: 16,
+        },
+      }),
+    [theme]
+  );
 
   useEffect(() => {
     if (!visible || !userId) return;
@@ -62,9 +90,7 @@ export function TradeSubmitOfferModal({
           demoStore.ensureSampleCouponForUser(userId);
         }
         const list = await tradeRepository.getAvailableTradeCoupons(userId);
-        const filtered = listing
-          ? list.filter((coupon) => coupon.id !== listing.couponId)
-          : list;
+        const filtered = listing ? list.filter((coupon) => coupon.id !== listing.couponId) : list;
         setCoupons(filtered);
         setSelectedCouponId(filtered[0]?.id ?? null);
       } finally {
@@ -92,7 +118,7 @@ export function TradeSubmitOfferModal({
 
     setSubmitting(true);
     try {
-      await tradeRepository.submitOffer(userId, listing.id, {
+      const offerId = await tradeRepository.submitOffer(userId, listing.id, {
         counterCouponId: selectedCouponId,
         message: note.trim() || undefined,
       });
@@ -100,6 +126,15 @@ export function TradeSubmitOfferModal({
       reset();
       onSubmitted();
       onClose();
+      if (offerId) {
+        router.push(
+          swapChatHref(offerId, {
+            listingTitle: listing.title,
+            peerName: listing.ownerName,
+            status: 'pending',
+          })
+        );
+      }
     } catch (err) {
       showToast((err as Error).message || t('tradeSubmitOfferModal.submitFailedToast'));
       setSubmitting(false);
@@ -114,7 +149,7 @@ export function TradeSubmitOfferModal({
         <Pressable style={styles.backdrop} onPress={handleClose} />
         <View
           style={[
-            styles.sheet,
+            sheetStyle,
             { height: SHEET_HEIGHT, paddingBottom: Math.max(insets.bottom, 16) },
           ]}
         >
@@ -123,12 +158,14 @@ export function TradeSubmitOfferModal({
             <Text variant="headingSmall">{t('tradeSubmitOfferModal.title')}</Text>
             {listing ? (
               <>
-                <Text variant="bodyMuted" marginTop="xs">
+                <Text variant="label" marginTop="sm" style={{ color: theme.colors.tradeHighlight }}>
                   {listing.title}
                 </Text>
-                <Text variant="caption" marginTop="sm" marginBottom="md">
-                  {t('tradeSubmitOfferModal.infoText')}
-                </Text>
+                <View style={styles.infoBox}>
+                  <Text variant="body" style={{ color: theme.colors.tradeInfoText, lineHeight: 22 }}>
+                    {t('tradeSubmitOfferModal.infoText')}
+                  </Text>
+                </View>
               </>
             ) : null}
 
@@ -137,10 +174,10 @@ export function TradeSubmitOfferModal({
             </Text>
             {loadingCoupons ? (
               <Box alignItems="center" paddingVertical="lg">
-                <ActivityIndicator color={tradeTheme.colors.tradePrimary} />
+                <ActivityIndicator color={theme.colors.tradeCta} />
               </Box>
             ) : coupons.length === 0 ? (
-              <Text variant="bodyMuted" marginBottom="md">
+              <Text variant="body" marginBottom="md" style={{ color: theme.colors.tradeMuted }}>
                 {t('tradeSubmitOfferModal.noCouponText')}
               </Text>
             ) : (
@@ -153,16 +190,18 @@ export function TradeSubmitOfferModal({
                     onPress={() => setSelectedCouponId(coupon.id)}
                   >
                     <Box
-                      padding="sm"
+                      padding="md"
                       borderRadius="md"
                       marginBottom="sm"
-                      borderWidth={1}
-                      borderColor={selected ? 'tradePrimary' : 'border'}
-                      backgroundColor={selected ? 'tradePrimaryLight' : 'background'}
+                      borderWidth={selected ? 2 : 1}
+                      borderColor={selected ? 'tradeCardSelectedBorder' : 'tradeInputBorder'}
+                      backgroundColor={selected ? 'tradeCardSelected' : 'tradeCard'}
                     >
                       <Text variant="label">{coupon.rewardDescription}</Text>
-                      <Text variant="caption">
-                        {t('tradeSubmitOfferModal.usesAndNoShare', { count: coupon.totalUses - coupon.usedCount })}
+                      <Text variant="caption" style={{ color: theme.colors.tradeMuted }}>
+                        {t('tradeSubmitOfferModal.usesAndNoShare', {
+                          count: coupon.totalUses - coupon.usedCount,
+                        })}
                       </Text>
                     </Box>
                   </TouchableOpacity>
@@ -177,55 +216,35 @@ export function TradeSubmitOfferModal({
               value={note}
               onChangeText={setNote}
               placeholder={t('tradeSubmitOfferModal.notePlaceholder')}
-              placeholderTextColor={tradeTheme.colors.textMuted}
+              placeholderTextColor="#7A8490"
               maxLength={200}
-              style={inputStyle}
+              style={[inputStyle, { marginBottom: 8 }]}
             />
           </ScrollView>
 
           <Button
-            title={submitting ? t('tradeSubmitOfferModal.submitting') : t('tradeSubmitOfferModal.submit')}
+            title={
+              submitting ? t('tradeSubmitOfferModal.submitting') : t('tradeSubmitOfferModal.submit')
+            }
             onPress={handleSubmit}
             loading={submitting}
             disabled={submitting || loadingCoupons || coupons.length === 0}
-            style={{ marginTop: 8, marginBottom: 8 }}
+            style={{
+              marginTop: 8,
+              marginBottom: 8,
+              backgroundColor: theme.colors.tradeCta,
+              borderColor: theme.colors.tradeCta,
+            }}
+            textStyle={{ color: theme.colors.tradeCtaText }}
           />
-          <Button title={t('tradeSubmitOfferModal.cancel')} variant="ghost" onPress={handleClose} />
+          <Button
+            title={t('tradeSubmitOfferModal.cancel')}
+            variant="outline"
+            onPress={handleClose}
+            textStyle={{ color: theme.colors.text }}
+          />
         </View>
       </View>
     </Modal>
   );
 }
-
-const inputStyle = {
-  backgroundColor: tradeTheme.colors.background,
-  borderRadius: 12,
-  borderWidth: 1,
-  borderColor: tradeTheme.colors.border,
-  padding: 12,
-  color: tradeTheme.colors.text,
-  marginBottom: 8,
-} as const;
-
-const styles = StyleSheet.create({
-  overlay: { flex: 1, justifyContent: 'flex-end' },
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.65)' },
-  sheet: {
-    width: '100%',
-    backgroundColor: tradeTheme.colors.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    borderTopWidth: 1,
-    borderColor: tradeTheme.colors.border,
-    paddingHorizontal: tradeTheme.spacing.lg,
-    paddingTop: tradeTheme.spacing.md,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 999,
-    backgroundColor: tradeTheme.colors.border,
-    alignSelf: 'center',
-    marginBottom: tradeTheme.spacing.md,
-  },
-});

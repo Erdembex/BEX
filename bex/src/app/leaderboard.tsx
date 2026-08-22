@@ -1,14 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -53,7 +45,7 @@ export default function LeaderboardScreen() {
   const list = tab === 'earners' ? earners : givers;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.back}>{t('common.back')}</Text>
@@ -122,7 +114,7 @@ export default function LeaderboardScreen() {
           )}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
 

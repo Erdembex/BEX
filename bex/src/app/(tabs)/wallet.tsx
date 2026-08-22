@@ -1,11 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, ScrollView, RefreshControl } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { couponsRepository, businessesRepository } from '@/features/data';
@@ -25,6 +20,7 @@ import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from 
 export default function WalletScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const COUPON_STATUS_LABELS = useCouponStatusLabels();
   const { firebaseUser } = useAuthStore();
@@ -87,10 +83,8 @@ export default function WalletScreen() {
     setRefreshing(false);
   };
 
-  const active = coupons.filter((c) => {
-    const s = getCouponDisplayStatus(c);
-    return s === 'active' || s === 'pending';
-  });
+  const active = coupons.filter((c) => getCouponDisplayStatus(c) === 'active' || getCouponDisplayStatus(c) === 'pending');
+  const locked = coupons.filter((c) => getCouponDisplayStatus(c) === 'locked');
   const used = coupons.filter((c) => getCouponDisplayStatus(c) === 'exhausted');
   const swapped = coupons.filter((c) => getCouponDisplayStatus(c) === 'traded');
   const expired = coupons.filter((c) => getCouponDisplayStatus(c) === 'expired');
@@ -99,18 +93,18 @@ export default function WalletScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <TabScreen style={styles.safe}>
         <AppHeader title={t('walletScreen.title')} />
         <WalletSkeleton />
-      </SafeAreaView>
+      </TabScreen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <AppHeader title={t('walletScreen.title')} />
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
@@ -164,6 +158,21 @@ export default function WalletScreen() {
                     onPress={() => setSelectedCoupon(coupon)}
                     variant={index === 0 ? 'hero' : 'default'}
                     layout="stack"
+                  />
+                ))}
+              </>
+            )}
+
+            {locked.length > 0 && (
+              <>
+                <Text style={styles.section}>{t('walletScreen.lockedCoupons')}</Text>
+                <Text style={styles.lockedHint}>{t('walletScreen.lockedHint')}</Text>
+                {locked.map((coupon) => (
+                  <CouponCard
+                    key={coupon.id}
+                    coupon={coupon}
+                    businessName={businessNames[coupon.businessId]}
+                    onPress={() => setSelectedCoupon(coupon)}
                   />
                 ))}
               </>
@@ -230,13 +239,13 @@ export default function WalletScreen() {
         visible={!!selectedCoupon}
         onClose={() => setSelectedCoupon(null)}
       />
-    </SafeAreaView>
+    </TabScreen>
   );
 }
 
 const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing[5], paddingTop: Spacing[2], paddingBottom: Spacing[10], flexGrow: 1 },
+  scroll: { padding: Spacing[5], paddingTop: Spacing[2], flexGrow: 1 },
   header: {
     marginBottom: Spacing[4],
     paddingBottom: Spacing[3],
@@ -262,6 +271,12 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   sectionArchive: {
     marginTop: Spacing[5],
     color: Colors.textSecondary,
+  },
+  lockedHint: {
+    ...Typography.bodySmall,
+    color: Colors.textMuted,
+    marginBottom: Spacing[3],
+    lineHeight: 20,
   },
   historyGroup: {
     ...Typography.caption,

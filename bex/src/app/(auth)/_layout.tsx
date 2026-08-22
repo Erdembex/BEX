@@ -17,6 +17,7 @@ export default function AuthLayout() {
       <Stack.Screen name="register" />
       <Stack.Screen name="forgot-password" />
       <Stack.Screen name="reset-password" />
+      <Stack.Screen name="email-verification" />
       <Stack.Screen name="phone-verification" />
       <Stack.Screen name="banned" />
     </Stack>

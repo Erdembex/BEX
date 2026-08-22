@@ -19,6 +19,9 @@ export const DEMO_BUSINESSES: Business[] = [
     verificationStatus: 'verified',
     reputationScore: 92,
     totalTasksPublished: 12,
+    averageRating: 4.6,
+    feedbackCount: 18,
+    activeListingCount: 3,
     createdAt: ts(-30),
   },
   {
@@ -33,6 +36,9 @@ export const DEMO_BUSINESSES: Business[] = [
     verificationStatus: 'verified',
     reputationScore: 88,
     totalTasksPublished: 8,
+    averageRating: 4.4,
+    feedbackCount: 11,
+    activeListingCount: 2,
     createdAt: ts(-20),
   },
   {
@@ -47,6 +53,9 @@ export const DEMO_BUSINESSES: Business[] = [
     verificationStatus: 'verified',
     reputationScore: 85,
     totalTasksPublished: 15,
+    averageRating: 4.2,
+    feedbackCount: 24,
+    activeListingCount: 4,
     createdAt: ts(-10),
   },
   {

@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  Linking,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { isAuthEmulatorActive } from '@/lib/firebase';
 import { shouldUseDemoData } from '@/lib/devMode';
@@ -97,7 +91,7 @@ export default function SetupGuideScreen() {
   const emulator = isAuthEmulatorActive();
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>← Geri</Text>
@@ -165,7 +159,7 @@ export default function SetupGuideScreen() {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

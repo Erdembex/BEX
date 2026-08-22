@@ -22,6 +22,7 @@ public class IntegrationTestConfig {
             user -> {
                 user.setUserType(UserType.ADMIN);
                 user.setStatus(UserStatus.ACTIVE);
+                user.setEmailVerified(true);
                 user.setPasswordHash(passwordEncoder.encode("Admin123!"));
                 userRepository.save(user);
             },
@@ -30,6 +31,7 @@ public class IntegrationTestConfig {
                 .passwordHash(passwordEncoder.encode("Admin123!"))
                 .userType(UserType.ADMIN)
                 .status(UserStatus.ACTIVE)
+                .emailVerified(true)
                 .build())
         );
     }

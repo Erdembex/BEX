@@ -400,7 +400,19 @@ export const businessesRepository = {
   async getPopular(limitCount = 10): Promise<Business[]> {
     if (shouldUseDemoData()) {
       return [...demoStore.getBusinesses()]
-        .sort((a, b) => b.reputationScore - a.reputationScore)
+        .map((business) => {
+          const activeListingCount = demoStore
+            .getTasksByBusiness(business.id)
+            .filter((task) => task.status === 'active').length;
+          return {
+            ...business,
+            activeListingCount,
+            totalTasksPublished: activeListingCount,
+            averageRating: business.averageRating ?? business.reputationScore / 10,
+            feedbackCount: business.feedbackCount ?? Math.max(0, Math.round(business.reputationScore / 8)),
+          };
+        })
+        .sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0))
         .slice(0, limitCount);
     }
 
@@ -414,7 +426,9 @@ export const businessesRepository = {
         const profiles = await Promise.all(
           sorted.slice(0, limitCount).map((hit) => fetchPublicBusinessProfile(hit.profileId))
         );
-        return profiles.filter((b): b is Business => b != null);
+        return profiles
+          .filter((b): b is Business => b != null)
+          .sort((a, b) => (b.averageRating ?? 0) - (a.averageRating ?? 0));
       } catch {
         return [];
       }

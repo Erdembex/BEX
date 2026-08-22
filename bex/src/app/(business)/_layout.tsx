@@ -6,6 +6,7 @@ import { useBusiness } from '@/features/business/useBusiness';
 import { useMessagingInbox } from '@/hooks/useMessagingInbox';
 import { useMessagingInboxStore } from '@/store/messagingInboxStore';
 import { useThemeColors } from '@/theme';
+import { useTabBarStyle } from '@/components/common/Screen';
 import { useTranslation } from '@/i18n';
 
 function TabIcon({
@@ -33,6 +34,7 @@ export default function BusinessTabsLayout() {
   const { isUnlocked } = useMessagingInbox('business');
   const totalUnread = useMessagingInboxStore((s) => s.businessTotalUnread);
   const Colors = useThemeColors();
+  const tabBarStyle = useTabBarStyle(Colors.surface, Colors.borderLight);
   const { t } = useTranslation();
 
   if (bexUser && bexUser.role !== 'business') {
@@ -44,17 +46,9 @@ export default function BusinessTabsLayout() {
       initialRouteName="panel"
       screenOptions={{
         headerShown: false,
-        // İşletme tarafı kendi kurumsal vurgu rengini kullanır (rol ayrımı)
-        tabBarActiveTintColor: Colors.business,
-        tabBarInactiveTintColor: Colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: Colors.background,
-          borderTopColor: Colors.border,
-          borderTopWidth: 1,
-          paddingBottom: 6,
-          paddingTop: 4,
-          height: 58,
-        },
+        tabBarActiveTintColor: Colors.secondary,
+        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarStyle,
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',

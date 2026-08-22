@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { AppHeader } from '@/components/navigation/AppHeader';
 import { useOpenNotifications } from '@/hooks/useOpenNotifications';
@@ -34,14 +35,15 @@ const MORE_LINKS: MoreLink[] = [
 export default function MoreScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const openNotifications = useOpenNotifications();
   const { unreadCount } = useNotifications();
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <AppHeader title={t('moreScreen.title')} showMenu={false} showNotifications={false} onBack={() => router.back()} />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
         <TouchableOpacity style={styles.noticeCard} activeOpacity={0.88} onPress={openNotifications}>
           <View style={styles.noticeLeft}>
             <Text style={styles.noticeIcon}>◉</Text>
@@ -76,13 +78,13 @@ export default function MoreScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </TabScreen>
   );
 }
 
 const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing[5], gap: Spacing[3], paddingBottom: Spacing[10] },
+  scroll: { padding: Spacing[5], gap: Spacing[3] },
   noticeCard: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -4,6 +4,9 @@ import com.takkas.modules.auth.api.dto.AuthResponse;
 import com.takkas.modules.auth.api.dto.BusinessRegisterRequest;
 import com.takkas.modules.auth.api.dto.IndividualRegisterRequest;
 import com.takkas.modules.auth.api.dto.LoginRequest;
+import com.takkas.modules.auth.api.dto.RegisterPendingResponse;
+import com.takkas.modules.auth.api.dto.ResendVerificationResponse;
+import com.takkas.modules.auth.api.dto.VerifyEmailRequest;
 import com.takkas.modules.complaint.api.dto.CreateComplaintRequest;
 import com.takkas.modules.complaint.domain.enums.ComplaintReason;
 import com.takkas.modules.listing.api.dto.CreateListingRequest;
@@ -35,24 +38,55 @@ public class ApiTestClient {
         return suffix + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 
+    private AuthResponse verifyRegisteredEmail(String email, RegisterPendingResponse pending) {
+        String code = pending.devVerificationCode();
+        if (code == null || code.isBlank()) {
+            var resend = client.post()
+                .uri("/api/auth/resend-verification")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(new com.takkas.modules.auth.api.dto.ResendVerificationRequest(email))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(ResendVerificationResponse.class)
+                .returnResult()
+                .getResponseBody();
+            code = resend != null ? resend.devVerificationCode() : null;
+        }
+        if (code == null || code.isBlank()) {
+            throw new IllegalStateException("E-posta doğrulama kodu alınamadı (test ortamı).");
+        }
+        return client.post()
+            .uri("/api/auth/verify-email")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(new VerifyEmailRequest(email, code))
+            .exchange()
+            .expectStatus().isOk()
+            .expectBody(AuthResponse.class)
+            .returnResult()
+            .getResponseBody();
+    }
+
     public AuthResponse registerBusiness(String suffix) {
         String tag = unique(suffix);
-        return client.post()
+        String email = "biz-" + tag + "@test.dev";
+        RegisterPendingResponse pending = client.post()
             .uri("/api/auth/register/business")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(new BusinessRegisterRequest(
-                "biz-" + tag + "@test.dev",
+                email,
                 TEST_PASSWORD,
                 "Test Cafe " + suffix,
                 BusinessCategory.CAFE,
                 "Istanbul",
                 "Kadikoy",
+                "Moda Cad. No:12 Kadikoy Istanbul",
                 "5550000000"))
             .exchange()
             .expectStatus().isCreated()
-            .expectBody(AuthResponse.class)
+            .expectBody(RegisterPendingResponse.class)
             .returnResult()
             .getResponseBody();
+        return verifyRegisteredEmail(email, pending);
     }
 
     public record RegistrationResult(AuthResponse auth, String email) {}
@@ -60,7 +94,7 @@ public class ApiTestClient {
     public RegistrationResult registerIndividualTracked(String suffix) {
         String tag = unique(suffix);
         String email = "user-" + tag + "@test.dev";
-        AuthResponse auth = client.post()
+        RegisterPendingResponse pending = client.post()
             .uri("/api/auth/register/individual")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(new IndividualRegisterRequest(
@@ -72,16 +106,17 @@ public class ApiTestClient {
                 List.of(Skill.SOCIAL_MEDIA)))
             .exchange()
             .expectStatus().isCreated()
-            .expectBody(AuthResponse.class)
+            .expectBody(RegisterPendingResponse.class)
             .returnResult()
             .getResponseBody();
+        AuthResponse auth = verifyRegisteredEmail(email, pending);
         return new RegistrationResult(auth, email);
     }
 
     public RegistrationResult registerBusinessTracked(String suffix) {
         String tag = unique(suffix);
         String email = "biz-" + tag + "@test.dev";
-        AuthResponse auth = client.post()
+        RegisterPendingResponse pending = client.post()
             .uri("/api/auth/register/business")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(new BusinessRegisterRequest(
@@ -91,22 +126,25 @@ public class ApiTestClient {
                 BusinessCategory.CAFE,
                 "Istanbul",
                 "Kadikoy",
+                "Moda Cad. No:12 Kadikoy Istanbul",
                 "5550000000"))
             .exchange()
             .expectStatus().isCreated()
-            .expectBody(AuthResponse.class)
+            .expectBody(RegisterPendingResponse.class)
             .returnResult()
             .getResponseBody();
+        AuthResponse auth = verifyRegisteredEmail(email, pending);
         return new RegistrationResult(auth, email);
     }
 
     public AuthResponse registerIndividual(String suffix) {
         String tag = unique(suffix);
-        return client.post()
+        String email = "user-" + tag + "@test.dev";
+        RegisterPendingResponse pending = client.post()
             .uri("/api/auth/register/individual")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(new IndividualRegisterRequest(
-                "user-" + tag + "@test.dev",
+                email,
                 TEST_PASSWORD,
                 "Test User " + suffix,
                 "Istanbul",
@@ -114,9 +152,10 @@ public class ApiTestClient {
                 List.of(Skill.SOCIAL_MEDIA)))
             .exchange()
             .expectStatus().isCreated()
-            .expectBody(AuthResponse.class)
+            .expectBody(RegisterPendingResponse.class)
             .returnResult()
             .getResponseBody();
+        return verifyRegisteredEmail(email, pending);
     }
 
     public AuthResponse loginAdmin() {

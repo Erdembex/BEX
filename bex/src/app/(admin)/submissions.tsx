@@ -1,13 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { adminRepository, EnrichedSubmission } from '@/features/admin/adminRepository';
@@ -87,7 +80,7 @@ export default function AdminSubmissionsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <FlatList
         data={submissions}
         keyExtractor={(item) => item.id}
@@ -165,7 +158,7 @@ export default function AdminSubmissionsScreen() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

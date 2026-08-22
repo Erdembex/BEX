@@ -114,6 +114,19 @@ export async function rejectBusinessVerificationAdmin(profileId: string): Promis
   }
 }
 
+function formatBusinessAddress(profile: {
+  openAddress?: string | null;
+  district?: string | null;
+  city?: string | null;
+}): string {
+  const parts = [
+    profile.openAddress?.trim() ?? '',
+    profile.district?.trim() ?? '',
+    profile.city?.trim() ?? '',
+  ].filter(Boolean);
+  return parts.join(', ') || 'Türkiye';
+}
+
 /** Güncel işletme profilini Business tipine çevirir (KYC alanları dahil) */
 export async function fetchBusinessWithVerification(ownerUid: string): Promise<Business | null> {
   try {
@@ -128,7 +141,7 @@ export async function fetchBusinessWithVerification(ownerUid: string): Promise<B
       name: profile.businessName?.trim() || 'İşletme',
       category: mapBusinessCategory(profile.category),
       logoUrl: resolveMediaUrl(profile.logoUrl?.trim() ?? ''),
-      address: `${profile.district ?? ''}, ${profile.city ?? ''}`.trim() || 'Türkiye',
+      address: formatBusinessAddress(profile),
       location: new GeoPoint(41.0082, 28.9784),
       isVerified: profile.verified ?? verificationStatus === 'verified',
       verificationStatus,

@@ -1,13 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  FlatList,
-  SafeAreaView,
-  TouchableOpacity,
-  ListRenderItem,
-  RefreshControl,
-  ActivityIndicator,
-  ScrollView,
-} from 'react-native';
+import { FlatList, TouchableOpacity, ListRenderItem, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams } from 'expo-router';
 import { createBox, ThemeProvider } from '@shopify/restyle';
@@ -43,19 +36,19 @@ function TradeListingCard({ item, currentUserId, onOfferPress }: TradeListingCar
 
   return (
     <Box
-      backgroundColor="surface"
+      backgroundColor="tradeCard"
       borderRadius="lg"
       padding="md"
       marginBottom="md"
       borderWidth={1}
-      borderColor="border"
+      borderColor="tradeInputBorder"
     >
       <Box flexDirection="row" justifyContent="space-between" alignItems="flex-start">
         <Box flex={1} marginRight="sm">
           <Text variant="headingSmall" numberOfLines={2}>
             {item.title}
           </Text>
-          <Text variant="caption" marginTop="xs">
+          <Text variant="caption" marginTop="xs" style={{ color: tradeTheme.colors.tradeMuted }}>
             {item.rewardLabel} · {item.createdAtLabel}
           </Text>
         </Box>
@@ -68,14 +61,14 @@ function TradeListingCard({ item, currentUserId, onOfferPress }: TradeListingCar
             borderWidth={1}
             borderColor="tradePrimaryBorder"
           >
-            <Text variant="caption" style={{ color: tradeTheme.colors.tradePrimary }}>
+            <Text variant="caption" style={{ color: tradeTheme.colors.tradeHighlight }}>
               {t('tradeMarketScreen.offerCount', { count: item.offerCount })}
             </Text>
           </Box>
         ) : null}
       </Box>
 
-      <Text variant="bodyMuted" marginTop="sm" numberOfLines={2}>
+      <Text variant="body" marginTop="sm" numberOfLines={2} style={{ color: tradeTheme.colors.tradeMuted }}>
         {item.description}
       </Text>
 
@@ -83,18 +76,18 @@ function TradeListingCard({ item, currentUserId, onOfferPress }: TradeListingCar
         marginTop="md"
         padding="sm"
         borderRadius="md"
-        backgroundColor="tradePrimaryLight"
+        backgroundColor="tradeInfoBg"
         borderLeftWidth={3}
-        borderLeftColor="tradePrimary"
+        borderLeftColor="tradeCta"
       >
         <Text
           variant="caption"
           marginBottom="xs"
-          style={{ color: tradeTheme.colors.tradePrimary, fontWeight: '700' }}
+          style={{ color: tradeTheme.colors.tradeHighlight, fontWeight: '700' }}
         >
           {t('tradeMarketScreen.suggestedTrade')}
         </Text>
-        <Text variant="body" style={{ fontSize: 14 }}>
+        <Text variant="body" style={{ fontSize: 14, color: tradeTheme.colors.text }}>
           {item.suggestedTrade}
         </Text>
       </Box>
@@ -111,17 +104,19 @@ function TradeListingCard({ item, currentUserId, onOfferPress }: TradeListingCar
           width={40}
           height={40}
           borderRadius="md"
-          backgroundColor="tradePrimary"
+          backgroundColor="tradeCta"
           alignItems="center"
           justifyContent="center"
           marginRight="sm"
         >
-          <Text variant="label" style={{ color: '#FFFFFF' }}>
+          <Text variant="label" style={{ color: tradeTheme.colors.tradeCtaText }}>
             {item.ownerAvatarInitial}
           </Text>
         </Box>
         <Box flex={1}>
-          <Text variant="caption">{t('tradeMarketScreen.listingOwner')}</Text>
+          <Text variant="caption" style={{ color: tradeTheme.colors.tradeMuted }}>
+            {t('tradeMarketScreen.listingOwner')}
+          </Text>
           <Text variant="label">{item.ownerName}</Text>
         </Box>
         {isOwnListing ? (
@@ -131,12 +126,12 @@ function TradeListingCard({ item, currentUserId, onOfferPress }: TradeListingCar
         ) : (
           <TouchableOpacity activeOpacity={0.82} onPress={() => onOfferPress(item)}>
             <Box
-              backgroundColor="tradePrimary"
+              backgroundColor="tradeCta"
               paddingHorizontal="lg"
               paddingVertical="sm"
               borderRadius="md"
             >
-              <Text variant="buttonPrimary" style={{ color: '#FFFFFF' }}>
+              <Text variant="buttonPrimary" style={{ color: tradeTheme.colors.tradeCtaText }}>
                 {t('tradeMarketScreen.makeOffer')}
               </Text>
             </Box>
@@ -182,15 +177,15 @@ function TradeTabSwitch({
               paddingHorizontal="md"
               borderRadius="sm"
               alignItems="center"
-              backgroundColor={selected ? 'tradePrimary' : 'surface'}
+              backgroundColor={selected ? 'tradeCta' : 'tradeCard'}
               borderWidth={1}
-              borderColor={selected ? 'tradePrimary' : 'border'}
+              borderColor={selected ? 'tradeCta' : 'tradeInputBorder'}
               minWidth={72}
             >
               <Text
                 variant="caption"
                 style={{
-                  color: selected ? '#FFFFFF' : tradeTheme.colors.text,
+                  color: selected ? tradeTheme.colors.tradeCtaText : tradeTheme.colors.text,
                   fontWeight: '700',
                   fontSize: 11,
                 }}
@@ -306,11 +301,11 @@ export function TradeMarketScreen() {
 
   return (
     <ThemeProvider theme={tradeTheme}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: tradeTheme.colors.background }}>
+      <Screen style={{ flex: 1, backgroundColor: tradeTheme.colors.background }}>
         <AppHeader title={t('tradeMarketScreen.headerTitle')} />
         <Box flex={1} backgroundColor="background">
           <Box paddingHorizontal="lg" paddingTop="sm" paddingBottom="md">
-            <Text variant="bodyMuted" marginTop="xs">
+            <Text variant="body" marginTop="xs" style={{ color: tradeTheme.colors.tradeMuted }}>
               {t('tradeMarketScreen.subtitle')}
             </Text>
             <TradeTabSwitch active={tab} onChange={setTab} />
@@ -319,11 +314,11 @@ export function TradeMarketScreen() {
               marginTop="md"
               padding="sm"
               borderRadius="sm"
-              backgroundColor="tradePrimaryLight"
+              backgroundColor="tradeInfoBg"
               borderWidth={1}
-              borderColor="tradePrimaryBorder"
+              borderColor="tradeAccentBorder"
             >
-              <Text variant="caption" style={{ color: tradeTheme.colors.tradePrimary, lineHeight: 18 }}>
+              <Text variant="body" style={{ color: tradeTheme.colors.tradeInfoText, lineHeight: 20, fontSize: 13 }}>
                 {t('tradeMarketScreen.couponHint')}
               </Text>
             </Box>
@@ -434,7 +429,7 @@ export function TradeMarketScreen() {
             onSubmitted={load}
           />
         ) : null}
-      </SafeAreaView>
+      </Screen>
     </ThemeProvider>
   );
 }

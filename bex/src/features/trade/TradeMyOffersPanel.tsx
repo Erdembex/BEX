@@ -5,6 +5,7 @@ import { createBox } from '@shopify/restyle';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { tradeTheme, TradeTheme } from './tradeTheme';
+import { openSwapOfferChat } from './swapChatNavigation';
 import { TradeOffer, TradeOfferStatus } from './types';
 import { useTranslation } from '@/i18n';
 
@@ -91,6 +92,23 @@ export function TradeMyOffersPanel({
             <Text variant="caption" marginTop="sm" style={{ color: tradeTheme.colors.tradePrimary }}>
               {t('tradeMyOffersPanel.yourCoupon', { label: item.counterRewardLabel })}
             </Text>
+
+            {item.message ? (
+              <Text variant="body" marginTop="sm" style={{ color: tradeTheme.colors.tradeMuted, lineHeight: 20 }}>
+                {item.message}
+              </Text>
+            ) : null}
+
+            {item.status === 'pending' ? (
+              <Box marginTop="md">
+                <Button
+                  title={t('tradeMyOffersPanel.openChat')}
+                  variant="outline"
+                  size="sm"
+                  onPress={() => openSwapOfferChat(item)}
+                />
+              </Box>
+            ) : null}
 
             {item.status === 'accepted' ? (
               <Box marginTop="md">

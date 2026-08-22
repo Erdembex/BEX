@@ -1,12 +1,6 @@
 import React, { useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,7 +27,7 @@ export default function AboutScreen() {
   const styles = useMemo(() => createStyles(Colors), [Colors]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <TouchableOpacity onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>{t('common.back')}</Text>
@@ -45,7 +39,7 @@ export default function AboutScreen() {
           end={{ x: 1, y: 1 }}
           style={styles.hero}
         >
-          <PasslaLogo size="sm" showTagline />
+          <PasslaLogo size="sm" showTagline centered />
           <Text style={styles.heroTitle}>{t('about.heroTitle')}</Text>
           <Text style={styles.heroSubtitle}>{t('about.heroSubtitle')}</Text>
         </LinearGradient>
@@ -89,7 +83,7 @@ export default function AboutScreen() {
 
         <Text style={styles.footer}>{t('about.footer')}</Text>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

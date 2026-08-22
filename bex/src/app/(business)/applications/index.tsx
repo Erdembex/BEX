@@ -1,13 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  ActivityIndicator,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useBusiness } from '@/features/business/useBusiness';
@@ -108,17 +101,17 @@ export default function BusinessApplicationsScreen() {
 
   if (!business) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.center}>
           <Text style={styles.emptyTitle}>{t('businessApplicationsScreen.businessProfileNotFound')}</Text>
           <Text style={styles.emptyText}>{t('businessApplicationsScreen.businessProfileNotFoundHint')}</Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.header}>
         <Text style={styles.title}>{t('businessApplicationsScreen.title')}</Text>
         <Text style={styles.subtitle}>
@@ -204,7 +197,7 @@ export default function BusinessApplicationsScreen() {
           />
         )}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

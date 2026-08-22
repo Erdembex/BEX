@@ -1,14 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-  Linking,
-  Alert,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Linking, Alert } from 'react-native';
+import { Screen, useResolvedSafeAreaInsets } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
@@ -23,16 +15,18 @@ import { Application, Task, PortfolioItem } from '@/types';
 import { useApplicationStatusLabels } from '@/constants/taskLabels';
 import { Button, Input } from '@/components/ui';
 import { UserPortfolioGallery } from '@/components/profile/UserPortfolioGallery';
-import { ImagePreviewGrid } from '@/components/common/ImagePreviewGrid';
+import { SubmissionProofSection } from '@/components/application/SubmissionProofSection';
 import { ApplicationMessageThread } from '@/components/application/ApplicationMessageThread';
 import { canUseApplicationMessages } from '@/features/messages';
 import { useToast } from '@/components/common/Toast';
+import { refreshPendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
 export default function ApplicationDetailScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const insets = useResolvedSafeAreaInsets();
   const { t } = useTranslation();
   const APPLICATION_STATUS_LABELS = useApplicationStatusLabels();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -79,7 +73,7 @@ export default function ApplicationDetailScreen() {
 
   const needsFeedback =
     !!application &&
-    ['submission_approved', 'rewarded'].includes(application.status) &&
+    application.status === 'rewarded' &&
     !application.feedbackSubmitted;
 
   const handleApproveApplication = async () => {
@@ -132,6 +126,7 @@ export default function ApplicationDetailScreen() {
         if (fresh) setApplication(fresh);
         setReviewNote('');
         showToast(t('applicationDetailBizScreen.couponCreatedToast', { code: coupon.couponCode }));
+        refreshPendingFeedbackGate();
         return;
       }
       Alert.alert(t('applicationDetailBizScreen.couponFailedTitle'), t('applicationDetailBizScreen.couponFailedText'));
@@ -184,8 +179,31 @@ export default function ApplicationDetailScreen() {
   const awaitingAdminReview = application.status === 'submitted';
   const canIssueCoupon = application.status === 'submission_approved';
 
+  const renderStickyActions = () => (
+    <View style={styles.decisionActions}>
+      <Button
+        title={t('applicationDetailBizScreen.approveApplication')}
+        onPress={handleApproveApplication}
+        loading={actionLoading}
+        size="md"
+        style={styles.decisionBtn}
+        fullWidth={false}
+      />
+      <Button
+        title={t('applicationDetailBizScreen.reject')}
+        variant="danger"
+        onPress={handleReject}
+        loading={actionLoading}
+        disabled={actionLoading}
+        size="md"
+        style={styles.decisionBtn}
+        fullWidth={false}
+      />
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.back}>{t('applicationDetailBizScreen.back')}</Text>
@@ -194,7 +212,13 @@ export default function ApplicationDetailScreen() {
         <View style={{ width: 48 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <View style={styles.body}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          canApproveApplication ? styles.scrollWithFooter : null,
+        ]}
+      >
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
             {APPLICATION_STATUS_LABELS[application.status]}
@@ -204,16 +228,24 @@ export default function ApplicationDetailScreen() {
         <Text style={styles.taskTitle}>{task?.title ?? t('applicationDetailBizScreen.defaultTask')}</Text>
 
         {canApproveApplication ? (
-          <View style={styles.applicantCard}>
+          <View style={styles.decisionCard}>
+            <Text style={styles.decisionTitle}>{t('applicationDetailBizScreen.decisionTitle')}</Text>
             <Text style={styles.applicantCardTitle}>
               {t('applicationDetailBizScreen.applicantLabel', {
                 name: applicantName || application.userId.slice(0, 8),
               })}
             </Text>
-            <Text style={styles.applicantCardHint}>
-              {t('applicationDetailBizScreen.applicantReviewHint')}
-            </Text>
-            <View style={styles.applicantActions}>
+            <Input
+              label={t('applicationDetailBizScreen.reviewNoteLabel')}
+              value={reviewNote}
+              onChangeText={setReviewNote}
+              placeholder={t('applicationDetailBizScreen.reviewNotePlaceholder')}
+              multiline
+              numberOfLines={3}
+              style={{ minHeight: 80, textAlignVertical: 'top' }}
+            />
+            <Text style={styles.secondaryLabel}>{t('applicationDetailBizScreen.secondaryActionsLabel')}</Text>
+            <View style={styles.secondaryActions}>
               <Button
                 title={t('applicationDetailBizScreen.viewApplicantProfile')}
                 variant="outline"
@@ -221,16 +253,19 @@ export default function ApplicationDetailScreen() {
                 onPress={() =>
                   router.push({ pathname: '/user/[id]', params: { id: application.userId } } as Href)
                 }
-                style={styles.applicantActionBtn}
+                style={styles.secondaryBtn}
+                fullWidth={false}
               />
               {firebaseUser && bexUser ? (
                 <Button
                   title={t('applicationDetailBizScreen.messageApplicant')}
+                  variant="outline"
                   size="sm"
                   onPress={() =>
                     router.push(`/(business)/messages/${application.id}` as Href)
                   }
-                  style={styles.applicantActionBtn}
+                  style={styles.secondaryBtn}
+                  fullWidth={false}
                 />
               ) : null}
             </View>
@@ -295,12 +330,11 @@ export default function ApplicationDetailScreen() {
           </View>
         ) : null}
 
-        {application.submissionFiles.length > 0 ? (
-          <View style={styles.block}>
-            <Text style={styles.blockTitle}>{t('applicationDetailBizScreen.submissionFilesTitle')}</Text>
-            <ImagePreviewGrid urls={application.submissionFiles} />
-          </View>
-        ) : null}
+        <SubmissionProofSection
+          photos={application.submissionFiles}
+          attachments={application.submissionAttachments}
+          links={application.submissionLinks}
+        />
 
         {awaitingAdminReview && (
           <View style={styles.waitingBox}>
@@ -324,34 +358,6 @@ export default function ApplicationDetailScreen() {
               {t('applicationDetailBizScreen.awaitingSubmissionHint')}
             </Text>
           </View>
-        )}
-
-        {canApproveApplication && (
-          <>
-            <Input
-              label={t('applicationDetailBizScreen.reviewNoteLabel')}
-              value={reviewNote}
-              onChangeText={setReviewNote}
-              placeholder={t('applicationDetailBizScreen.reviewNotePlaceholder')}
-              multiline
-              numberOfLines={3}
-              style={{ minHeight: 80, textAlignVertical: 'top' }}
-            />
-            <View style={styles.actions}>
-              <Button
-                title={t('applicationDetailBizScreen.approveApplication')}
-                onPress={handleApproveApplication}
-                loading={actionLoading}
-              />
-              <Button
-                title={t('applicationDetailBizScreen.reject')}
-                variant="danger"
-                onPress={handleReject}
-                loading={actionLoading}
-                disabled={actionLoading}
-              />
-            </View>
-          </>
         )}
 
         {canIssueCoupon && (
@@ -379,7 +385,7 @@ export default function ApplicationDetailScreen() {
           application.status
         ) ? (
           <>
-            {['submission_approved', 'rewarded'].includes(application.status) ? (
+            {application.status === 'rewarded' ? (
               application.feedbackSubmitted ? (
                 <View style={styles.waitingBox}>
                   <Text style={styles.waitingText}>
@@ -410,7 +416,14 @@ export default function ApplicationDetailScreen() {
           </>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+
+      {canApproveApplication ? (
+        <View style={[styles.stickyFooter, { paddingBottom: Math.max(insets.bottom, Spacing[3]) }]}>
+          {renderStickyActions()}
+        </View>
+      ) : null}
+      </View>
+    </Screen>
   );
 }
 
@@ -431,7 +444,9 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   back: { ...Typography.labelMedium, color: Colors.textSecondary },
   screenTitle: { ...Typography.labelLarge, color: Colors.textPrimary },
+  body: { flex: 1 },
   scroll: { padding: Spacing[5], paddingBottom: Spacing[10] },
+  scrollWithFooter: { paddingBottom: 120 },
   badge: {
     alignSelf: 'flex-start',
     backgroundColor: Colors.primaryLight,
@@ -443,19 +458,40 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   badgeText: { ...Typography.labelMedium, color: Colors.primaryDark },
   taskTitle: { ...Typography.headingLarge, color: Colors.textPrimary, marginBottom: Spacing[1] },
   meta: { ...Typography.bodySmall, color: Colors.textSecondary, marginBottom: Spacing[5] },
-  applicantCard: {
+  decisionCard: {
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     padding: Spacing[4],
     marginBottom: Spacing[4],
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    gap: Spacing[2],
+    borderWidth: 2,
+    borderColor: Colors.borderGold,
+    gap: Spacing[3],
   },
-  applicantCardTitle: { ...Typography.labelLarge, color: Colors.textPrimary },
-  applicantCardHint: { ...Typography.bodySmall, color: Colors.textSecondary, lineHeight: 20 },
-  applicantActions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[2], marginTop: Spacing[1] },
-  applicantActionBtn: { flexGrow: 1, minWidth: 140 },
+  decisionTitle: {
+    ...Typography.labelMedium,
+    color: Colors.accent,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  applicantCardTitle: { ...Typography.labelLarge, color: Colors.textPrimary, fontWeight: '700' },
+  decisionActions: { flexDirection: 'row', gap: Spacing[3] },
+  decisionBtn: { flex: 1 },
+  secondaryLabel: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    fontWeight: '600',
+    marginTop: Spacing[1],
+  },
+  secondaryActions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing[2] },
+  secondaryBtn: { flex: 1, minWidth: 132 },
+  stickyFooter: {
+    paddingHorizontal: Spacing[5],
+    paddingTop: Spacing[3],
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderGold,
+  },
   block: {
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,

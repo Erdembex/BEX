@@ -20,6 +20,7 @@ const TYPE_MAP: Record<string, NotificationType> = {
   SWAP_OFFER_RECEIVED: 'trade_offer_received',
   SWAP_OFFER_ACCEPTED: 'trade_offer_accepted',
   SWAP_OFFER_REJECTED: 'trade_offer_rejected',
+  SWAP_OFFER_MESSAGE: 'trade_offer_message',
   SWAP_COMPLETED: 'trade_offer_accepted',
   SUBSCRIPTION_RENEWED: 'general',
   SUBSCRIPTION_PAYMENT_FAILED: 'general',

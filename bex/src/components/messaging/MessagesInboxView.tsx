@@ -1,12 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useMessagingInbox, MessagingAudience } from '@/hooks/useMessagingInbox';
 import { useMessagingInboxStore } from '@/store/messagingInboxStore';
@@ -33,6 +27,7 @@ export function MessagesInboxView({
 }: MessagesInboxViewProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
 
   const LOCKED_COPY: Record<
@@ -72,7 +67,7 @@ export function MessagesInboxView({
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <TabScreen style={styles.safe}>
       {showMenu ? (
         <AppHeader title={t('messagesInboxView.headerTitle')} showMenu />
       ) : (
@@ -110,7 +105,7 @@ export function MessagesInboxView({
         <FlatList
           data={conversations}
           keyExtractor={(item) => item.applicationId}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
           }
@@ -150,7 +145,7 @@ export function MessagesInboxView({
           )}
         />
       )}
-    </SafeAreaView>
+    </TabScreen>
   );
 }
 
@@ -183,7 +178,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     padding: Spacing[5],
     paddingTop: Spacing[2],
     gap: Spacing[3],
-    paddingBottom: Spacing[10],
   },
   lockedWrap: {
     flex: 1,

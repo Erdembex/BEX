@@ -12,6 +12,12 @@ export interface AuthResponseDto {
   profileId: string;
 }
 
+export interface RegisterPendingResponseDto {
+  email: string;
+  message: string;
+  devVerificationCode?: string | null;
+}
+
 export interface IndividualProfileDto {
   id: string;
   username: string;
@@ -32,6 +38,7 @@ export interface BusinessProfileDto {
   category: string;
   city: string;
   district: string;
+  openAddress?: string | null;
   phone?: string | null;
   logoUrl?: string | null;
   bio?: string | null;

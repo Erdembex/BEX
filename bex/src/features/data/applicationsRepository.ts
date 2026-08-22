@@ -12,6 +12,7 @@ import {
 import { tasksRepository } from './businessesRepository';
 import { usersRepository } from './usersRepository';
 import { notifyUser, notifyAdmins } from '../notifications/notificationsRepository';
+import { refreshPendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
 import {
   acceptApplication,
   applyToListing,
@@ -176,12 +177,20 @@ export const applicationsRepository = {
     throw new Error('Başvuru için REST oturumu gerekli.');
   },
 
-  async submit(id: string, submissionText: string, submissionFiles: string[]) {
+  async submit(
+    id: string,
+    submissionText: string,
+    submissionFiles: string[],
+    submissionAttachments: string[] = [],
+    submissionLinks: string[] = []
+  ) {
     if (shouldUseDemoData()) {
       demoStore.updateApplication(id, {
         status: 'submitted',
         submissionText,
         submissionFiles,
+        submissionAttachments,
+        submissionLinks,
         submittedAt: Timestamp.now(),
       });
       const app = demoStore.getApplications().find((a) => a.id === id);
@@ -205,7 +214,13 @@ export const applicationsRepository = {
     }
 
     if (isBackendId(id) && (await useApplicationsRestBackend())) {
-      await submitApplicationSubmission(id, submissionText, submissionFiles);
+      await submitApplicationSubmission(
+        id,
+        submissionText,
+        submissionFiles,
+        submissionAttachments,
+        submissionLinks
+      );
       return;
     }
 
@@ -432,9 +447,12 @@ export async function approveApplication(
   if (!application || application.status !== 'pending') return null;
 
   if (isBackendId(applicationId) && (await useApplicationsRestBackend())) {
-    await reviewApplication(applicationId);
+    try {
+      await reviewApplication(applicationId);
+    } catch {
+      // Zaten incelemede olabilir — kabul adımına devam et
+    }
     await acceptApplication(applicationId);
-    // Bildirim backend ApplicationAcceptedEvent ile gider.
     return applicationsRepository.getById(applicationId);
   }
 
@@ -482,6 +500,8 @@ export async function issueCouponForSubmission(
       showLocalForUserId: application.userId,
     });
 
+    refreshPendingFeedbackGate();
+
     return coupon;
   }
 
@@ -507,6 +527,8 @@ export async function issueCouponForSubmission(
       data: { applicationId, couponId: coupon.id },
       showLocalForUserId: application.userId,
     });
+
+    refreshPendingFeedbackGate();
 
     return coupon;
   }

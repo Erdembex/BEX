@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useBusiness } from '@/features/business/useBusiness';
@@ -142,7 +136,7 @@ export default function BusinessTasksScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>{t('businessTasksScreen.title')}</Text>
@@ -256,7 +250,7 @@ export default function BusinessTasksScreen() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

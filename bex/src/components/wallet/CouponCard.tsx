@@ -29,6 +29,7 @@ function useCouponStatusColors(): Record<
   return {
     active: Colors.primary,
     pending: Colors.warning,
+    locked: Colors.warning,
     exhausted: Colors.textMuted,
     expired: Colors.warning,
     traded: Colors.accent,

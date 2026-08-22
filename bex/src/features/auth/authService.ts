@@ -8,6 +8,8 @@ import {
   loginRequest,
   registerBusinessRequest,
   registerIndividualRequest,
+  verifyEmailRequest,
+  resendVerificationRequest,
   logoutRequest,
   fetchIndividualProfile,
   fetchBusinessProfile,
@@ -37,10 +39,12 @@ export function getAuthErrorMessage(code: string): string {
     'auth/not-authenticated': 'Oturum bulunamadı.',
     'auth/not-supported-yet': 'Bu özellik henüz yeni backend\'de aktif değil.',
     'auth/invalid-reset-token': 'Geçersiz veya süresi dolmuş sıfırlama kodu.',
+    'auth/email-not-verified': 'E-posta adresin henüz doğrulanmadı. Gelen kutunu kontrol et.',
     'auth/same-password': 'Yeni şifre mevcut şifre ile aynı olamaz.',
     'invalid-name': 'Ad en az 2 karakter olmalı.',
     'invalid-username': 'Kullanıcı adı 3-30 karakter olmalı (a-z, 0-9, _).',
     'invalid-location': 'Şehir ve ilçe seçmelisin.',
+    'invalid-open-address': 'Açık adres en az 10 karakter olmalı (sokak, mahalle, bina no).',
   };
   return map[code] ?? `Bilinmeyen hata (${code})`;
 }
@@ -178,34 +182,45 @@ async function fetchProfileForSession(
 
 export const authService = {
   async restoreSession(): Promise<{ session: AuthSession | null; bexUser: BexUser | null }> {
-    const stored = await loadTokens();
-    if (!stored) return { session: null, bexUser: null };
+    try {
+      const stored = await loadTokens();
+      if (!stored) return { session: null, bexUser: null };
 
-    let accessToken = stored.accessToken;
-    const refreshed = await refreshAccessToken();
-    if (refreshed) {
-      accessToken = refreshed;
-    } else if (isTokenExpired(accessToken)) {
+      let accessToken = stored.accessToken;
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        accessToken = refreshed;
+      } else if (isTokenExpired(accessToken)) {
+        await clearTokens();
+        return { session: null, bexUser: null };
+      }
+
+      const claims = decodeJwtPayload(accessToken);
+      const session = sessionFromAccessToken(accessToken);
+      const bexUser = await fetchProfileForSession(session, claims?.userType);
+      if (bexUser) {
+        session.displayName = bexUser.displayName;
+      }
+      return { session, bexUser };
+    } catch {
       await clearTokens();
       return { session: null, bexUser: null };
     }
-
-    const claims = decodeJwtPayload(accessToken);
-    const session = sessionFromAccessToken(accessToken);
-    const bexUser = await fetchProfileForSession(session, claims?.userType);
-    if (bexUser) {
-      session.displayName = bexUser.displayName;
-    }
-    return { session, bexUser };
   },
 
-  async register(data: AuthFormData): Promise<{ user: AuthSession }> {
+  async register(data: AuthFormData): Promise<{
+    pending: true;
+    email: string;
+    devVerificationCode?: string;
+  }> {
+    await clearTokens();
+
     const { email, password, displayName, role = 'user', city, district } = data;
     const name = (displayName ?? '').trim();
     const resolvedCity = city?.trim() || 'İstanbul';
     const resolvedDistrict = district?.trim() || 'Kadıköy';
 
-    const authResponse =
+    const pending =
       role === 'business'
         ? await registerBusinessRequest({
             email,
@@ -214,6 +229,7 @@ export const authService = {
             category: 'OTHER',
             city: resolvedCity,
             district: resolvedDistrict,
+            openAddress: (data.openAddress ?? '').trim(),
           })
         : await registerIndividualRequest({
             email,
@@ -224,8 +240,21 @@ export const authService = {
             skills: ['OTHER'],
           });
 
-    const session = sessionFromAccessToken(authResponse.accessToken, name);
+    return {
+      pending: true,
+      email: pending.email,
+      devVerificationCode: pending.devVerificationCode ?? undefined,
+    };
+  },
+
+  async verifyEmail(email: string, code: string): Promise<{ user: AuthSession }> {
+    const authResponse = await verifyEmailRequest(email, code);
+    const session = sessionFromAccessToken(authResponse.accessToken);
     return { user: session };
+  },
+
+  async resendVerificationEmail(email: string): Promise<{ devVerificationCode?: string }> {
+    return resendVerificationRequest(email);
   },
 
   async login(email: string, password: string): Promise<{ user: AuthSession }> {
@@ -259,17 +288,29 @@ export const authService = {
     await changePasswordRequest(currentPassword, newPassword);
   },
 
-  async updateBusinessLocation(city: string, district: string): Promise<void> {
+  async updateBusinessLocation(
+    city: string,
+    district: string,
+    openAddress?: string
+  ): Promise<void> {
     const trimmedCity = city.trim();
     const trimmedDistrict = district.trim();
+    const trimmedAddress = openAddress?.trim() ?? '';
     if (!trimmedCity || !trimmedDistrict) {
       throw Object.assign(new Error('Şehir ve ilçe seçmelisin.'), { code: 'invalid-location' });
+    }
+    if (trimmedAddress.length < 10) {
+      throw Object.assign(
+        new Error('Açık adres en az 10 karakter olmalı (sokak, mahalle, bina no).'),
+        { code: 'invalid-open-address' }
+      );
     }
     const current = await fetchBusinessProfile();
     await updateBusinessProfile({
       ...current,
       city: trimmedCity,
       district: trimmedDistrict,
+      openAddress: trimmedAddress,
     });
   },
 

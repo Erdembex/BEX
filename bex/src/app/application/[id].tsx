@@ -1,13 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  Alert,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, useFocusEffect, useLocalSearchParams, Href } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
 import { applicationsRepository, tasksRepository, couponsRepository } from '@/features/data';
@@ -17,8 +10,9 @@ import { Button } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 import { ApplicationProgress } from '@/components/application/ApplicationProgress';
 import { ApplicationMessageThread } from '@/components/application/ApplicationMessageThread';
-import { ImagePreviewGrid } from '@/components/common/ImagePreviewGrid';
+import { SubmissionProofSection } from '@/components/application/SubmissionProofSection';
 import { useToast } from '@/components/common/Toast';
+import { refreshPendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
 import { getApplicationTimeline } from '@/lib/applicationTimeline';
 import { canUseApplicationMessages } from '@/features/messages';
 import { isCurrentApplicationOwner } from '@/features/application/applicationsApi';
@@ -64,6 +58,9 @@ export default function ApplicationDetailScreen() {
       if (app.status === 'rewarded') {
         const c = await couponsRepository.getByApplicationId(app.id);
         setCoupon(c);
+        if (!app.feedbackSubmitted) {
+          refreshPendingFeedbackGate();
+        }
       } else {
         setCoupon(null);
       }
@@ -80,7 +77,7 @@ export default function ApplicationDetailScreen() {
   const needsFeedback =
     !!application &&
     isOwner &&
-    ['submission_approved', 'rewarded'].includes(application.status) &&
+    application.status === 'rewarded' &&
     !application.feedbackSubmitted;
 
   const canCancel =
@@ -138,7 +135,7 @@ export default function ApplicationDetailScreen() {
   const statusHint = STATUS_HINTS[application.status];
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>{t('applicationDetailScreen.back')}</Text>
@@ -200,12 +197,11 @@ export default function ApplicationDetailScreen() {
           </>
         ) : null}
 
-        {application.submissionFiles.length > 0 ? (
-          <>
-            <Text style={styles.section}>{t('applicationDetailScreen.submissionPhotos')}</Text>
-            <ImagePreviewGrid urls={application.submissionFiles} />
-          </>
-        ) : null}
+        <SubmissionProofSection
+          photos={application.submissionFiles}
+          attachments={application.submissionAttachments}
+          links={application.submissionLinks}
+        />
 
         {application.status === 'rewarded' && coupon ? (
           <View style={styles.couponBox}>
@@ -254,7 +250,7 @@ export default function ApplicationDetailScreen() {
           </View>
         ) : null}
 
-        {['submission_approved', 'rewarded'].includes(application.status) &&
+        {application.status === 'rewarded' &&
         isOwner &&
         application.feedbackSubmitted ? (
           <View style={styles.infoBox}>
@@ -299,7 +295,7 @@ export default function ApplicationDetailScreen() {
           />
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

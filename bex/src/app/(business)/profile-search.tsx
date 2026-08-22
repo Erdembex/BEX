@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { usersRepository } from '@/features/data';
 import { Button, Input } from '@/components/ui';
@@ -67,7 +62,7 @@ export default function BusinessProfileSearchScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <BackHeader title={t('businessProfileSearchScreen.title')} />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.subtitle}>
@@ -121,7 +116,7 @@ export default function BusinessProfileSearchScreen() {
           </View>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

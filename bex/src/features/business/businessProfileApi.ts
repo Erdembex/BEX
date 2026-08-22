@@ -18,6 +18,7 @@ type BusinessPublicProfileDto = {
   category?: string;
   city?: string | null;
   district?: string | null;
+  openAddress?: string | null;
   verified?: boolean;
   complaintListed?: boolean;
   isDangerous?: boolean;
@@ -26,6 +27,7 @@ type BusinessPublicProfileDto = {
   complaintRate?: number;
   averageRating?: number;
   feedbackCount?: number;
+  activeListingCount?: number;
 };
 
 function mapBusinessCategory(raw?: string): BusinessCategory {
@@ -44,10 +46,20 @@ function mapBusinessCategory(raw?: string): BusinessCategory {
   return map[value] ?? 'other';
 }
 
-function mapPublicBusiness(dto: BusinessPublicProfileDto): Business {
+function formatBusinessAddress(dto: {
+  openAddress?: string | null;
+  district?: string | null;
+  city?: string | null;
+}): string {
+  const open = dto.openAddress?.trim() ?? '';
   const district = dto.district?.trim() ?? '';
   const city = dto.city?.trim() ?? '';
-  const address = [district, city].filter(Boolean).join(', ') || 'Türkiye';
+  const parts = [open, district, city].filter(Boolean);
+  return parts.join(', ') || 'Türkiye';
+}
+
+function mapPublicBusiness(dto: BusinessPublicProfileDto): Business {
+  const address = formatBusinessAddress(dto);
 
   return {
     id: String(dto.profileId ?? ''),
@@ -67,7 +79,8 @@ function mapPublicBusiness(dto: BusinessPublicProfileDto): Business {
     complaintRate: dto.complaintRate ?? 0,
     averageRating: dto.averageRating ?? 0,
     feedbackCount: dto.feedbackCount ?? 0,
-    totalTasksPublished: 0,
+    activeListingCount: dto.activeListingCount ?? 0,
+    totalTasksPublished: dto.activeListingCount ?? 0,
     createdAt: Timestamp.now(),
   };
 }

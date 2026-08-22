@@ -97,6 +97,15 @@ public class SwapController {
             .stream().map(SwapMapper::toTradeResponse).toList();
     }
 
+    @GetMapping("/api/swap-offers/{offerId}/chat-context")
+    @PreAuthorize("hasRole('INDIVIDUAL')")
+    public SwapOfferChatContextResponse getOfferChatContext(
+        @CurrentUser UserPrincipal p,
+        @PathVariable UUID offerId
+    ) {
+        return swapOfferMessageService.getChatContext(offerId, p);
+    }
+
     @GetMapping("/api/swap-offers/{offerId}/messages")
     @PreAuthorize("hasRole('INDIVIDUAL')")
     public List<SwapOfferMessageResponse> getOfferMessages(

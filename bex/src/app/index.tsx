@@ -1,18 +1,51 @@
 import { Redirect } from 'expo-router';
-import { View, ActivityIndicator } from 'react-native';
+import { useEffect } from 'react';
+import { ActivityIndicator } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/features/auth/authService';
 import { createThemedStyles, useThemeColors } from '@/theme';
 
 export default function Index() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const { firebaseUser, bexUser, isInitialized } = useAuthStore();
+  const { firebaseUser, bexUser, isInitialized, setBexUser, signOut } = useAuthStore();
+
+  useEffect(() => {
+    if (!isInitialized || !firebaseUser || bexUser) return;
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const profile = await authService.getUserDocument(firebaseUser.uid, {
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+        });
+        if (cancelled) return;
+        if (profile) {
+          setBexUser(profile);
+          return;
+        }
+      } catch {
+        // Profil yüklenemedi — oturumu temizle, sonsuz spinner olmasın
+      }
+      if (!cancelled) {
+        await authService.logout();
+        signOut();
+      }
+    }, 100);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [isInitialized, firebaseUser, bexUser, setBexUser, signOut]);
 
   if (!isInitialized) {
     return (
-      <View style={styles.center}>
+      <Screen style={styles.center}>
         <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
+      </Screen>
     );
   }
 
@@ -23,9 +56,9 @@ export default function Index() {
   // Profil henüz yükleniyor (kayıt/giriş sonrası)
   if (!bexUser) {
     return (
-      <View style={styles.center}>
+      <Screen style={styles.center}>
         <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
+      </Screen>
     );
   }
 

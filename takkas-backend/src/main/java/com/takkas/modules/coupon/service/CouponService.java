@@ -46,6 +46,9 @@ public class CouponService {
             .orElseThrow(() -> new ResourceNotFoundException("Kupon bulunamadı."));
         if (!c.getOwnerId().equals(ownerId))
             throw new ForbiddenException("Bu kupona erişim yetkiniz yok.");
+        if (c.isLockedForSwap())
+            throw new BusinessRuleException(
+                "Bu kupon takas pazarında kilitli. QR kodu yalnızca ilanı iptal edince veya takas tamamlanınca kullanılabilir.");
         if (!c.isActive())
             throw new BusinessRuleException("Kupon aktif değil veya süresi dolmuş.");
         return new CouponQrResponse(c.getId(), c.getQrToken(), c.getRewardType(),

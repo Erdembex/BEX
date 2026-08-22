@@ -18,6 +18,8 @@ function buildThemeColors(palette: Record<ColorKey, string>) {
     errorLight: palette.errorLight,
     primaryLight: palette.primaryLight,
     textOnPrimary: palette.textOnPrimary,
+    textOnGold: palette.textOnGold,
+    accent: palette.accent,
     success: palette.success,
     moneyGreen: palette.moneyGreen,
     textSecondary: palette.textSecondary,
@@ -95,7 +97,7 @@ export const theme = createTheme({
       fontSize: FontSize.base,
     },
     buttonSecondary: {
-      color: 'white',
+      color: 'textOnGold',
       fontFamily: FontFamily.semiBold,
       fontSize: FontSize.base,
     },

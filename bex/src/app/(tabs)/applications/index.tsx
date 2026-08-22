@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
@@ -43,6 +37,7 @@ export default function MyApplicationsScreen() {
   const Colors = useThemeColors();
   const statusColors = useStatusColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const APPLICATION_STATUS_LABELS = useApplicationStatusLabels();
   const { firebaseUser } = useAuthStore();
@@ -91,20 +86,20 @@ export default function MyApplicationsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <TabScreen style={styles.safe}>
         <AppHeader title={t('applicationsScreen.title')} />
         <TaskListSkeleton count={3} />
-      </SafeAreaView>
+      </TabScreen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <AppHeader title={t('applicationsScreen.title')} />
       <FlatList
         data={applications}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -170,14 +165,14 @@ export default function MyApplicationsScreen() {
           );
         }}
       />
-    </SafeAreaView>
+    </TabScreen>
   );
 }
 
 const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  list: { padding: Spacing[5], paddingBottom: Spacing[10], flexGrow: 1 },
+  list: { padding: Spacing[5], flexGrow: 1 },
   header: { marginBottom: Spacing[3], paddingHorizontal: Spacing[5], paddingTop: Spacing[1] },
   subtitle: {
     ...Typography.bodySmall,

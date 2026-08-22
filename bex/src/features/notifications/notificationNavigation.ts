@@ -24,6 +24,10 @@ function messageThreadHref(applicationId: string, role?: UserRole): Href {
   return `/(tabs)/messages/${applicationId}` as Href;
 }
 
+function swapChatHref(offerId: string): Href {
+  return `/swap-chat/${offerId}` as Href;
+}
+
 function tradeTabHref(tab: 'mine' | 'offers'): Href {
   return { pathname: '/(tabs)/trade', params: { tab } } as Href;
 }
@@ -70,9 +74,16 @@ export function getNotificationTarget(
     case 'kyc_result':
       return role === 'business' ? ('/(business)/verification' as Href) : null;
     case 'trade_offer_received':
+    case 'trade_offer_message':
+      if (item.data?.offerId) {
+        return swapChatHref(item.data.offerId);
+      }
       return tradeTabHref('mine');
     case 'trade_offer_accepted':
     case 'trade_offer_rejected':
+      if (item.data?.offerId) {
+        return `/swap-chat/${item.data.offerId}` as Href;
+      }
       return tradeTabHref('offers');
     default:
       return null;

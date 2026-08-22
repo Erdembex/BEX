@@ -33,6 +33,8 @@ public class ApplicationMapper {
             a.getCoverLetter(), a.getStatus(), a.getAppliedAt(),
             a.getSubmissionText(),
             a.getSubmissionImageUrls() != null ? a.getSubmissionImageUrls() : List.of(),
+            a.getSubmissionAttachmentUrls() != null ? a.getSubmissionAttachmentUrls() : List.of(),
+            a.getSubmissionLinks() != null ? a.getSubmissionLinks() : List.of(),
             a.getSubmittedAt(), a.getReviewNote(), a.getReviewedAt(),
             a.getListingId(), a.getBusinessId(), feedbackSubmittedByMe);
     }

@@ -45,6 +45,8 @@ type ApplicationDetailDto = {
   appliedAt?: string;
   submissionText?: string | null;
   submissionImageUrls?: string[];
+  submissionAttachmentUrls?: string[];
+  submissionLinks?: string[];
   submittedAt?: string | null;
   reviewNote?: string | null;
   reviewedAt?: string | null;
@@ -82,11 +84,21 @@ function mapSubmissionFiles(urls?: string[] | null): string[] {
 
 function mapDetailFields(dto: ApplicationDetailDto): Pick<
   Application,
-  'submissionText' | 'submissionFiles' | 'submittedAt' | 'reviewedAt' | 'reviewNote'
+  | 'submissionText'
+  | 'submissionFiles'
+  | 'submissionAttachments'
+  | 'submissionLinks'
+  | 'submittedAt'
+  | 'reviewedAt'
+  | 'reviewNote'
 > {
   return {
     submissionText: dto.submissionText?.trim() ?? '',
     submissionFiles: mapSubmissionFiles(dto.submissionImageUrls),
+    submissionAttachments: mapSubmissionFiles(dto.submissionAttachmentUrls),
+    submissionLinks: Array.isArray(dto.submissionLinks)
+      ? dto.submissionLinks.map((link) => link.trim()).filter(Boolean)
+      : [],
     submittedAt: dto.submittedAt ? toTimestamp(dto.submittedAt) : undefined,
     reviewedAt: dto.reviewedAt ? toTimestamp(dto.reviewedAt) : undefined,
     reviewNote: dto.reviewNote?.trim() ?? undefined,
@@ -167,8 +179,19 @@ async function mapDetailToApplication(
 function mapApplicationsError(error: unknown, fallback: string): Error & { code?: string } {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
-    const data = error.response?.data as { message?: string } | undefined;
-    const message = data?.message ?? getApiErrorMessage(error, fallback);
+    const data = error.response?.data as {
+      message?: string;
+      code?: string;
+      fields?: Record<string, string>;
+    } | undefined;
+    const fieldMessages =
+      data?.fields && typeof data.fields === 'object'
+        ? Object.values(data.fields).filter(Boolean)
+        : [];
+    const message =
+      data?.message ??
+      (fieldMessages.length > 0 ? fieldMessages.join(' ') : undefined) ??
+      getApiErrorMessage(error, fallback);
     if (message.includes('zaten başvurdun')) {
       return Object.assign(new Error(message), { code: 'already-applied' });
     }
@@ -246,7 +269,7 @@ export async function fetchApplicationById(applicationId: string): Promise<Appli
       data,
       listingId,
       listingMeta.businessId,
-      sessionUserId
+      String(data.individualId ?? sessionUserId)
     );
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) return null;
@@ -309,12 +332,32 @@ export async function reviewApplication(applicationId: string): Promise<void> {
 export async function submitApplicationSubmission(
   applicationId: string,
   description: string,
-  imageUrls: string[]
+  imageUrls: string[],
+  attachmentUrls: string[] = [],
+  links: string[] = []
 ): Promise<void> {
+  const normalizedImages = imageUrls.map((url) => normalizeUploadPath(url)).filter(Boolean);
+  const normalizedAttachments = attachmentUrls
+    .map((url) => normalizeUploadPath(url))
+    .filter(Boolean);
+  const normalizedLinks = links
+    .map((link) => link.trim())
+    .filter((link) => /^https?:\/\//i.test(link));
+
+  if (
+    normalizedImages.length === 0 &&
+    normalizedAttachments.length === 0 &&
+    normalizedLinks.length === 0
+  ) {
+    throw new Error('En az bir kanıt (fotoğraf, dosya veya bağlantı) eklemelisin.');
+  }
+
   try {
     await apiClient.post(`/api/individual/applications/${applicationId}/submission`, {
-      description,
-      imageUrls: imageUrls.map((url) => normalizeUploadPath(url)).filter(Boolean),
+      description: description.trim(),
+      imageUrls: normalizedImages,
+      attachmentUrls: normalizedAttachments,
+      links: normalizedLinks,
     });
   } catch (error) {
     throw mapApplicationsError(error, 'Görev teslim edilemedi.');

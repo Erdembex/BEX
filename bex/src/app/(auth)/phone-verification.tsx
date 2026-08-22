@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { AUTH_HOME_ROUTE } from '@/lib/authRouting';
 import { isAuthEmulatorActive } from '@/lib/firebase';
@@ -26,6 +18,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { Button } from '@/components/ui';
 import { useTranslation } from '@/i18n';
+import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
 
 const OTP_LENGTH = 6;
 
@@ -174,7 +167,7 @@ export default function PhoneVerificationScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.kav}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -344,7 +337,7 @@ export default function PhoneVerificationScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
@@ -419,7 +412,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   otpRow: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing[2] },
   otpBox: {
     flex: 1,
-    height: 58,
+    minHeight: 58,
     borderRadius: Radius.md,
     borderWidth: 1.5,
     borderColor: Colors.border,
@@ -427,6 +420,8 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     fontSize: 24,
     fontWeight: '700',
     color: Colors.textPrimary,
+    paddingVertical: textInputPaddingVertical,
+    ...readableTextInputStyle,
     textAlign: 'center',
   },
   otpBoxFilled: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },

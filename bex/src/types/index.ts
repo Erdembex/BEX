@@ -85,6 +85,7 @@ export interface Business {
   complaintRate?: number;
   averageRating?: number;
   feedbackCount?: number;
+  activeListingCount?: number;
   createdAt: Timestamp;
 }
 
@@ -161,6 +162,8 @@ export interface Application {
   portfolioUrl?: string;
   submissionText: string;
   submissionFiles: string[];
+  submissionAttachments?: string[];
+  submissionLinks?: string[];
   submittedAt?: Timestamp;
   reviewedAt?: Timestamp;
   reviewNote?: string;
@@ -175,7 +178,7 @@ export type CreateApplication = Pick<
 >;
 
 // ─── Kupon ───────────────────────────────────────────────────
-export type CouponStatus = 'active' | 'pending' | 'exhausted' | 'expired' | 'traded';
+export type CouponStatus = 'active' | 'pending' | 'exhausted' | 'expired' | 'traded' | 'locked';
 
 export interface CouponUsage {
   usedAt: Timestamp;
@@ -211,7 +214,8 @@ export type NotificationType =
   | 'general'
   | 'trade_offer_received'
   | 'trade_offer_accepted'
-  | 'trade_offer_rejected';
+  | 'trade_offer_rejected'
+  | 'trade_offer_message';
 
 export interface BexNotification {
   id: string;
@@ -267,6 +271,7 @@ export interface AuthFormData {
   phone?: string;
   city?: string;
   district?: string;
+  openAddress?: string;
 }
 
 // ─── Firestore koleksiyon isimleri ───────────────────────────

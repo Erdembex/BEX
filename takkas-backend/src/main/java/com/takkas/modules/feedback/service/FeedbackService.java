@@ -32,7 +32,7 @@ import java.util.UUID;
 public class FeedbackService {
 
     private static final EnumSet<ApplicationStatus> FEEDBACK_ELIGIBLE = EnumSet.of(
-        ApplicationStatus.SUBMISSION_APPROVED, ApplicationStatus.REWARDED);
+        ApplicationStatus.REWARDED);
 
     private final TaskFeedbackRepository feedbackRepo;
     private final ApplicationRepository applicationRepo;
@@ -131,7 +131,7 @@ public class FeedbackService {
         Application app = applicationRepo.findById(applicationId)
             .orElseThrow(() -> new ResourceNotFoundException("Başvuru bulunamadı."));
         if (!FEEDBACK_ELIGIBLE.contains(app.getStatus())) {
-            throw new BusinessRuleException("Geri bildirim yalnızca tamamlanan görevler için verilebilir.");
+            throw new BusinessRuleException("Geri bildirim yalnızca kupon verildikten sonra yapılabilir.");
         }
         return app;
     }

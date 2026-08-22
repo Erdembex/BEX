@@ -1,191 +1,226 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ActivityIndicator,
-  Platform,
-  FlatList,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { tasksRepository, EnrichedTask } from '@/features/data';
-import { SearchBar } from '@/components/tasks/SearchBar';
-import { TaskCard } from '@/components/tasks';
+import { useFocusEffect } from '@react-navigation/native';
+import { Screen } from '@/components/common/Screen';
+import { LocationFilter } from '@/components/common/LocationPicker';
 import { DiscoverMapView } from '@/components/map/DiscoverMapView';
-import type { MapPin } from '@/components/map/types';
-import { coordsForCity } from '@/lib/turkeyMapCoords';
-import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
+import { useAuthStore } from '@/store/authStore';
+import { resolveLocationFilter } from '@/lib/resolveLocationFilter';
+import { saveLocationFilter } from '@/lib/locationFilterStorage';
+import { formatFilterLocationLabel } from '@/lib/locationFilterUtils';
+import { buildInitialMapRegion, type MapCoordinate, type MapRegion } from '@/lib/mapRegionUtils';
+import { loadMapBusinessPins } from '@/features/map/mapBusinessService';
+import type { MapBusinessPin } from '@/components/map/types';
+import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
+import { BRAND_NAVY } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
-const isNative = Platform.OS === 'ios' || Platform.OS === 'android';
-
 export default function MapScreen() {
-  const { t } = useTranslation();
   const Colors = useThemeColors();
-  const styles = useMemo(() => createStyles(Colors), [Colors]);
-  const [mode, setMode] = useState<'map' | 'list'>(isNative ? 'map' : 'list');
-  const [search, setSearch] = useState('');
-  const [tasks, setTasks] = useState<EnrichedTask[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<MapPin | null>(null);
+  const styles = useStyles();
+  const { t } = useTranslation();
+  const { bexUser, isInitialized } = useAuthStore();
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const [city, setCity] = useState<string | null>(null);
+  const [district, setDistrict] = useState<string | null>(null);
+  const [filterReady, setFilterReady] = useState(false);
+  const [mapRegion, setMapRegion] = useState<MapRegion | null>(null);
+  const [pins, setPins] = useState<MapBusinessPin[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const fetchUserGeo = useCallback(async (selectedCity: string) => {
     try {
-      const { tasks: fetched } = await tasksRepository.getActive(50, null, {
-        q: search.trim() || undefined,
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return { location: null as MapCoordinate | null, city: null as string | null };
+      }
+
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
       });
-      setTasks(fetched);
+      const location = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+
+      let resolvedCity: string | null = selectedCity;
+      try {
+        const places = await Location.reverseGeocodeAsync(location);
+        const place = places[0];
+        resolvedCity = place?.city ?? place?.region ?? place?.subregion ?? selectedCity;
+      } catch {
+        resolvedCity = selectedCity;
+      }
+
+      return { location, city: resolvedCity };
     } catch {
-      setTasks([]);
+      return { location: null as MapCoordinate | null, city: null as string | null };
+    }
+  }, []);
+
+  const loadPins = useCallback(async () => {
+    if (!city?.trim()) {
+      setPins([]);
+      setMapRegion(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setLoadError(null);
+    const geo = await fetchUserGeo(city);
+    setMapRegion(buildInitialMapRegion(city, geo.location, geo.city ?? city));
+
+    try {
+      const loaded = await loadMapBusinessPins(city, district);
+      setPins(loaded);
+    } catch (err) {
+      setPins([]);
+      setLoadError(err instanceof Error ? err.message : t('map.loadFailed'));
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [city, district, fetchUserGeo, t]);
 
   useEffect(() => {
-    const timer = setTimeout(() => void load(), 300);
-    return () => clearTimeout(timer);
-  }, [load]);
+    if (!isInitialized) return;
+    let cancelled = false;
 
-  const pins = useMemo(() => {
-    const result: MapPin[] = [];
-    const seen = new Set<string>();
-    for (const task of tasks) {
-      const label = task.locationLabel ?? '';
-      const city = label.includes(',') ? label.split(',').pop()?.trim() : label.trim();
-      const coords = coordsForCity(city);
-      if (!coords) continue;
-      const key = `${task.businessId ?? task.id}-${city}`;
-      if (seen.has(key)) continue;
-      seen.add(key);
-      result.push({
-        id: key,
-        task,
-        latitude: coords.latitude + (Math.random() - 0.5) * 0.08,
-        longitude: coords.longitude + (Math.random() - 0.5) * 0.08,
-      });
-    }
-    return result;
-  }, [tasks]);
+    (async () => {
+      const resolved = await resolveLocationFilter(bexUser);
+      if (cancelled) return;
+      setCity(resolved.city);
+      setDistrict(resolved.district);
+      setFilterReady(true);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isInitialized, bexUser?.city, bexUser?.district]);
+
+  useEffect(() => {
+    if (!filterReady) return;
+    saveLocationFilter({ city, district });
+  }, [city, district, filterReady]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!filterReady) return;
+      loadPins();
+    }, [filterReady, loadPins])
+  );
+
+  const matchedCity = city?.trim() ?? '';
+  const locationLabel = formatFilterLocationLabel(city, district);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.back}>{t('common.back')}</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backText}>{t('common.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{t('map.title')}</Text>
-        {isNative ? (
-          <View style={styles.modeRow}>
-            {(['map', 'list'] as const).map((m) => (
-              <TouchableOpacity
-                key={m}
-                style={[styles.modeBtn, mode === m && styles.modeBtnActive]}
-                onPress={() => setMode(m)}
-              >
-                <Text style={[styles.modeText, mode === m && styles.modeTextActive]}>
-                  {m === 'map' ? t('map.mapView') : t('map.listView')}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : null}
-        <SearchBar
-          value={search}
-          onChangeText={setSearch}
-          placeholder={t('map.searchPlaceholder')}
-        />
-      </View>
-
-      {loading ? (
-        <ActivityIndicator color={Colors.primary} style={{ marginTop: Spacing[6] }} />
-      ) : mode === 'map' && isNative ? (
-        <View style={styles.mapWrap}>
-          <DiscoverMapView pins={pins} onSelectPin={setSelected} />
-          {selected ? (
-            <View style={styles.selectedCard}>
-              <TaskCard
-                task={selected.task}
-                onPress={() => router.push(`/task/${selected.task.id}`)}
-              />
-              <TouchableOpacity onPress={() => setSelected(null)} style={styles.closeSelected}>
-                <Text style={styles.closeSelectedText}>{t('common.close')}</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-          {!pins.length ? (
-            <View style={styles.emptyOverlay}>
-              <Text style={styles.empty}>{t('map.noResults')}</Text>
-            </View>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>{t('map.title')}</Text>
+          {matchedCity ? (
+            <Text style={styles.subtitle}>{t('map.cityScope', { city: locationLabel })}</Text>
           ) : null}
         </View>
-      ) : (
-        <FlatList
-          data={tasks}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          ListEmptyComponent={<Text style={styles.empty}>{t('map.noResults')}</Text>}
-          renderItem={({ item }) => (
-            <TaskCard task={item} onPress={() => router.push(`/task/${item.id}`)} />
-          )}
+      </View>
+
+      <View style={styles.filters}>
+        <LocationFilter
+          city={city}
+          district={district}
+          onCityChange={setCity}
+          onDistrictChange={setDistrict}
         />
-      )}
-    </SafeAreaView>
+        {loadError ? <Text style={styles.error}>{loadError}</Text> : null}
+        {matchedCity ? (
+          <Text style={styles.hint}>{t('map.panHint')}</Text>
+        ) : (
+          <Text style={styles.hint}>{t('map.selectCityHint')}</Text>
+        )}
+      </View>
+
+      <View style={styles.mapArea}>
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : !matchedCity ? (
+          <View style={styles.center}>
+            <Text style={styles.empty}>{t('map.selectCityHint')}</Text>
+          </View>
+        ) : mapRegion ? (
+          <DiscoverMapView
+            key={`${matchedCity}-${pins.length}`}
+            city={matchedCity}
+            initialRegion={mapRegion}
+            pins={pins}
+          />
+        ) : (
+          <View style={styles.center}>
+            <Text style={styles.empty}>{t('map.selectCityHint')}</Text>
+          </View>
+        )}
+      </View>
+
+      {matchedCity && !loading ? (
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>{t('map.businesses', { count: pins.length })}</Text>
+        </View>
+      ) : null}
+    </Screen>
   );
 }
 
-function createStyles(Colors: ReturnType<typeof useThemeColors>) {
-  return StyleSheet.create({
-    safe: { flex: 1, backgroundColor: Colors.background },
-    header: {
-      paddingHorizontal: Spacing[4],
-      paddingTop: Spacing[3],
-      gap: Spacing[3],
-    },
-    back: { ...Typography.labelMedium, color: Colors.primary },
-    title: { ...Typography.headingLarge, color: Colors.textPrimary },
-    modeRow: {
-      flexDirection: 'row',
-      gap: Spacing[2],
-    },
-    modeBtn: {
-      paddingHorizontal: Spacing[3],
-      paddingVertical: Spacing[2],
-      borderRadius: Radius.md,
-      backgroundColor: Colors.surfaceSecondary,
-    },
-    modeBtnActive: { backgroundColor: Colors.primaryLight },
-    modeText: { ...Typography.labelMedium, color: Colors.textMuted },
-    modeTextActive: { color: Colors.primary },
-    mapWrap: { flex: 1, marginTop: Spacing[2] },
-    selectedCard: {
-      position: 'absolute',
-      bottom: Spacing[4],
-      left: Spacing[4],
-      right: Spacing[4],
-      backgroundColor: Colors.card,
-      borderRadius: Radius.lg,
-      padding: Spacing[3],
-      borderWidth: 1,
-      borderColor: Colors.borderLight,
-    },
-    closeSelected: { alignSelf: 'flex-end', marginTop: Spacing[2] },
-    closeSelectedText: { ...Typography.labelMedium, color: Colors.primary },
-    emptyOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      alignItems: 'center',
-      justifyContent: 'center',
-      pointerEvents: 'none',
-    },
-    empty: {
-      ...Typography.bodyMedium,
-      color: Colors.textMuted,
-      textAlign: 'center',
-      padding: Spacing[6],
-    },
-    list: { padding: Spacing[4], gap: Spacing[3] },
-  });
-}
+const useStyles = createThemedStyles((Colors) => ({
+  safe: { flex: 1, backgroundColor: Colors.background },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[3],
+    paddingHorizontal: Spacing[5],
+    paddingTop: Spacing[2],
+    paddingBottom: Spacing[2],
+  },
+  backBtn: { paddingVertical: Spacing[1] },
+  backText: { ...Typography.labelMedium, color: Colors.primary, fontWeight: '700' },
+  headerText: { flex: 1, gap: 2 },
+  title: { ...Typography.headingSmall, color: Colors.textPrimary, fontWeight: '800' },
+  subtitle: { ...Typography.caption, color: Colors.textSecondary, fontWeight: '600' },
+  filters: {
+    paddingHorizontal: Spacing[5],
+    paddingBottom: Spacing[3],
+    gap: Spacing[2],
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderGold,
+  },
+  hint: { ...Typography.caption, color: Colors.textMuted, lineHeight: 18 },
+  mapArea: { flex: 1, minHeight: 360 },
+  error: { ...Typography.caption, color: Colors.error, marginTop: Spacing[1] },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing[5] },
+  empty: { ...Typography.bodyMedium, color: Colors.textSecondary, textAlign: 'center' },
+  footer: {
+    paddingHorizontal: Spacing[5],
+    paddingVertical: Spacing[3],
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderGold,
+    backgroundColor: Colors.surface,
+  },
+  footerText: {
+    ...Typography.labelMedium,
+    color: BRAND_NAVY,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+}));

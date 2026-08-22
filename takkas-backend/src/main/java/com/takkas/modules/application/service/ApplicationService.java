@@ -14,6 +14,7 @@ import com.takkas.modules.subscription.service.FeatureGateService;
 import com.takkas.modules.user.domain.IndividualProfile;
 import com.takkas.modules.user.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import java.util.UUID;
 @Service
 @Transactional
 @RequiredArgsConstructor
+@Slf4j
 public class ApplicationService {
 
     private final ApplicationRepository applicationRepository;
@@ -89,13 +91,31 @@ public class ApplicationService {
             .orElseThrow(() -> new ResourceNotFoundException("Başvuru bulunamadı."));
         if (!app.isOwnedBy(individualId))
             throw new ForbiddenException("Bu başvuruya erişim yetkiniz yok.");
-        app.submitWork(req.description(), normalizeImageUrls(req.imageUrls()));
 
-        UUID businessUserId = userRepository.findUserIdByBusinessProfileId(app.getBusinessId());
-        eventPublisher.publish(new ApplicationSubmissionSubmittedEvent(
-            app.getId(), businessUserId, app.getIndividual().getId()));
+        List<String> imageUrls = normalizeUploadPaths(req.imageUrls());
+        List<String> attachmentUrls = normalizeUploadPaths(req.attachmentUrls());
+        List<String> links = normalizeLinks(req.links());
+
+        if (imageUrls.isEmpty() && attachmentUrls.isEmpty() && links.isEmpty()) {
+            throw new BusinessRuleException("En az bir kanıt (fotoğraf, dosya veya bağlantı) gerekli.");
+        }
+
+        app.submitWork(req.description(), imageUrls, attachmentUrls, links);
+        applicationRepository.save(app);
+
+        publishSubmissionSubmittedEvent(app);
 
         return ApplicationMapper.toResponse(app);
+    }
+
+    private void publishSubmissionSubmittedEvent(Application app) {
+        try {
+            UUID businessUserId = userRepository.findUserIdByBusinessProfileId(app.getBusinessId());
+            eventPublisher.publish(new ApplicationSubmissionSubmittedEvent(
+                app.getId(), businessUserId, app.getIndividual().getId()));
+        } catch (Exception ex) {
+            log.warn("Submission notification skipped applicationId={}: {}", app.getId(), ex.getMessage());
+        }
     }
 
     public ApplicationResponse approveSubmission(UUID applicationId, String reviewNote) {
@@ -139,11 +159,26 @@ public class ApplicationService {
         return app;
     }
 
-    private List<String> normalizeImageUrls(List<String> urls) {
+    private List<String> normalizeUploadPaths(List<String> urls) {
         if (urls == null) return List.of();
         return urls.stream()
             .map(this::normalizeUploadPath)
             .filter(path -> !path.isBlank())
+            .toList();
+    }
+
+    private List<String> normalizeLinks(List<String> links) {
+        if (links == null) return List.of();
+        return links.stream()
+            .map(link -> link != null ? link.trim() : "")
+            .filter(link -> !link.isBlank())
+            .map(link -> {
+                if (!link.matches("(?i)^https?://\\S+$")) {
+                    throw new BusinessRuleException("Geçersiz bağlantı: " + link);
+                }
+                return link;
+            })
+            .distinct()
             .toList();
     }
 

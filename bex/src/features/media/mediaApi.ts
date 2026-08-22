@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { getApiErrorMessage } from '@/lib/api';
 import { API_BASE_URL } from '@/lib/api/config';
 import { getAccessToken } from '@/lib/auth/tokenStorage';
@@ -9,6 +10,8 @@ type UploadResponseDto = {
   urls?: string[];
   message?: string;
   error?: string;
+  code?: string;
+  fields?: Record<string, string>;
 };
 
 function mapUploadError(error: unknown, fallback: string): Error {
@@ -19,7 +22,16 @@ function mapUploadError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-function appendUploadFile(formData: FormData, field: string, file: LocalUploadFile) {
+async function appendUploadFile(formData: FormData, field: string, file: LocalUploadFile) {
+  if (Platform.OS === 'web') {
+    const response = await fetch(file.uri);
+    const blob = await response.blob();
+    const type = file.mimeType || blob.type || 'image/jpeg';
+    const webFile = new File([blob], file.name, { type });
+    formData.append(field, webFile);
+    return;
+  }
+
   formData.append(field, {
     uri: file.uri,
     name: file.name,
@@ -30,10 +42,10 @@ function appendUploadFile(formData: FormData, field: string, file: LocalUploadFi
 /** RN/Expo: axios multipart bazen boş gider; fetch ile yükle. */
 async function postMultipart(
   path: string,
-  buildFormData: (formData: FormData) => void
+  buildFormData: (formData: FormData) => Promise<void>
 ): Promise<UploadResponseDto> {
   const formData = new FormData();
-  buildFormData(formData);
+  await buildFormData(formData);
 
   const token = await getAccessToken();
   const url = `${API_BASE_URL.replace(/\/$/, '')}${path}`;
@@ -60,10 +72,19 @@ async function postMultipart(
   }
 
   if (!response.ok) {
+    const fieldMessages =
+      data.fields && typeof data.fields === 'object'
+        ? Object.values(data.fields).filter(Boolean)
+        : [];
     const msg =
       data.message ||
       data.error ||
-      (response.status >= 500 ? 'Sunucu hatası. Biraz sonra tekrar dene.' : 'Fotoğraflar yüklenemedi.');
+      (fieldMessages.length > 0 ? fieldMessages.join(' ') : null) ||
+      (response.status === 413
+        ? 'Dosya boyutu en fazla 25 MB olabilir.'
+        : response.status >= 500
+          ? 'Sunucu hatası. Biraz sonra tekrar dene.'
+          : 'Fotoğraflar yüklenemedi.');
     throw new Error(msg);
   }
 
@@ -81,9 +102,9 @@ export async function uploadMediaFiles(
     audience === 'business' ? '/api/business/uploads' : '/api/individual/uploads';
 
   try {
-    const data = await postMultipart(path, (formData) => {
+    const data = await postMultipart(path, async (formData) => {
       for (const file of files) {
-        appendUploadFile(formData, 'files', file);
+        await appendUploadFile(formData, 'files', file);
       }
     });
     const urls = Array.isArray(data.urls) ? data.urls : [];
@@ -100,13 +121,33 @@ export async function usesMediaRestUpload(): Promise<boolean> {
   return hasRestAuthSession();
 }
 
+/** POST /api/individual/uploads/submission — PDF, DOC, ZIP vb. */
+export async function uploadSubmissionDocuments(files: LocalUploadFile[]): Promise<string[]> {
+  if (files.length === 0) return [];
+
+  try {
+    const data = await postMultipart('/api/individual/uploads/submission', async (formData) => {
+      for (const file of files) {
+        await appendUploadFile(formData, 'files', file);
+      }
+    });
+    const urls = Array.isArray(data.urls) ? data.urls : [];
+    if (urls.length === 0) {
+      throw new Error('Sunucu dosya URL\'si döndürmedi.');
+    }
+    return urls;
+  } catch (error) {
+    throw mapUploadError(error, 'Dosyalar yüklenemedi.');
+  }
+}
+
 /** POST /api/individual/uploads/cv — PDF CV */
 export async function uploadCvFile(localUri: string, fileName: string): Promise<string> {
   const normalizedName = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
 
   try {
-    const data = await postMultipart('/api/individual/uploads/cv', (formData) => {
-      appendUploadFile(formData, 'file', {
+    const data = await postMultipart('/api/individual/uploads/cv', async (formData) => {
+      await appendUploadFile(formData, 'file', {
         uri: localUri,
         name: normalizedName,
         mimeType: 'application/pdf',

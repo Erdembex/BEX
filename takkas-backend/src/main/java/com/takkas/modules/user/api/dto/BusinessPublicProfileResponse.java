@@ -11,6 +11,7 @@ public record BusinessPublicProfileResponse(
     BusinessCategory category,
     String city,
     String district,
+    String openAddress,
     boolean verified,
     boolean complaintListed,
     double averageRating,
@@ -18,4 +19,5 @@ public record BusinessPublicProfileResponse(
     long completedTaskCount,
     long approvedComplaintCount,
     double complaintRate,
+    long activeListingCount,
     boolean isDangerous) {}

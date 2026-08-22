@@ -38,6 +38,7 @@ function mapCouponDto(dto: CouponDto): Coupon {
     usedCount = totalUses;
   } else if (statusRaw === 'EXPIRED') status = 'expired';
   else if (statusRaw === 'SWAPPED') status = 'traded';
+  else if (statusRaw === 'LOCKED_FOR_SWAP') status = 'locked';
   else if (dto.usedAt) usedCount = totalUses;
 
   return {
@@ -84,7 +85,7 @@ function mapCouponsError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
-export type RestCouponStatus = 'ACTIVE' | 'USED' | 'SWAPPED' | 'EXPIRED' | 'DRAFT';
+export type RestCouponStatus = 'ACTIVE' | 'LOCKED_FOR_SWAP' | 'USED' | 'SWAPPED' | 'EXPIRED' | 'DRAFT';
 
 /** Backend kuponları — GET /api/individual/coupons (status yoksa tümü) */
 export async function fetchRestCoupons(status?: RestCouponStatus): Promise<Coupon[]> {
@@ -160,7 +161,7 @@ export async function fetchCouponQrToken(couponId: string): Promise<string | nul
   }
 }
 
-export type CouponVerifyResult = 'SUCCESS' | 'ALREADY_USED' | 'EXPIRED';
+export type CouponVerifyResult = 'SUCCESS' | 'ALREADY_USED' | 'EXPIRED' | 'LOCKED_FOR_SWAP';
 
 export type CouponVerifyOutcome = {
   result: CouponVerifyResult;
@@ -192,7 +193,9 @@ export async function verifyCouponByToken(qrToken: string): Promise<CouponVerify
       'Kupon';
     const resultRaw = data.result?.toUpperCase();
     const result: CouponVerifyResult =
-      resultRaw === 'ALREADY_USED' || resultRaw === 'EXPIRED' ? resultRaw : 'SUCCESS';
+      resultRaw === 'ALREADY_USED' || resultRaw === 'EXPIRED' || resultRaw === 'LOCKED_FOR_SWAP'
+        ? resultRaw
+        : 'SUCCESS';
     return {
       result,
       couponId: String(data.couponId ?? ''),

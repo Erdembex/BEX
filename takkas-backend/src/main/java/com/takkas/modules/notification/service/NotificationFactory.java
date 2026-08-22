@@ -91,15 +91,24 @@ public class NotificationFactory {
             "Kuponun Sona Eriyor ⏰", rewardDesc + " kuponunun süresi " + daysLeft + " gün sonra doluyor.");
     }
 
-    public Notification swapOfferReceived(UUID ownerUserId, UUID swapListingId,
+    public Notification swapOfferReceived(UUID ownerUserId, UUID swapOfferId,
                                            String offererName, String offeredReward) {
-        return build(ownerUserId, NotificationType.SWAP_OFFER_RECEIVED, swapListingId, "SWAP",
+        return build(ownerUserId, NotificationType.SWAP_OFFER_RECEIVED, swapOfferId, "SWAP",
             "Takas Teklifi Geldi", offererName + " " + offeredReward + " karşılığında takas teklifi gönderdi.");
     }
 
-    public Notification swapOfferRejected(UUID offererUserId, UUID swapListingId, String ownerName) {
-        return build(offererUserId, NotificationType.SWAP_OFFER_REJECTED, swapListingId, "SWAP",
+    public Notification swapOfferRejected(UUID offererUserId, UUID swapOfferId, String ownerName) {
+        return build(offererUserId, NotificationType.SWAP_OFFER_REJECTED, swapOfferId, "SWAP",
             "Takas Teklifi Reddedildi", ownerName + " bu sefer takas teklifini kabul etmedi.");
+    }
+
+    public Notification swapOfferChatMessage(UUID recipientUserId, UUID swapOfferId,
+                                              String senderName, String preview) {
+        String body = preview != null && preview.length() > 120
+            ? preview.substring(0, 117) + "..."
+            : preview;
+        return build(recipientUserId, NotificationType.SWAP_OFFER_MESSAGE, swapOfferId, "SWAP",
+            "Takas sohbeti — " + senderName, body != null ? body : "Yeni mesaj");
     }
 
     public Notification swapCompleted(UUID userId, UUID swapTradeId,

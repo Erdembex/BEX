@@ -24,10 +24,19 @@ public class SmtpMailService implements MailService {
     }
 
     @Override
-    public void sendVerificationEmail(String to, String token) {
-        String link = baseUrl + "/api/auth/verify-email?token=" + token;
-        deliver(to, "BEX — E-posta doğrulama", "Doğrulama bağlantın:\n" + link);
-        log.info("[MailService] Doğrulama e-postası: to={} link={}", to, link);
+    public boolean sendVerificationEmail(String to, String token) {
+        String body = """
+            Passla hesabını doğrulamak için kodun:
+
+            %s
+
+            Bu kod 24 saat geçerlidir. Uygulamada "E-posta Doğrulama" ekranına kodu girerek kaydını tamamlayabilirsin.
+
+            Bu isteği sen yapmadıysan bu e-postayı yok say.
+            """.formatted(token);
+        boolean sent = deliver(to, "Passla — E-posta doğrulama kodu", body);
+        log.info("[MailService] Doğrulama kodu: to={} token={} sent={}", to, token, sent);
+        return sent;
     }
 
     @Override

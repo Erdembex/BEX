@@ -41,6 +41,9 @@ function mapNotification(dto: NotificationDto, userId: string): BexNotification 
       data.taskId = String(dto.referenceId);
     } else if (refType.includes('COUPON')) {
       data.couponId = String(dto.referenceId);
+    } else if (refType.includes('SWAP')) {
+      data.offerId = String(dto.referenceId);
+      data.referenceId = String(dto.referenceId);
     } else {
       data.referenceId = String(dto.referenceId);
     }

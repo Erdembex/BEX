@@ -5,6 +5,7 @@ export { useThemeColors, useIsDarkMode } from './useThemeColors';
 export { createThemedStyles } from './createThemedStyles';
 export { Typography, FontFamily, FontSize } from './typography';
 export { Spacing, Radius, Shadow } from './spacing';
+export { useThemeShadow } from './shadows';
 export { theme, getTheme } from './restyle';
 export type { Theme } from './restyle';
 export type { ThemeMode } from '@/store/themeStore';

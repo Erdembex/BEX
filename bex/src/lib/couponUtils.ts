@@ -105,7 +105,8 @@ export function isCouponExpired(coupon: Coupon): boolean {
 
 export function getCouponDisplayStatus(
   coupon: Coupon
-): 'active' | 'pending' | 'exhausted' | 'expired' | 'traded' {
+): 'active' | 'pending' | 'exhausted' | 'expired' | 'traded' | 'locked' {
+  if (coupon.status === 'locked') return 'locked';
   if (coupon.status === 'pending') return 'pending';
   if (coupon.status === 'traded') return 'traded';
   if (coupon.status === 'exhausted') return 'exhausted';
@@ -125,6 +126,7 @@ export function isCouponExpiringSoon(coupon: Coupon): boolean {
 export const COUPON_STATUS_LABELS = {
   active: 'Aktif',
   pending: 'Aktivasyon bekliyor',
+  locked: 'Takasta kilitli',
   exhausted: 'Tükendi',
   expired: 'Süresi doldu',
   traded: 'Takas edildi',
@@ -136,6 +138,7 @@ export function useCouponStatusLabels() {
     () => ({
       active: t('coupon.statusActive'),
       pending: t('coupon.statusPending'),
+      locked: t('coupon.statusLocked'),
       exhausted: t('coupon.statusExhausted'),
       expired: t('coupon.statusExpired'),
       traded: t('coupon.statusTraded'),

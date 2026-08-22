@@ -1,30 +1,43 @@
 import React from 'react';
-import { View, Image, Text, StyleSheet, ImageStyle } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from '@/i18n';
-import { Typography, useThemeColors } from '@/theme';
+import { FontFamily, Typography, useThemeColors } from '@/theme';
+
 interface PasslaLogoProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   showTagline?: boolean;
+  centered?: boolean;
 }
 
-const WIDTH = { sm: 140, md: 200, lg: 260 } as const;
-const ASPECT = 1.05;
+const FONT_SIZE = { xs: 17, sm: 20, md: 26, lg: 34 } as const;
+const LETTER_SPACING = { xs: 2, sm: 2.5, md: 3, lg: 3.5 } as const;
 
-export function PasslaLogo({ size = 'md', showTagline = false }: PasslaLogoProps) {
+export function PasslaLogo({ size = 'md', showTagline = false, centered = false }: PasslaLogoProps) {
   const { t } = useTranslation();
   const Colors = useThemeColors();
-  const width = WIDTH[size];
+
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('../../../assets/branding/passla-logo.png')}
-        style={[styles.logo, { width, height: width * ASPECT }] as ImageStyle[]}
-        resizeMode="contain"
+    <View style={[styles.container, centered && styles.containerCentered]}>
+      <Text
+        style={[
+          styles.wordmark,
+          {
+            fontSize: FONT_SIZE[size],
+            letterSpacing: LETTER_SPACING[size],
+            color: Colors.textPrimary,
+          },
+        ]}
+        accessibilityRole="header"
         accessibilityLabel="Passla"
-      />
+      >
+        PASSLA
+      </Text>
       {showTagline ? (
-        <Text style={[styles.tagline, { color: Colors.textMuted }]}>{t('passlaLogo.tagline')}</Text>
-      ) : null}    </View>
+        <Text style={[styles.tagline, centered && styles.taglineCentered, { color: Colors.textMuted }]}>
+          {t('passlaLogo.tagline')}
+        </Text>
+      ) : null}
+    </View>
   );
 }
 
@@ -33,14 +46,25 @@ export const BexLogo = PasslaLogo;
 
 const styles = StyleSheet.create({
   container: {
-    alignItems: 'center',
-    gap: 8,
+    alignItems: 'flex-start',
+    gap: 6,
   },
-  logo: {
-    maxWidth: '100%',
+  containerCentered: {
+    alignItems: 'center',
+  },
+  wordmark: {
+    fontFamily: FontFamily.extraBold,
+    textTransform: 'uppercase',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    lineHeight: undefined,
   },
   tagline: {
     ...Typography.bodySmall,
     letterSpacing: 0.2,
+    textAlign: 'left',
+  },
+  taglineCentered: {
     textAlign: 'center',
-  },});
+  },
+});

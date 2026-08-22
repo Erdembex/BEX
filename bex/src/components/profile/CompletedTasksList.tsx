@@ -1,12 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  SafeAreaView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { CompletedTask } from '@/types';
 import { formatShortDate } from '@/lib/dateUtils';
 import { COMPLETED_TASKS_PREVIEW_LIMIT } from '@/features/portfolio/profileLimits';
@@ -59,7 +53,7 @@ export function CompletedTasksModal({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.modalSafe}>
+      <Screen style={styles.modalSafe}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>{t('completedTasksList.modalTitle', { count: total })}</Text>
           <TouchableOpacity onPress={onClose}>
@@ -73,7 +67,7 @@ export function CompletedTasksModal({
             <Text style={styles.emptyText}>{t('completedTasksList.empty')}</Text>
           )}
         </ScrollView>
-      </SafeAreaView>
+      </Screen>
     </Modal>
   );
 }

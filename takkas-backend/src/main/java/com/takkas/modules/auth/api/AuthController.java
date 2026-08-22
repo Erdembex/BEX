@@ -26,16 +26,17 @@ public class AuthController {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordService passwordService;
     private final PhoneVerificationService phoneVerificationService;
+    private final EmailVerificationService emailVerificationService;
 
     @PostMapping("/register/business")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse registerBusiness(@Valid @RequestBody BusinessRegisterRequest req) {
+    public RegisterPendingResponse registerBusiness(@Valid @RequestBody BusinessRegisterRequest req) {
         return registerService.registerBusiness(req);
     }
 
     @PostMapping("/register/individual")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse registerIndividual(@Valid @RequestBody IndividualRegisterRequest req) {
+    public RegisterPendingResponse registerIndividual(@Valid @RequestBody IndividualRegisterRequest req) {
         return registerService.registerIndividual(req);
     }
 
@@ -98,5 +99,20 @@ public class AuthController {
     public void verifyPhoneCode(@CurrentUser UserPrincipal principal,
                                 @Valid @RequestBody VerifyPhoneCodeRequest req) {
         phoneVerificationService.verifyCode(principal.userId(), req);
+    }
+
+    @PostMapping("/verify-email")
+    public AuthResponse verifyEmail(@Valid @RequestBody VerifyEmailRequest req) {
+        return emailVerificationService.verifyEmail(req);
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<ResendVerificationResponse> resendVerification(
+            @Valid @RequestBody ResendVerificationRequest req) {
+        Optional<String> devCode = emailVerificationService.resendVerification(req);
+        if (devCode.isPresent()) {
+            return ResponseEntity.ok(new ResendVerificationResponse(devCode.get()));
+        }
+        return ResponseEntity.noContent().build();
     }
 }

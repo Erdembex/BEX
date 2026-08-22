@@ -76,21 +76,21 @@ export function ApplicationCard({
           {application.submissionText || application.coverLetter}
         </Text>
       </TouchableOpacity>
-      {application.status === 'pending' && (onViewProfile || onOpenChat) ? (
+      {application.status === 'pending' ? (
         <View style={styles.quickActions}>
+          <TouchableOpacity style={[styles.quickBtn, styles.quickBtnDecision]} onPress={onPress}>
+            <Text style={[styles.quickBtnText, styles.quickBtnTextDecision]}>
+              {t('applicationCard.reviewApplication')}
+            </Text>
+          </TouchableOpacity>
           {onViewProfile ? (
             <TouchableOpacity style={styles.quickBtn} onPress={onViewProfile}>
               <Text style={styles.quickBtnText}>{t('applicationCard.viewProfile')}</Text>
             </TouchableOpacity>
           ) : null}
           {onOpenChat ? (
-            <TouchableOpacity
-              style={[styles.quickBtn, styles.quickBtnPrimary]}
-              onPress={onOpenChat}
-            >
-              <Text style={[styles.quickBtnText, styles.quickBtnTextPrimary]}>
-                {t('applicationCard.message')}
-              </Text>
+            <TouchableOpacity style={styles.quickBtn} onPress={onOpenChat}>
+              <Text style={styles.quickBtnText}>{t('applicationCard.message')}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -180,6 +180,10 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     backgroundColor: Colors.primaryLight,
     borderColor: Colors.primary,
   },
+  quickBtnDecision: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
   quickBtnText: {
     ...Typography.caption,
     color: Colors.primary,
@@ -187,5 +191,8 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   quickBtnTextPrimary: {
     color: Colors.primaryDark,
+  },
+  quickBtnTextDecision: {
+    color: Colors.textOnPrimary,
   },
 }));

@@ -1,13 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  ActivityIndicator,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
@@ -31,6 +24,7 @@ const DIFFICULTIES: (TaskDifficulty | null)[] = [null, 'easy', 'medium', 'hard']
 export default function TasksScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const difficultyLabels = useDifficultyLabels();
   const DIFF_LABELS: Record<string, string> = {
@@ -183,111 +177,129 @@ export default function TasksScreen() {
 
   const displayed = filterTasks(tasks);
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <AppHeader title={t('tasksScreen.title')} />
-      <View style={styles.header}>
-        <Text style={styles.subtitle}>{t('tasksScreen.subtitle')}</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={() => router.push('/map' as Href)} style={styles.toolBtn}>
-            <Ionicons name="map-outline" size={18} color={Colors.primary} />
-            <Text style={styles.toolBtnText}>{t('map.title')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.push('/leaderboard' as Href)}
-            style={styles.toolBtn}
-          >
-            <Ionicons name="trophy-outline" size={18} color={Colors.primary} />
-            <Text style={styles.toolBtnText}>{t('leaderboard.title')}</Text>
-          </TouchableOpacity>
+  const listHeader = useMemo(
+    () => (
+      <View style={styles.listHeader}>
+        <View style={styles.header}>
+          <Text style={styles.subtitle}>{t('tasksScreen.subtitle')}</Text>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              onPress={() => router.push('/leaderboard' as Href)}
+              style={styles.toolBtn}
+            >
+              <Ionicons name="trophy-outline" size={18} color={Colors.primary} />
+              <Text style={styles.toolBtnText}>{t('leaderboard.title')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.filters}>
+          <SearchBar
+            value={search}
+            onChangeText={(v) => {
+              setSearch(v);
+              if (v.trim()) setRewardPreset(null);
+            }}
+            placeholder={t('rewardFilter.placeholder')}
+          />
+          {restListings ? (
+            <RewardFilterChips
+              active={rewardPreset}
+              onSelect={(preset) => {
+                setRewardPreset(preset);
+                if (preset) setSearch('');
+              }}
+            />
+          ) : null}
+          <LocationFilter
+            city={city}
+            district={district}
+            onCityChange={setCity}
+            onDistrictChange={setDistrict}
+          />
+          <CategoryFilter selected={category} onSelect={setCategory} />
+          {!restListings ? (
+            <View style={styles.diffRow}>
+              {DIFFICULTIES.map((d) => {
+                const key = d ?? 'all';
+                const active = difficulty === d;
+                return (
+                  <Text
+                    key={key}
+                    style={[styles.diffChip, active && styles.diffChipActive]}
+                    onPress={() => setDifficulty(d)}
+                  >
+                    {DIFF_LABELS[key]}
+                  </Text>
+                );
+              })}
+            </View>
+          ) : null}
         </View>
       </View>
+    ),
+    [
+      Colors.primary,
+      DIFF_LABELS,
+      category,
+      city,
+      difficulty,
+      district,
+      restListings,
+      rewardPreset,
+      search,
+      styles,
+      t,
+    ]
+  );
 
-      <View style={styles.filters}>
-        <SearchBar
-          value={search}
-          onChangeText={(v) => {
-            setSearch(v);
-            if (v.trim()) setRewardPreset(null);
-          }}
-          placeholder={t('rewardFilter.placeholder')}
-        />
-        {restListings ? (
-          <RewardFilterChips
-            active={rewardPreset}
-            onSelect={(preset) => {
-              setRewardPreset(preset);
-              if (preset) setSearch('');
-            }}
+  return (
+    <TabScreen style={styles.safe}>
+      <AppHeader title={t('tasksScreen.title')} />
+      <FlatList
+        style={styles.listContainer}
+        data={displayed}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
+        }
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.3}
+        ListHeaderComponent={listHeader}
+        ListFooterComponent={
+          loadingMore ? <ActivityIndicator color={Colors.primary} style={{ padding: 16 }} /> : null
+        }
+        ListEmptyComponent={
+          loading ? (
+            <TaskListSkeleton count={5} />
+          ) : loadError ? (
+            <Text style={[styles.emptyState, styles.emptyError]}>{loadError}</Text>
+          ) : (
+            <Text style={styles.emptyState}>{t('tasksScreen.noResults')}</Text>
+          )
+        }
+        renderItem={({ item }) => (
+          <TaskCard
+            task={item}
+            businessName={item.businessName}
+            businessVerified={item.businessVerified}
+            businessIsDangerous={item.businessIsDangerous}
+            compact
+            onPress={() => router.push(`/task/${item.id}`)}
           />
-        ) : null}
-        <LocationFilter
-          city={city}
-          district={district}
-          onCityChange={setCity}
-          onDistrictChange={setDistrict}
-        />
-        <CategoryFilter selected={category} onSelect={setCategory} />
-        {!restListings ? (
-          <View style={styles.diffRow}>
-            {DIFFICULTIES.map((d) => {
-              const key = d ?? 'all';
-              const active = difficulty === d;
-              return (
-                <Text
-                  key={key}
-                  style={[styles.diffChip, active && styles.diffChipActive]}
-                  onPress={() => setDifficulty(d)}
-                >
-                  {DIFF_LABELS[key]}
-                </Text>
-              );
-            })}
-          </View>
-        ) : null}
-      </View>
-
-      {loading ? (
-        <TaskListSkeleton count={5} />
-      ) : (
-        <FlatList
-          data={displayed}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
-          }
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.3}
-          ListFooterComponent={
-            loadingMore ? <ActivityIndicator color={Colors.primary} style={{ padding: 16 }} /> : null
-          }
-          ListEmptyComponent={
-            loadError ? (
-              <Text style={styles.error}>{loadError}</Text>
-            ) : (
-              <Text style={styles.empty}>{t('tasksScreen.noResults')}</Text>
-            )
-          }
-          renderItem={({ item }) => (
-            <TaskCard
-              task={item}
-              businessName={item.businessName}
-              businessVerified={item.businessVerified}
-              businessIsDangerous={item.businessIsDangerous}
-              compact
-              onPress={() => router.push(`/task/${item.id}`)}
-            />
-          )}
-        />
-      )}
-    </SafeAreaView>
+        )}
+      />
+    </TabScreen>
   );
 }
 
 const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
+  listContainer: { flex: 1 },
+  listHeader: { gap: 0 },
   header: { paddingHorizontal: Spacing[5], paddingTop: Spacing[1], paddingBottom: Spacing[2], gap: Spacing[3] },
   subtitle: { ...Typography.bodySmall, color: Colors.textSecondary },
   headerActions: { flexDirection: 'row', gap: Spacing[2] },
@@ -319,7 +331,13 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     color: Colors.textOnPrimary,
     fontWeight: '700',
   },
-  list: { paddingHorizontal: Spacing[5], gap: Spacing[4], paddingBottom: Spacing[10] },
-  empty: { ...Typography.bodyMedium, color: Colors.textTertiary, textAlign: 'center', marginTop: 40 },
-  error: { ...Typography.bodyMedium, color: Colors.error, textAlign: 'center', marginTop: 40, lineHeight: 22 },
+  list: { paddingHorizontal: Spacing[5], gap: Spacing[4], flexGrow: 1 },
+  emptyState: {
+    ...Typography.bodyMedium,
+    color: Colors.textTertiary,
+    textAlign: 'center',
+    marginTop: 40,
+    lineHeight: 22,
+  },
+  emptyError: { color: Colors.error },
 }));

@@ -1,14 +1,7 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-} from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
 import { useBusiness } from '@/features/business/useBusiness';
@@ -75,6 +68,26 @@ export default function CreateTaskScreen() {
   const [limitInfo, setLimitInfo] = useState<ListingLimitInfo | null>(null);
   const [limitLoading, setLimitLoading] = useState(true);
   const submitLock = useRef(false);
+
+  const resetCreateForm = useCallback(() => {
+    setStep(0);
+    setForm(initialForm);
+    setSubmitted(false);
+    setLoading(false);
+    setError('');
+    submitLock.current = false;
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      resetCreateForm();
+      if (!business?.id) return;
+      setLimitLoading(true);
+      void getListingLimitInfo(business.id)
+        .then(setLimitInfo)
+        .finally(() => setLimitLoading(false));
+    }, [business?.id, resetCreateForm])
+  );
 
   useEffect(() => {
     if (businessLoading) return;
@@ -179,9 +192,8 @@ export default function CreateTaskScreen() {
       };
 
       await tasksRepository.createAndPublish(business.id, data);
-      setSubmitted(true);
-      setLoading(false);
       showToast(t('createTaskScreen.createSuccessToast'));
+      resetCreateForm();
       navigateAfterCreate();
     } catch (err: unknown) {
       submitLock.current = false;
@@ -201,7 +213,7 @@ export default function CreateTaskScreen() {
 
   if (limitLoading || businessLoading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.topBar}>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.back}>{t('common.back')}</Text>
@@ -212,14 +224,14 @@ export default function CreateTaskScreen() {
         <View style={styles.limitBlockWrap}>
           <ActivityIndicator size="large" color={Colors.primary} />
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (limitInfo && !limitInfo.canCreate) {
     const maxLabel = Number.isFinite(limitInfo.max) ? limitInfo.max : '∞';
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.topBar}>
           <TouchableOpacity onPress={() => router.back()}>
             <Text style={styles.back}>{t('common.back')}</Text>
@@ -249,12 +261,12 @@ export default function CreateTaskScreen() {
             style={styles.limitBlockBtn}
           />
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -437,7 +449,7 @@ export default function CreateTaskScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

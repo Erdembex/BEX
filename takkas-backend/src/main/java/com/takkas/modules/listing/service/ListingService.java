@@ -33,6 +33,8 @@ public class ListingService {
         BusinessProfile business = businessProfileRepository.findById(businessId)
             .orElseThrow(() -> new ResourceNotFoundException("İşletme bulunamadı."));
 
+        requireOpenAddress(business);
+
         Listing listing = Listing.builder()
             .business(business).title(req.title())
             .description(req.description()).weeklyHours(req.weeklyHours())
@@ -96,5 +98,13 @@ public class ListingService {
         if (!l.getBusiness().getId().equals(businessId))
             throw new ForbiddenException("Bu ilana erişim yetkiniz yok.");
         return l;
+    }
+
+    private void requireOpenAddress(BusinessProfile business) {
+        String address = business.getOpenAddress();
+        if (address == null || address.trim().length() < 10) {
+            throw new BusinessRuleException(
+                "Görev yayınlamak için işletme açık adresini profilinden eklemelisin.");
+        }
     }
 }

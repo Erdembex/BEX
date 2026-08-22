@@ -10,6 +10,7 @@ public record UpdateBusinessProfileRequest(
     @NotNull BusinessCategory category,
     @NotBlank String city,
     @NotBlank String district,
+    @Size(min = 10, max = 500) String openAddress,
     String phone,
     String logoUrl,
     @Size(max = 1000) String bio

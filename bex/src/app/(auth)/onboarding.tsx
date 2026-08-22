@@ -1,13 +1,6 @@
 import React, { useRef, useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  Dimensions,
-  TouchableOpacity,
-  SafeAreaView,
-  ViewToken,
-} from 'react-native';
+import { View, Text, FlatList, Dimensions, TouchableOpacity, ViewToken } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { Button } from '@/components/ui';
@@ -80,7 +73,7 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.container}>
         {/* Skip butonu */}
         {!isLast && (
@@ -167,7 +160,7 @@ export default function OnboardingScreen() {
           </View>
         </View>
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

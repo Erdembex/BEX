@@ -1,5 +1,6 @@
 import React from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams } from 'expo-router';
 import { BackHeader } from '@/components/navigation/BackHeader';
 import { ComplaintSubmitForm } from '@/components/complaint/ComplaintSubmitForm';
@@ -19,7 +20,7 @@ export default function ComplaintSubmitScreen() {
   const { showToast } = useToast();
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <BackHeader title={t('complaintSubmitScreen.businessTitle')} />
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -39,7 +40,7 @@ export default function ComplaintSubmitScreen() {
           }}
         />
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

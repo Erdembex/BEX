@@ -40,6 +40,7 @@ app:
   dev:
     expose-password-reset-token: true
     expose-phone-code: true
+    expose-email-verification-code: true
   subscription:
     # Yerel testte ücretsiz plan 2 görevle sınırlı; geliştirmede gevşetilir
     max-active-listings-override: 10

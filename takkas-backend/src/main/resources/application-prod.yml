@@ -1,6 +1,10 @@
 # Production profile — activate with SPRING_PROFILES_ACTIVE=prod
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 60MB
   mail:
     host: ${SPRING_MAIL_HOST:}
     port: ${SPRING_MAIL_PORT:587}
@@ -26,6 +30,7 @@ app:
   dev:
     expose-password-reset-token: false
     expose-phone-code: false
+    expose-email-verification-code: false
 
 springdoc:
   api-docs:

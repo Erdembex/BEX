@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppHeader } from '@/components/navigation/AppHeader';
@@ -26,6 +20,7 @@ import { useTranslation } from '@/i18n';
 export default function ComplaintBexScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const COMPLAINT_REASON_LABELS = useComplaintReasonLabels();
   const [publicItems, setPublicItems] = useState<PublicComplaintDto[]>([]);
@@ -54,10 +49,10 @@ export default function ComplaintBexScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <AppHeader title={t('complaintsScreen.title')} />
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
@@ -115,13 +110,13 @@ export default function ComplaintBexScreen() {
           </>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </TabScreen>
   );
 }
 
 const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing[5], gap: Spacing[4], paddingBottom: Spacing[10] },
+  scroll: { padding: Spacing[5], gap: Spacing[4] },
   lead: { ...Typography.bodyMedium, color: Colors.textMuted, lineHeight: 22 },
   sectionTitle: { ...Typography.labelLarge, color: Colors.textPrimary, marginTop: Spacing[2] },
   empty: { ...Typography.bodySmall, color: Colors.textMuted },

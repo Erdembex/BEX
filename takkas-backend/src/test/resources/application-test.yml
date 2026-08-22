@@ -20,6 +20,8 @@ app:
     email: admin@bex.dev
     password: Admin123!
     sync-password-on-startup: false
+  dev:
+    expose-email-verification-code: true
 
 stripe:
   secret-key: sk_test_placeholder

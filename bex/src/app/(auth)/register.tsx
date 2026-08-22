@@ -1,17 +1,10 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
-import { AUTH_HOME_ROUTE } from '@/lib/authRouting';
+import { clearTokens } from '@/lib/auth/tokenStorage';
 import { UserRole } from '@/types';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { Button, Input, PasslaLogo } from '@/components/ui';
@@ -36,7 +29,7 @@ export default function RegisterScreen() {
       emoji: '🏢',
     },
   ];
-  const { setBexUser, setFirebaseUser } = useAuthStore();
+  const { signOut } = useAuthStore();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,6 +37,7 @@ export default function RegisterScreen() {
   const [role, setRole] = useState<UserRole>('user');
   const [city, setCity] = useState('İstanbul');
   const [district, setDistrict] = useState('Kadıköy');
+  const [openAddress, setOpenAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -68,6 +62,9 @@ export default function RegisterScreen() {
     if (!district.trim()) {
       newErrors.location = t('registerScreen.errorDistrict');
     }
+    if (role === 'business' && openAddress.trim().length < 10) {
+      newErrors.openAddress = t('registerScreen.errorOpenAddress');
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -80,23 +77,28 @@ export default function RegisterScreen() {
     setErrors({});
 
     try {
-      const { user } = await authService.register({
+      await clearTokens();
+      signOut();
+
+      const result = await authService.register({
         email: email.trim(),
         password,
         displayName: displayName.trim(),
         role,
         city,
         district,
+        ...(role === 'business' ? { openAddress: openAddress.trim() } : {}),
       });
 
-      const profile = await authService.getUserDocument(user.uid, {
-        email: user.email ?? email.trim(),
-        displayName: user.displayName ?? displayName.trim(),
+      router.replace({
+        pathname: '/(auth)/email-verification',
+        params: {
+          email: result.email,
+          ...(__DEV__ && result.devVerificationCode
+            ? { devCode: result.devVerificationCode }
+            : {}),
+        },
       });
-      setFirebaseUser(user);
-      setBexUser(profile);
-
-      router.replace(AUTH_HOME_ROUTE);
     } catch (err: any) {
       const code: string = err?.code ?? '';
       const message = err?.message || getAuthErrorMessage(code);
@@ -108,6 +110,8 @@ export default function RegisterScreen() {
         setErrors({ password: message });
       } else if (code === 'auth/invalid-email') {
         setErrors({ email: message });
+      } else if (code === 'invalid-open-address') {
+        setErrors({ openAddress: message });
       } else {
         setErrors({ general: message });
       }
@@ -117,7 +121,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.kav}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -134,7 +138,7 @@ export default function RegisterScreen() {
 
           {/* Başlık */}
           <View style={styles.header}>
-            <PasslaLogo size="sm" />
+            <PasslaLogo size="sm" centered />
             <Text style={styles.title}>{t('registerScreen.title')}</Text>
             <Text style={styles.subtitle}>
               {t('registerScreen.subtitle')}
@@ -186,6 +190,18 @@ export default function RegisterScreen() {
             <Text style={styles.locationNote}>
               {t('registerScreen.locationNote')}
             </Text>
+          ) : null}
+
+          {role === 'business' ? (
+            <Input
+              label={t('registerScreen.openAddressLabel')}
+              placeholder={t('registerScreen.openAddressPlaceholder')}
+              value={openAddress}
+              onChangeText={setOpenAddress}
+              error={errors.openAddress}
+              multiline
+              hint={t('registerScreen.openAddressHint')}
+            />
           ) : null}
 
           {/* Form */}
@@ -267,7 +283,7 @@ export default function RegisterScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

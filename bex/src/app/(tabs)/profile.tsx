@@ -1,10 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-} from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
@@ -23,6 +19,7 @@ import { useTranslation } from '@/i18n';
 export default function ProfileScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const { bexUser, firebaseUser, setBexUser, signOut } = useAuthStore();
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
@@ -79,9 +76,9 @@ export default function ProfileScreen() {
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <AppHeader title={t('profileScreen.title')} />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
         <AccountSettings
           bexUser={bexUser}
           onUserUpdated={setBexUser}
@@ -126,7 +123,7 @@ export default function ProfileScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </TabScreen>
   );
 }
 
@@ -135,7 +132,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   scroll: {
     padding: Spacing[5],
     paddingTop: Spacing[2],
-    paddingBottom: Spacing[10],
     alignItems: 'center',
     gap: Spacing[4],
   },

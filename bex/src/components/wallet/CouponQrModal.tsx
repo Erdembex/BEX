@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
+import { Modal, View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import QRCode from 'react-native-qrcode-svg';
 import { Coupon } from '@/types';
 import {
@@ -60,6 +53,7 @@ export function CouponQrModal({
     setQrLoading(false);
     setUseRestMode(false);
     if (!visible || !coupon) return;
+    if (getCouponDisplayStatus(coupon) === 'locked') return;
 
     (async () => {
       const rest = (await hasRestAuthSession()) && isBackendCouponId(coupon.id);
@@ -102,6 +96,8 @@ export function CouponQrModal({
 
   const displayStatus = getCouponDisplayStatus(coupon);
   const isActive = displayStatus === 'active';
+  const isLocked = displayStatus === 'locked';
+  const canShowQr = isActive && !isLocked;
   const demoQrValue = encodeCouponQr(coupon);
   const qrValue = useRestMode ? restQrToken : demoQrValue;
   const remaining = getCouponRemainingUses(coupon);
@@ -109,7 +105,7 @@ export function CouponQrModal({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose}>
             <Text style={styles.close}>{t('couponQrModal.back')}</Text>
@@ -160,7 +156,7 @@ export function CouponQrModal({
             </View>
           </View>
 
-          {isActive ? (
+          {canShowQr ? (
             <View style={styles.qrSection}>
               <Text style={styles.qrTitle}>{t('couponQrModal.verificationCode')}</Text>
               {qrLoading ? (
@@ -195,7 +191,9 @@ export function CouponQrModal({
           ) : (
             <View style={styles.qrMuted}>
               <Text style={styles.qrMutedText}>
-                {displayStatus === 'pending'
+                {isLocked
+                  ? t('couponQrModal.lockedForSwap')
+                  : displayStatus === 'pending'
                   ? t('couponQrModal.pendingActivation')
                   : displayStatus === 'exhausted'
                     ? t('couponQrModal.exhausted')
@@ -210,7 +208,7 @@ export function CouponQrModal({
             <Text style={styles.doneText}>{t('couponQrModal.close')}</Text>
           </TouchableOpacity>
         </ScrollView>
-      </SafeAreaView>
+      </Screen>
     </Modal>
   );
 }

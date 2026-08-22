@@ -1,62 +1,66 @@
 import type { ColorKey } from './colors';
 
-/** Açık mod — yüksek kontrast, okunabilir metin */
+/**
+ * Açık mod — Passla marka paleti
+ * Krem zemin · Safir metin/CTA · Lila vurgu yüzeyleri · Altın ödül · Buz mavi bilgi
+ */
 export const LightColors: Record<ColorKey, string> = {
-  primary: '#A6883F',
-  primaryLight: 'rgba(166, 136, 63, 0.12)',
-  primaryDark: '#7A6228',
-  secondary: '#6B5094',
-  accent: '#7358A0',
-  accentLight: 'rgba(115, 88, 160, 0.1)',
-  accentDark: '#553F78',
+  primary: '#051F45',
+  primaryLight: '#F2E5FF',
+  primaryDark: '#031528',
 
-  moneyGreen: '#2F7A4F',
-  moneyGreenDark: '#1F5738',
-  moneyGreenLight: 'rgba(47, 122, 79, 0.1)',
+  secondary: '#2E5A8A',
+  accent: '#D4B86A',
+  accentLight: 'rgba(212, 184, 106, 0.16)',
+  accentDark: '#8A7024',
 
-  business: '#6B5094',
-  businessLight: 'rgba(107, 80, 148, 0.1)',
-  businessDark: '#553F78',
+  moneyGreen: '#2D6B4A',
+  moneyGreenDark: '#1F4D35',
+  moneyGreenLight: 'rgba(45, 107, 74, 0.1)',
 
-  background: '#F5F0FA',
+  business: '#3D6A94',
+  businessLight: 'rgba(168, 199, 232, 0.28)',
+  businessDark: '#2A5070',
+
+  background: '#F0EEE9',
   surface: '#FFFFFF',
-  surfaceSecondary: '#EBE3F5',
+  surfaceSecondary: '#FAF8F5',
   card: '#FFFFFF',
 
-  text: '#1A1224',
-  textPrimary: '#1A1224',
-  textMuted: '#5C5068',
-  textSecondary: '#3D3349',
-  textTertiary: '#6E627E',
-  textInverse: '#FFFFFF',
-  textOnPrimary: '#FFFFFF',
-  textOnGold: '#1A1224',
+  text: '#031528',
+  textPrimary: '#031528',
+  textMuted: '#5A6572',
+  textSecondary: '#2A4568',
+  textTertiary: '#7A8490',
+  textInverse: '#F0EEE9',
+  textOnPrimary: '#F0EEE9',
+  textOnGold: '#031528',
 
-  border: '#CFC3DE',
-  borderLight: '#E2DAED',
-  borderFocus: '#A6883F',
-  borderGold: 'rgba(166, 136, 63, 0.45)',
+  border: '#DDD8CF',
+  borderLight: '#EBE6DE',
+  borderFocus: '#051F45',
+  borderGold: 'rgba(212, 184, 106, 0.38)',
 
-  success: '#2F7A4F',
-  successLight: 'rgba(47, 122, 79, 0.1)',
+  success: '#2D6B4A',
+  successLight: 'rgba(45, 107, 74, 0.1)',
   error: '#B53A45',
   errorLight: 'rgba(181, 58, 69, 0.08)',
-  warning: '#9A6B1F',
-  warningLight: 'rgba(154, 107, 31, 0.1)',
-  info: '#6B5094',
-  infoLight: 'rgba(107, 80, 148, 0.08)',
+  warning: '#8A7024',
+  warningLight: 'rgba(212, 184, 106, 0.16)',
+  info: '#4A6FA5',
+  infoLight: 'rgba(168, 199, 232, 0.24)',
 
-  difficultyEasy: '#2F7A4F',
-  difficultyMedium: '#9A6B1F',
+  difficultyEasy: '#2D6B4A',
+  difficultyMedium: '#8A7024',
   difficultyHard: '#B53A45',
 
-  overlay: 'rgba(26, 18, 36, 0.45)',
-  overlayLight: 'rgba(107, 80, 148, 0.06)',
+  overlay: 'rgba(3, 21, 40, 0.5)',
+  overlayLight: 'rgba(242, 229, 255, 0.45)',
 
   transparent: 'transparent',
   white: '#FFFFFF',
 
-  gradientBlue: '#5A4678',
-  gradientGold: '#A6883F',
-  gradientMid: '#7358A0',
+  gradientBlue: '#F2E5FF',
+  gradientGold: '#D4B86A',
+  gradientMid: '#F0EEE9',
 };

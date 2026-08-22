@@ -13,5 +13,6 @@ public record BusinessRegisterRequest(
     @NotNull BusinessCategory category,
     @NotBlank String city,
     @NotBlank String district,
+    @NotBlank @Size(min = 10, max = 500) String openAddress,
     String phone
 ) {}

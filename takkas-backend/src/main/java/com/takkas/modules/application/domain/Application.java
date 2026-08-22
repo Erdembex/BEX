@@ -62,6 +62,22 @@ public class Application {
     @Builder.Default
     private List<String> submissionImageUrls = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(
+        name = "application_submission_attachments",
+        joinColumns = @JoinColumn(name = "application_id"))
+    @Column(name = "attachment_url", length = 2048)
+    @Builder.Default
+    private List<String> submissionAttachmentUrls = new ArrayList<>();
+
+    @ElementCollection
+    @CollectionTable(
+        name = "application_submission_links",
+        joinColumns = @JoinColumn(name = "application_id"))
+    @Column(name = "link_url", length = 2048)
+    @Builder.Default
+    private List<String> submissionLinks = new ArrayList<>();
+
     private Instant submittedAt;
     private String reviewNote;
     private Instant reviewedAt;
@@ -73,6 +89,9 @@ public class Application {
     }
 
     public void accept() {
+        if (status == ApplicationStatus.PENDING) {
+            status = ApplicationStatus.UNDER_REVIEW;
+        }
         if (status != ApplicationStatus.UNDER_REVIEW)
             throw new BusinessRuleException("Sadece incelemede olan başvurular kabul edilebilir.");
         status = ApplicationStatus.ACCEPTED;
@@ -90,21 +109,32 @@ public class Application {
         status = ApplicationStatus.WITHDRAWN;
     }
 
-    public void submitWork(String text, List<String> imageUrls) {
+    public void submitWork(String text, List<String> imageUrls,
+                           List<String> attachmentUrls, List<String> links) {
         if (status != ApplicationStatus.ACCEPTED)
             throw new BusinessRuleException("Teslim yalnızca onaylanmış başvurular için yapılabilir.");
         if (text == null || text.isBlank())
             throw new BusinessRuleException("Teslim açıklaması gerekli.");
         if (text.length() < 10)
             throw new BusinessRuleException("Teslim açıklaması en az 10 karakter olmalı.");
-        if (imageUrls == null || imageUrls.isEmpty())
-            throw new BusinessRuleException("En az bir kanıt fotoğrafı gerekli.");
-        if (imageUrls.size() > 5)
+
+        List<String> images = imageUrls != null ? imageUrls : List.of();
+        List<String> attachments = attachmentUrls != null ? attachmentUrls : List.of();
+        List<String> linkList = links != null ? links : List.of();
+
+        if (images.isEmpty() && attachments.isEmpty() && linkList.isEmpty())
+            throw new BusinessRuleException("En az bir kanıt (fotoğraf, dosya veya bağlantı) gerekli.");
+        if (images.size() > 5)
             throw new BusinessRuleException("En fazla 5 fotoğraf yüklenebilir.");
+        if (attachments.size() > 5)
+            throw new BusinessRuleException("En fazla 5 dosya yüklenebilir.");
+        if (linkList.size() > 5)
+            throw new BusinessRuleException("En fazla 5 bağlantı eklenebilir.");
 
         submissionText = text.trim();
-        submissionImageUrls.clear();
-        submissionImageUrls.addAll(imageUrls);
+        submissionImageUrls = new ArrayList<>(images);
+        submissionAttachmentUrls = new ArrayList<>(attachments);
+        submissionLinks = new ArrayList<>(linkList);
         submittedAt = Instant.now();
         status = ApplicationStatus.SUBMITTED;
     }

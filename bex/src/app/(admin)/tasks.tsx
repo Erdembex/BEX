@@ -1,13 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { adminRepository } from '@/features/admin';
@@ -80,7 +73,7 @@ export default function AdminTasksScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}
@@ -138,7 +131,7 @@ export default function AdminTasksScreen() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

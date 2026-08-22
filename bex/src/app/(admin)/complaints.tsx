@@ -1,12 +1,7 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl } from 'react-native';
+import { confirmDialog } from '@/lib/confirmDialog';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Button, Input } from '@/components/ui';
@@ -61,33 +56,32 @@ export default function AdminComplaintsScreen() {
     setLoadingId(null);
   };
 
-  const handleReject = (item: ComplaintModerationDto) => {
-    Alert.alert(t('adminComplaintsScreen.rejectTitle'), t('adminComplaintsScreen.rejectBody'), [
-      { text: t('adminComplaintsScreen.dismiss'), style: 'cancel' },
-      {
-        text: t('adminComplaintsScreen.reject'),
-        style: 'destructive',
-        onPress: async () => {
-          setLoadingId(item.id);
-          try {
-            await rejectComplaintAdmin(
-              item.id,
-              item.targetType,
-              notes[item.id]?.trim() || t('adminComplaintsScreen.defaultRejectReason')
-            );
-            showToast(t('adminComplaintsScreen.rejectedToast'));
-            await load();
-          } catch {
-            showToast(t('adminComplaintsScreen.rejectFailedToast'));
-          }
-          setLoadingId(null);
-        },
-      },
-    ]);
+  const handleReject = async (item: ComplaintModerationDto) => {
+    const confirmed = await confirmDialog(
+      t('adminComplaintsScreen.rejectTitle'),
+      t('adminComplaintsScreen.rejectBody'),
+      t('adminComplaintsScreen.reject'),
+      t('adminComplaintsScreen.dismiss')
+    );
+    if (!confirmed) return;
+
+    setLoadingId(item.id);
+    try {
+      await rejectComplaintAdmin(
+        item.id,
+        item.targetType,
+        notes[item.id]?.trim() || t('adminComplaintsScreen.defaultRejectReason')
+      );
+      showToast(t('adminComplaintsScreen.rejectedToast'));
+      await load();
+    } catch {
+      showToast(t('adminComplaintsScreen.rejectFailedToast'));
+    }
+    setLoadingId(null);
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
@@ -144,7 +138,7 @@ export default function AdminComplaintsScreen() {
           </View>
         )}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

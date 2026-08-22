@@ -1,16 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { Modal, View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -52,7 +42,7 @@ export function LocationSelectorModal({
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <KeyboardAvoidingView
           style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -102,7 +92,7 @@ export function LocationSelectorModal({
             }}
           />
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </Screen>
     </Modal>
   );
 }

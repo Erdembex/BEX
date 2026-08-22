@@ -61,7 +61,12 @@ export async function executeTradeSwap(
   if (!offerCoupon || offerCoupon.userId !== offer.fromUserId) {
     throw Object.assign(new Error(t('tradeCouponSwap.invalidOfferCoupon')), { code: 'invalid-offer-coupon' });
   }
-  if (listingCoupon.status !== 'active' || offerCoupon.status !== 'active') {
+  if (listingCoupon.status !== 'active' && listingCoupon.status !== 'locked') {
+    throw Object.assign(new Error(t('tradeCouponSwap.couponsMustBeActive')), {
+      code: 'coupon-not-active',
+    });
+  }
+  if (offerCoupon.status !== 'active' && offerCoupon.status !== 'locked') {
     throw Object.assign(new Error(t('tradeCouponSwap.couponsMustBeActive')), {
       code: 'coupon-not-active',
     });

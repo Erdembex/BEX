@@ -40,6 +40,7 @@ import { uploadLocalFiles } from '@/lib/storageUpload';
 import { normalizeUploadPath } from '@/lib/mediaUrl';
 import { useToast } from '@/components/common/Toast';
 import { formatRelativeTime } from '@/lib/dateUtils';
+import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -132,7 +133,14 @@ export function ChatThreadView({
 
   useEffect(() => {
     const unsubscribe = messagesRepository.subscribe(applicationId, (list) => {
-      setMessages(list);
+      setMessages((prev) => {
+        const merged = new Map<string, ApplicationMessage>();
+        for (const msg of prev) merged.set(msg.id, msg);
+        for (const msg of list) merged.set(msg.id, msg);
+        return Array.from(merged.values()).sort(
+          (a, b) => a.createdAt.toMillis() - b.createdAt.toMillis()
+        );
+      });
       setLoading(false);
     });
     return unsubscribe;
@@ -230,15 +238,15 @@ export function ChatThreadView({
     setSending(true);
     setSendError(null);
     try {
-      const message = await messagesRepository.send(
+      await messagesRepository.send(
         applicationId,
         currentUserId,
         currentUserRole,
         text
       );
-      setMessages((prev) => [...prev, message]);
       setText('');
       isNearBottomRef.current = true;
+      await refreshMessages();
       scrollToEnd(true);
     } catch (err: unknown) {
       setSendError(err instanceof Error ? err.message : t('chatThreadView.messageSendFailed'));
@@ -296,18 +304,18 @@ export function ChatThreadView({
       if (!mediaUrl) throw new Error(t('chatThreadView.imageUploadFailed'));
 
       const caption = text.trim() || undefined;
-      const message = await messagesRepository.sendImage(
+      await messagesRepository.sendImage(
         applicationId,
         currentUserId,
         currentUserRole,
         mediaUrl,
         caption
       );
-      setMessages((prev) => [...prev, message]);
       setPendingImage(null);
       setText('');
       isNearBottomRef.current = true;
       showToast(t('chatThreadView.imageSentToast'));
+      await refreshMessages();
       scrollToEnd(true);
     } catch (err: unknown) {
       setSendError(err instanceof Error ? err.message : t('chatThreadView.imageSendFailed'));
@@ -717,9 +725,11 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderWidth: 1,
     borderColor: Colors.border,
     paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3],
-    ...Typography.bodyMedium,
+    paddingVertical: textInputPaddingVertical,
+    fontFamily: Typography.bodyMedium.fontFamily,
+    fontSize: Typography.bodyMedium.fontSize,
     color: Colors.textPrimary,
+    ...readableTextInputStyle,
   },
   sendBtn: {
     width: 44,

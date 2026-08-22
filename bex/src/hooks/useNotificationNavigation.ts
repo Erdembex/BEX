@@ -4,6 +4,7 @@ import { Timestamp } from 'firebase/firestore';
 import { useAuthStore } from '@/store/authStore';
 import { openNotificationTarget } from '@/features/notifications/notificationNavigation';
 import { mapBackendNotificationType } from '@/features/notifications/notificationTypes';
+import { refreshPendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
 import { BexNotification } from '@/types';
 function buildNotificationFromPushData(
   data: Record<string, unknown>,
@@ -48,8 +49,14 @@ export function useNotificationNavigation(onReceived?: () => void) {
   useEffect(() => {
     if (!firebaseUser) return;
 
-    const receivedSub = Notifications.addNotificationReceivedListener(() => {
+    const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
       onReceived?.();
+      const rawType = notification.request.content.data?.type;
+      const type =
+        typeof rawType === 'string' ? mapBackendNotificationType(rawType) : '';
+      if (type === 'coupon_issued') {
+        refreshPendingFeedbackGate();
+      }
     });
 
     const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {

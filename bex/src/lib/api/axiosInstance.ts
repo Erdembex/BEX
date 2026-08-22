@@ -69,7 +69,7 @@ export function getApiErrorMessage(error: unknown, fallback = 'İstek başarıs�
         if (parts.length) return parts.join(' ');
       }
       if (data.code === 'INTERNAL_ERROR') {
-        return 'Sunucu hatası. Backend yeniden başlatılıp tekrar denensin.';
+        return data.message || 'Sunucu hatası. Backend yeniden başlatılıp tekrar denensin.';
       }
       if (data.message) return data.message;
       if (data.error) return data.error;

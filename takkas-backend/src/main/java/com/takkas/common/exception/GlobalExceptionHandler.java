@@ -9,6 +9,10 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+
+import jakarta.persistence.PersistenceException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -65,6 +69,27 @@ public class GlobalExceptionHandler {
         });
         return ResponseEntity.badRequest()
             .body(new ValidationErrorResponse("VALIDATION_ERROR", errors));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        log.warn("Upload size exceeded: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("UPLOAD_ERROR", "Dosya boyutu en fazla 25 MB olabilir."));
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ErrorResponse> handleMultipart(MultipartException ex) {
+        log.warn("Multipart upload failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("UPLOAD_ERROR", "Dosya yüklenemedi. Format ve boyutu kontrol edip tekrar dene."));
+    }
+
+    @ExceptionHandler(PersistenceException.class)
+    public ResponseEntity<ErrorResponse> handlePersistence(PersistenceException ex) {
+        log.error("Persistence failure", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new ErrorResponse("DATABASE_ERROR", "Kayıt sırasında veritabanı hatası oluştu."));
     }
 
     @ExceptionHandler(Exception.class)

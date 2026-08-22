@@ -32,6 +32,10 @@ public class BusinessProfile {
 
     private String city;
     private String district;
+
+    @Column(columnDefinition = "TEXT")
+    private String openAddress;
+
     private String phone;
     private String logoUrl;
 

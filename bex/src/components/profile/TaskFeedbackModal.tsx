@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  SafeAreaView,
-  TouchableOpacity,
-  ScrollView,
-  BackHandler,
-} from 'react-native';
+import { View, Text, Modal, TouchableOpacity, ScrollView, BackHandler } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { Button, Input } from '@/components/ui';
 import { StarRatingInput } from '@/components/profile/StarRating';
 import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
@@ -101,7 +94,7 @@ export function TaskFeedbackModal({
       animationType="slide"
       onRequestClose={required ? () => {} : handleClose}
     >
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           {!required ? (
             <TouchableOpacity onPress={handleClose}>
@@ -152,7 +145,7 @@ export function TaskFeedbackModal({
             </>
           )}
         </ScrollView>
-      </SafeAreaView>
+      </Screen>
     </Modal>
   );
 }

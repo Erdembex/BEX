@@ -5,15 +5,15 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "scheme": "passla",
     "description": "Görev yap, ödül kazan, kupon takas et. Passla ile işletmelerden görev al, tamamla ve değerini aktar.",
-    "primaryColor": "#D4B86A",
-    "backgroundColor": "#18122B",
+    "primaryColor": "#051F45",
+    "backgroundColor": "#F0EEE9",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#18122B"
+      "backgroundColor": "#F0EEE9"
     },
     "ios": {
       "supportsTablet": false,
@@ -27,9 +27,10 @@
       }
     },
     "android": {
-      "versionCode": 1,
+      "versionCode": 2,
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "backgroundColor": "#18122B",
+        "backgroundColor": "#051f45",
         "foregroundImage": "./assets/icon.png"
       },
       "package": "com.passla.app",
@@ -52,12 +53,21 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "backgroundColor": "#F0EEE9"
+        }
+      ],
       "expo-font",
       [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#D4B86A"
+          "color": "#F2E5FF"
         }
       ],
       [

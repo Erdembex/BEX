@@ -18,6 +18,7 @@ export function RewardFilterChips({ active, onSelect }: Props) {
   return (
     <ScrollView
       horizontal
+      nestedScrollEnabled
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
     >

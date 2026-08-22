@@ -1,17 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   TouchableOpacity,
   ActivityIndicator,
   ViewStyle,
   TextStyle,
   View,
+  StyleSheet,
 } from 'react-native';
-import { createBox } from '@shopify/restyle';
 import { Theme } from '@/theme/restyle';
-import { Shadow, useThemeColors } from '@/theme';
+import { Radius, Spacing, Typography, useThemeColors, useThemeShadow } from '@/theme';
+import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { Text } from './Text';
-
-const Box = createBox<Theme>();
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
@@ -35,42 +34,17 @@ const SIZE_HEIGHT: Record<Size, number> = {
   lg: 56,
 };
 
+const NAVY_VARIANTS = new Set<Variant>(['primary', 'secondary', 'outline']);
+
 type TextVariant = Exclude<keyof Theme['textVariants'], 'defaults'>;
 
 const TEXT_VARIANT: Record<Variant, TextVariant> = {
   primary: 'buttonPrimary',
-  secondary: 'buttonSecondary',
-  outline: 'buttonOutline',
+  secondary: 'buttonPrimary',
+  outline: 'buttonPrimary',
   ghost: 'buttonOutline',
   danger: 'buttonDanger',
 };
-
-const LOADER_COLOR: Record<Variant, (colors: ReturnType<typeof useThemeColors>) => string> = {
-  primary: (c) => c.textOnPrimary,
-  secondary: (c) => c.white,
-  outline: (c) => c.primary,
-  ghost: (c) => c.primary,
-  danger: (c) => c.textOnPrimary,
-};
-
-function getBoxProps(variant: Variant) {
-  switch (variant) {
-    case 'primary':
-      return { backgroundColor: 'primary' as const };
-    case 'secondary':
-      return { backgroundColor: 'secondary' as const };
-    case 'outline':
-      return {
-        backgroundColor: 'transparent' as const,
-        borderWidth: 1.5,
-        borderColor: 'border' as const,
-      };
-    case 'ghost':
-      return { backgroundColor: 'transparent' as const };
-    case 'danger':
-      return { backgroundColor: 'error' as const };
-  }
-}
 
 export function Button({
   title,
@@ -85,7 +59,48 @@ export function Button({
   leftIcon,
 }: ButtonProps) {
   const Colors = useThemeColors();
+  const Shadow = useThemeShadow();
   const isDisabled = disabled || loading;
+  const isNavy = NAVY_VARIANTS.has(variant);
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        box: {
+          borderRadius: Radius.lg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'row',
+          paddingHorizontal: Spacing[5],
+          height: SIZE_HEIGHT[size],
+          opacity: isDisabled ? 0.45 : 1,
+          width: fullWidth ? '100%' : undefined,
+          backgroundColor: isNavy
+            ? BRAND_NAVY
+            : variant === 'danger'
+              ? Colors.error
+              : 'transparent',
+          borderWidth: isNavy ? 1 : variant === 'ghost' ? 0 : variant === 'danger' ? 0 : 0,
+          borderColor: isNavy ? Colors.borderGold : 'transparent',
+        },
+        label: {
+          ...(isNavy || variant === 'danger'
+            ? Typography.labelLarge
+            : Typography.labelLarge),
+          fontWeight: '700',
+          color:
+            isNavy || variant === 'danger'
+              ? variant === 'danger'
+                ? Colors.textOnPrimary
+                : BRAND_NAVY_TEXT
+              : Colors.primary,
+        },
+      }),
+    [Colors, isDisabled, isNavy, size, variant, fullWidth]
+  );
+
+  const loaderColor =
+    isNavy || variant === 'danger' ? BRAND_NAVY_TEXT : Colors.primary;
 
   return (
     <TouchableOpacity
@@ -94,32 +109,22 @@ export function Button({
       activeOpacity={0.82}
       style={[
         fullWidth && { width: '100%' },
-        variant === 'primary' && !isDisabled && Shadow.primary,
+        isNavy && !isDisabled && Shadow.primary,
         style,
       ]}
     >
-      <Box
-        borderRadius="lg"
-        alignItems="center"
-        justifyContent="center"
-        flexDirection="row"
-        paddingHorizontal="lg"
-        height={SIZE_HEIGHT[size]}
-        opacity={isDisabled ? 0.45 : 1}
-        width={fullWidth ? '100%' : undefined}
-        {...getBoxProps(variant)}
-      >
+      <View style={styles.box}>
         {loading ? (
-          <ActivityIndicator color={LOADER_COLOR[variant](Colors)} size="small" />
+          <ActivityIndicator color={loaderColor} size="small" />
         ) : (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {leftIcon}
-            <Text variant={TEXT_VARIANT[variant]} style={textStyle}>
+            <Text variant={TEXT_VARIANT[variant]} style={[styles.label, textStyle]}>
               {title}
             </Text>
           </View>
         )}
-      </Box>
+      </View>
     </TouchableOpacity>
   );
 }

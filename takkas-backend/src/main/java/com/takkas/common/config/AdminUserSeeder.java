@@ -59,6 +59,7 @@ public class AdminUserSeeder implements ApplicationRunner {
                     .passwordHash(passwordEncoder.encode(adminPassword))
                     .userType(UserType.ADMIN)
                     .status(UserStatus.ACTIVE)
+                    .emailVerified(true)
                     .build());
                 log.info("[AdminUserSeeder] Admin kullanıcı oluşturuldu: {}", adminEmail);
             }

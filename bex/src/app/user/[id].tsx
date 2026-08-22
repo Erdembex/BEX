@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-  Text,
-} from 'react-native';
+import { View, ScrollView, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { usersRepository } from '@/features/data';
@@ -78,7 +72,7 @@ export default function PublicUserProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>{t('userProfileScreen.back')}</Text>
@@ -103,7 +97,7 @@ export default function PublicUserProfileScreen() {
           complaintRate={complaintRate}
         />
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

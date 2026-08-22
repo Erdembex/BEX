@@ -26,6 +26,10 @@ public class CouponVerifyService {
             log.warn("[CouponVerifyService] Yetkisiz doğrulama: token={}", qrToken);
             throw new ForbiddenException("Bu kupon işletmenize ait değil.");
         }
+        if (coupon.getStatus() == CouponStatus.LOCKED_FOR_SWAP)
+            return new CouponVerifyResponse(CouponVerifyResponse.VerifyResult.LOCKED_FOR_SWAP,
+                coupon.getId(), coupon.getRewardType(), coupon.getQuantity(),
+                coupon.getUnit(), coupon.getDescription(), null);
         if (coupon.getStatus() == CouponStatus.USED)
             return new CouponVerifyResponse(CouponVerifyResponse.VerifyResult.ALREADY_USED,
                 coupon.getId(), coupon.getRewardType(), coupon.getQuantity(),

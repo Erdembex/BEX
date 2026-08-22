@@ -6,10 +6,14 @@ import type { ColorKey } from '@/theme/colors';
 import { getTheme } from '@/theme/restyle';
 import { useThemeColors } from '@/theme';
 import { useThemeStore } from '@/store/themeStore';
+import type { TextStyle, ViewStyle } from 'react-native';
 
 /** Takas & cüzdan — aktif uygulama temasına göre üretilir */
 export function getTradeTheme(palette: Record<ColorKey, string>) {
   const base = getTheme(palette);
+  /** Koyu modda primary çok açık (#F2E5FF) — CTA için altın, metin için koyu ton */
+  const isDark = palette.textOnPrimary === '#031528';
+
   return createTheme({
     ...base,
     colors: {
@@ -17,11 +21,30 @@ export function getTradeTheme(palette: Record<ColorKey, string>) {
       tradePrimary: palette.primary,
       tradePrimaryDark: palette.primaryDark,
       tradePrimaryLight: palette.primaryLight,
-      tradePrimaryBorder: palette.border,
+      tradePrimaryBorder: palette.borderGold,
+      tradePrimaryText: palette.textOnPrimary,
+      tradeCta: isDark ? palette.accent : palette.primary,
+      tradeCtaText: isDark ? palette.textOnGold : palette.textOnPrimary,
+      tradeHighlight: isDark ? palette.accent : palette.secondary,
       tradeAccent: palette.accent,
       tradeAccentLight: palette.accentLight,
       tradeAccentBorder: palette.borderGold,
       tradeMoneyGreen: palette.moneyGreen,
+      /** Modal / panel zemin — koyu modda bir ton daha açık */
+      tradePanel: isDark ? palette.card : palette.surface,
+      /** Kupon kartları — arka plandan ayrışır */
+      tradeCard: isDark ? palette.surfaceSecondary : palette.surfaceSecondary,
+      tradeCardSelected: isDark ? 'rgba(212, 184, 106, 0.24)' : palette.accentLight,
+      tradeCardSelectedBorder: palette.accent,
+      /** İkincil metin — textMuted yerine daha okunaklı */
+      tradeMuted: palette.textSecondary,
+      /** Form alanları — krem zemin + koyu metin */
+      tradeInputBg: isDark ? '#F5F3EE' : palette.surface,
+      tradeInputText: isDark ? palette.textInverse : palette.text,
+      tradeInputBorder: isDark ? '#B8C9DC' : palette.border,
+      /** Bilgi kutusu */
+      tradeInfoBg: isDark ? 'rgba(168, 199, 232, 0.16)' : palette.infoLight,
+      tradeInfoText: palette.textSecondary,
     },
     borderRadii: {
       ...base.borderRadii,
@@ -36,6 +59,31 @@ export function getTradeTheme(palette: Record<ColorKey, string>) {
 }
 
 export type TradeTheme = ReturnType<typeof getTradeTheme>;
+
+export function getTradeInputStyle(theme: TradeTheme): TextStyle {
+  return {
+    backgroundColor: theme.colors.tradeInputBg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.tradeInputBorder,
+    padding: 12,
+    color: theme.colors.tradeInputText,
+    fontSize: 15,
+  };
+}
+
+export function getTradeSheetStyle(theme: TradeTheme): ViewStyle {
+  return {
+    width: '100%',
+    backgroundColor: theme.colors.tradePanel,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    borderTopWidth: 1,
+    borderColor: theme.colors.border,
+    paddingHorizontal: theme.spacing.lg,
+    paddingTop: theme.spacing.md,
+  };
+}
 
 /** Aktif uygulama temasına göre takas ekranı restyle teması */
 export function useTradeTheme() {

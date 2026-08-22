@@ -194,7 +194,7 @@ public class NotificationEventListener {
             String offererName = userFacade.getIndividualSummary(e.offererProfileId()).fullName();
             var ownerUserId    = userFacade.getUserIdByIndividualProfileId(e.listingOwnerProfileId());
             notificationService.create(
-                factory.swapOfferReceived(ownerUserId, e.swapListingId(), offererName, "bir kupon"));
+                factory.swapOfferReceived(ownerUserId, e.swapOfferId(), offererName, "bir kupon"));
         } catch (Exception ex) { log.error("[NTF] SWAP_OFFER_RECEIVED: {}", ex.getMessage()); }
     }
 
@@ -204,8 +204,20 @@ public class NotificationEventListener {
         try {
             var offererUserId = userFacade.getUserIdByIndividualProfileId(e.offererProfileId());
             notificationService.create(
-                factory.swapOfferRejected(offererUserId, e.swapListingId(), "İlan Sahibi"));
+                factory.swapOfferRejected(offererUserId, e.swapOfferId(), "İlan Sahibi"));
         } catch (Exception ex) { log.error("[NTF] SWAP_OFFER_REJECTED: {}", ex.getMessage()); }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void on(SwapOfferChatMessageEvent e) {
+        try {
+            var recipientUserId = userFacade.getUserIdByIndividualProfileId(e.recipientProfileId());
+            String senderName = userFacade.getIndividualSummary(e.senderProfileId()).fullName();
+            notificationService.create(
+                factory.swapOfferChatMessage(
+                    recipientUserId, e.swapOfferId(), senderName, e.messagePreview()));
+        } catch (Exception ex) { log.error("[NTF] SWAP_OFFER_MESSAGE: {}", ex.getMessage()); }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

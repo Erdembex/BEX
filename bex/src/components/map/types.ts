@@ -1,8 +1,9 @@
-import type { EnrichedTask } from '@/features/data/businessesRepository';
-
-export type MapPin = {
+export type MapBusinessPin = {
   id: string;
-  task: EnrichedTask;
+  name: string;
   latitude: number;
   longitude: number;
+  address: string;
+  verified: boolean;
+  district: string | null;
 };

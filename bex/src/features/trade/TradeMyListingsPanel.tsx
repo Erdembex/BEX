@@ -145,12 +145,12 @@ export function TradeMyListingsPanel({
                 <Box flexDirection="row" gap="sm">
                   <TouchableOpacity activeOpacity={0.82} onPress={() => setSelectedListing(item)}>
                     <Box
-                      backgroundColor="tradePrimary"
+                      backgroundColor="tradeCta"
                       paddingHorizontal="md"
                       paddingVertical="sm"
                       borderRadius="md"
                     >
-                      <Text variant="buttonPrimary" style={{ color: '#FFFFFF' }}>
+                      <Text variant="buttonPrimary" style={{ color: tradeTheme.colors.tradeCtaText }}>
                         {t('tradeMyListingsPanel.viewOffers')}
                       </Text>
                     </Box>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, SafeAreaView } from 'react-native';
+import { View, Text } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { authService } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
@@ -22,7 +23,7 @@ export default function BannedScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.content}>
         <Text style={styles.emoji}>⛔</Text>
         <Text style={styles.title}>{t('bannedScreen.title')}</Text>
@@ -31,7 +32,7 @@ export default function BannedScreen() {
         </Text>
         <Button title={t('bannedScreen.logout')} variant="outline" onPress={handleLogout} loading={loading} />
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

@@ -1,14 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  Linking,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, RefreshControl, Linking, Alert, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   cancelSubscriptionAtPeriodEnd,
@@ -193,17 +185,17 @@ export default function BusinessSubscriptionScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <BackHeader title={t('subscriptionScreen.headerTitle')} />
         <View style={styles.center}>
           <Text style={styles.muted}>{t('subscriptionScreen.loading')}</Text>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <BackHeader title={t('subscriptionScreen.headerTitle')} />
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -364,7 +356,7 @@ export default function BusinessSubscriptionScreen() {
           {t('subscriptionScreen.footerNote')}
         </Text>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

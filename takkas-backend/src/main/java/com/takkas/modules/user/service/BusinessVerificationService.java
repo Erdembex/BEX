@@ -124,6 +124,7 @@ public class BusinessVerificationService {
             profile.getCategory(),
             profile.getCity(),
             profile.getDistrict(),
+            profile.getOpenAddress(),
             profile.getPhone(),
             profile.getLogoUrl(),
             profile.getBio(),

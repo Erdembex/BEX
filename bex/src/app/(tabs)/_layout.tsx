@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/store/authStore';
 import { useMessagingInbox } from '@/hooks/useMessagingInbox';
 import { useMessagingInboxStore } from '@/store/messagingInboxStore';
+import { useTabBarStyle } from '@/components/common/Screen';
 import { useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -31,6 +32,7 @@ export default function UserTabsLayout() {
   const { isUnlocked } = useMessagingInbox('user');
   const totalUnread = useMessagingInboxStore((s) => s.userTotalUnread);
   const Colors = useThemeColors();
+  const tabBarStyle = useTabBarStyle(Colors.surface, Colors.borderLight);
   const { t } = useTranslation();
 
   if (bexUser?.role === 'business') {
@@ -43,15 +45,8 @@ export default function UserTabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: Colors.background,
-          borderTopColor: Colors.border,
-          borderTopWidth: 1,
-          paddingBottom: 6,
-          paddingTop: 4,
-          height: 58,
-        },
+        tabBarInactiveTintColor: Colors.textTertiary,
+        tabBarStyle,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',

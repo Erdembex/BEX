@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { API_BASE_URL } from '@/lib/api/config';
 import { useBackendHealth } from '@/hooks/useBackendHealth';
@@ -141,7 +136,7 @@ export default function ExpoTestGuideScreen() {
   const doneCount = TEST_STEPS.filter((s) => checked[s.id]).length;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>← Geri</Text>
@@ -213,7 +208,7 @@ export default function ExpoTestGuideScreen() {
           </Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

@@ -1,15 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
@@ -26,15 +17,17 @@ import { useMessagingInbox } from '@/hooks/useMessagingInbox';
 import { StatCard } from '@/components/business';
 import { Button } from '@/components/ui';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
-import { Typography, Spacing, Radius, Shadow, useThemeColors } from '@/theme';
+import { Typography, Spacing, Radius, useThemeColors, useThemeShadow } from '@/theme';
+import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
 export default function BusinessDashboardScreen() {
   const { bexUser, signOut } = useAuthStore();
   const { business, loading, reload } = useBusiness();
   const Colors = useThemeColors();
+  const ThemeShadow = useThemeShadow();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(Colors), [Colors]);
+  const styles = useMemo(() => createStyles(Colors, ThemeShadow), [Colors, ThemeShadow]);
   const { totalUnread: messageUnread, isUnlocked: messagingUnlocked } = useMessagingInbox('business');
   const [stats, setStats] = useState({
     newApplications: 0,
@@ -92,19 +85,14 @@ export default function BusinessDashboardScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
       >
-        <LinearGradient
-          colors={[Colors.gradientBlue, Colors.gradientMid, Colors.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.hero}
-        >
+        <View style={styles.hero}>
           <ProfileAvatar
             name={business?.name ?? bexUser?.displayName}
             avatarUrl={business?.logoUrl || bexUser?.avatarUrl}
@@ -120,7 +108,7 @@ export default function BusinessDashboardScreen() {
           <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
             <Text style={styles.logoutText}>{t('business.panel.logout')}</Text>
           </TouchableOpacity>
-        </LinearGradient>
+        </View>
 
         {messageUnread > 0 ? (
           <TouchableOpacity
@@ -236,7 +224,7 @@ export default function BusinessDashboardScreen() {
           <TouchableOpacity
             style={styles.quickCard}
             activeOpacity={0.88}
-            onPress={() => router.push('/(business)/complaints/index' as Href)}
+            onPress={() => router.push('/(business)/complaints' as Href)}
           >
             <Text style={styles.quickIcon}>📋</Text>
             <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickMyComplaints')}</Text>
@@ -275,7 +263,7 @@ export default function BusinessDashboardScreen() {
           <Button
             title={t('businessDashboardScreen.verifyCoupon')}
             variant="outline"
-            onPress={() => router.push('/(business)/coupons/index' as Href)}
+            onPress={() => router.push('/(business)/coupons' as Href)}
           />
           {business && business.verificationStatus !== 'verified' && (
             <Button
@@ -291,13 +279,16 @@ export default function BusinessDashboardScreen() {
             <Text style={styles.noteText}>{t('business.panel.infoText')}</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 
-function createStyles(Colors: ReturnType<typeof useThemeColors>) {
+function createStyles(
+  Colors: ReturnType<typeof useThemeColors>,
+  Shadow: ReturnType<typeof useThemeShadow>
+) {
   return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.surface },
+  safe: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: Spacing[5], paddingBottom: Spacing[10], gap: Spacing[4] },
   hero: {
@@ -307,24 +298,29 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     padding: Spacing[4],
     borderRadius: Radius.xl,
     marginBottom: Spacing[2],
-    ...Shadow.primary,
+    backgroundColor: BRAND_NAVY,
+    borderWidth: 1,
+    borderColor: Colors.borderGold,
+    ...Shadow.card,
   },
-  heroText: { flex: 1, gap: 2 },
-  greeting: { ...Typography.bodySmall, color: 'rgba(255,255,255,0.85)' },
-  name: { ...Typography.headingMedium, color: Colors.textInverse, fontWeight: '700' },
+  heroText: { flex: 1, gap: 2, minWidth: 0 },
+  greeting: { ...Typography.bodySmall, color: 'rgba(240, 238, 233, 0.82)', fontWeight: '600' },
+  name: { ...Typography.headingMedium, color: BRAND_NAVY_TEXT, fontWeight: '700' },
   verified: {
     ...Typography.caption,
-    color: Colors.business,
-    fontWeight: '600',
+    color: Colors.accent,
+    fontWeight: '700',
     marginTop: 2,
   },
   logoutBtn: {
     paddingHorizontal: Spacing[3],
     paddingVertical: Spacing[2],
     borderRadius: Radius.md,
-    backgroundColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: Colors.borderGold,
   },
-  logoutText: { ...Typography.labelMedium, color: Colors.textInverse },
+  logoutText: { ...Typography.labelMedium, color: BRAND_NAVY_TEXT, fontWeight: '700' },
   messageCard: {
     padding: Spacing[4],
     backgroundColor: Colors.accentLight,
@@ -392,7 +388,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     borderRadius: Radius.lg,
     padding: Spacing[3],
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderGold,
     gap: 4,
   },
   quickIcon: { fontSize: 22 },

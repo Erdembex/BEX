@@ -8,6 +8,7 @@ import com.takkas.modules.feedback.service.FeedbackService;
 import com.takkas.modules.application.domain.Application;
 import com.takkas.modules.application.domain.enums.ApplicationStatus;
 import com.takkas.modules.application.repository.ApplicationRepository;
+import com.takkas.modules.listing.domain.enums.ListingStatus;
 import com.takkas.modules.listing.repository.ListingRepository;
 import com.takkas.modules.user.api.dto.*;
 import com.takkas.modules.user.domain.*;
@@ -78,6 +79,7 @@ public class UserService {
         }
         var feedback = feedbackService.getProfileFeedback(profileId, 1);
         var trust = trustMetricsService.getForBusiness(profileId);
+        long activeListings = listingRepository.countByBusinessIdAndStatus(profileId, ListingStatus.ACTIVE);
         return new BusinessPublicProfileResponse(
             profile.getId(),
             ownerUserId,
@@ -86,6 +88,7 @@ public class UserService {
             profile.getCategory(),
             profile.getCity(),
             profile.getDistrict(),
+            profile.getOpenAddress(),
             profile.isVerified(),
             complaintService.isBusinessListedInComplaintBex(profileId),
             feedback.averageStars(),
@@ -93,6 +96,7 @@ public class UserService {
             trust.completedTaskCount(),
             trust.approvedComplaintCount(),
             trust.complaintRate(),
+            activeListings,
             trust.isDangerous());
     }
 
@@ -209,6 +213,9 @@ public class UserService {
         p.setCategory(req.category());
         p.setCity(req.city());
         p.setDistrict(req.district());
+        if (req.openAddress() != null && !req.openAddress().isBlank()) {
+            p.setOpenAddress(req.openAddress().trim());
+        }
         p.setPhone(req.phone());
         p.setLogoUrl(req.logoUrl());
         p.setBio(req.bio());
@@ -258,6 +265,7 @@ public class UserService {
             p.getCategory(),
             p.getCity(),
             p.getDistrict(),
+            p.getOpenAddress(),
             p.getPhone(),
             p.getLogoUrl(),
             p.getBio(),

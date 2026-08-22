@@ -1,13 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
@@ -72,6 +65,15 @@ export default function LoginScreen() {
       const code: string = err?.code ?? '';
       const message = err?.message || getAuthErrorMessage(code);
       console.error('[LoginScreen] Giriş hatası:', code, message);
+
+      if (code === 'auth/email-not-verified') {
+        router.push({
+          pathname: '/(auth)/email-verification',
+          params: { email: email.trim() },
+        });
+        return;
+      }
+
       setError(message);
     } finally {
       setLoading(false);
@@ -79,7 +81,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <KeyboardAvoidingView
         style={styles.kav}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -90,7 +92,7 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.logoContainer}>
-            <PasslaLogo size="md" />
+            <PasslaLogo size="md" centered />
           </View>
 
           <View style={styles.header}>
@@ -160,7 +162,7 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

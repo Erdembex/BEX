@@ -7,5 +7,5 @@ public record CouponVerifyResponse(
     RewardType rewardType, Integer quantity, String unit,
     String description, Instant usedAt
 ) {
-    public enum VerifyResult { SUCCESS, ALREADY_USED, EXPIRED }
+    public enum VerifyResult { SUCCESS, ALREADY_USED, EXPIRED, LOCKED_FOR_SWAP }
 }

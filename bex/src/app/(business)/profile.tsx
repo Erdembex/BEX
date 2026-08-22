@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
@@ -18,7 +12,7 @@ import { LocationPicker } from '@/components/common/LocationPicker';
 import { isAuthEmulatorActive } from '@/lib/firebase';
 import { AccountSettings } from '@/components/profile/AccountSettings';
 import { AppHeader } from '@/components/navigation/AppHeader';
-import { Button } from '@/components/ui';
+import { Button, Input } from '@/components/ui';
 import {
   useBusinessCategoryLabels,
   useVerificationStatusLabels,
@@ -36,6 +30,7 @@ export default function BusinessProfileScreen() {
   const { business, loading, reload } = useBusiness();
   const [city, setCity] = useState('İstanbul');
   const [district, setDistrict] = useState('');
+  const [openAddress, setOpenAddress] = useState('');
   const [savingLocation, setSavingLocation] = useState(false);
   const [locationMessage, setLocationMessage] = useState('');
 
@@ -44,6 +39,7 @@ export default function BusinessProfileScreen() {
       .then((profile) => {
         if (profile.city) setCity(profile.city);
         if (profile.district) setDistrict(profile.district);
+        if (profile.openAddress) setOpenAddress(profile.openAddress);
       })
       .catch(() => {});
   }, []);
@@ -61,7 +57,7 @@ export default function BusinessProfileScreen() {
     setSavingLocation(true);
     setLocationMessage('');
     try {
-      await authService.updateBusinessLocation(city, district);
+      await authService.updateBusinessLocation(city, district, openAddress);
       setLocationMessage(t('businessProfileScreen.locationUpdated'));
       reload();
     } catch {
@@ -81,7 +77,7 @@ export default function BusinessProfileScreen() {
   const verificationStatus = business?.verificationStatus ?? 'none';
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <AppHeader title={t('businessProfileScreen.headerTitle')} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {loading && !business ? (
@@ -132,6 +128,14 @@ export default function BusinessProfileScreen() {
                 district={district}
                 onCityChange={setCity}
                 onDistrictChange={setDistrict}
+              />
+              <Input
+                label={t('businessProfileScreen.openAddressLabel')}
+                placeholder={t('businessProfileScreen.openAddressPlaceholder')}
+                value={openAddress}
+                onChangeText={setOpenAddress}
+                multiline
+                hint={t('businessProfileScreen.openAddressHint')}
               />
               <Button
                 title={t('businessProfileScreen.saveLocation')}
@@ -199,7 +203,7 @@ export default function BusinessProfileScreen() {
           )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

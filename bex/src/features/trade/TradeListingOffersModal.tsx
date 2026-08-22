@@ -4,17 +4,18 @@ import {
   Pressable,
   FlatList,
   ActivityIndicator,
-  Alert,
   View,
   StyleSheet,
   Dimensions,
 } from 'react-native';
+import { confirmDialog } from '@/lib/confirmDialog';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBox } from '@shopify/restyle';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/common/Toast';
 import { tradeRepository } from './tradeRepository';
+import { openSwapOfferChat } from './swapChatNavigation';
 import { tradeTheme, TradeTheme } from './tradeTheme';
 import { TradeListing, TradeOffer, TradeOfferStatus } from './types';
 import { useTranslation } from '@/i18n';
@@ -83,34 +84,29 @@ export function TradeListingOffersModal({
     }
   };
 
-  const handleAccept = (offer: TradeOffer) => {
-    Alert.alert(
+  const handleAccept = async (offer: TradeOffer) => {
+    const confirmed = await confirmDialog(
       t('tradeListingOffersModal.acceptTitle'),
-      t('tradeListingOffersModal.acceptBody', { name: offer.fromUserName, coupon: offer.counterRewardLabel }),
-      [
-        { text: t('tradeListingOffersModal.dismiss'), style: 'cancel' },
-        {
-          text: t('tradeListingOffersModal.confirmAccept'),
-          onPress: async () => {
-            setActingId(offer.id);
-            try {
-              await tradeRepository.acceptOffer(ownerId, offer.id);
-              await loadOffers();
-              onUpdated();
-
-              Alert.alert(
-                t('tradeListingOffersModal.completedTitle'),
-                t('tradeListingOffersModal.completedBody')
-              );
-            } catch (err) {
-              showToast((err as Error).message || t('tradeListingOffersModal.tradeFailedToast'));
-            } finally {
-              setActingId(null);
-            }
-          },
-        },
-      ]
+      t('tradeListingOffersModal.acceptBody', {
+        name: offer.fromUserName,
+        coupon: offer.counterRewardLabel,
+      }),
+      t('tradeListingOffersModal.confirmAccept'),
+      t('tradeListingOffersModal.dismiss')
     );
+    if (!confirmed) return;
+
+    setActingId(offer.id);
+    try {
+      await tradeRepository.acceptOffer(ownerId, offer.id);
+      await loadOffers();
+      onUpdated();
+      showToast(t('tradeListingOffersModal.completedToast'));
+    } catch (err) {
+      showToast((err as Error).message || t('tradeListingOffersModal.tradeFailedToast'));
+    } finally {
+      setActingId(null);
+    }
   };
 
   if (!visible) return null;
@@ -190,26 +186,47 @@ export function TradeListingOffersModal({
                     </Text>
 
                     {isPending && listing?.status === 'active' ? (
-                      <Box flexDirection="row" marginTop="md">
-                        <Box flex={1} marginRight="sm">
-                          <Button
-                            title={t('tradeListingOffersModal.reject')}
-                            variant="outline"
-                            size="sm"
-                            onPress={() => handleReject(item)}
-                            loading={busy}
-                            disabled={!!actingId}
-                          />
+                      <Box marginTop="md" gap="sm">
+                        <Button
+                          title={t('tradeListingOffersModal.openChat')}
+                          variant="outline"
+                          size="sm"
+                          onPress={() => {
+                            onClose();
+                            setTimeout(() => openSwapOfferChat(item, item.fromUserName), 0);
+                          }}
+                          disabled={!!actingId}
+                        />
+                        <Box flexDirection="row">
+                          <Box flex={1} marginRight="sm">
+                            <Button
+                              title={t('tradeListingOffersModal.reject')}
+                              variant="outline"
+                              size="sm"
+                              onPress={() => handleReject(item)}
+                              loading={busy}
+                              disabled={!!actingId}
+                            />
+                          </Box>
+                          <Box flex={1}>
+                            <Button
+                              title={t('tradeListingOffersModal.accept')}
+                              size="sm"
+                              onPress={() => void handleAccept(item)}
+                              loading={busy}
+                              disabled={!!actingId}
+                            />
+                          </Box>
                         </Box>
-                        <Box flex={1}>
-                          <Button
-                            title={t('tradeListingOffersModal.accept')}
-                            size="sm"
-                            onPress={() => handleAccept(item)}
-                            loading={busy}
-                            disabled={!!actingId}
-                          />
-                        </Box>
+                      </Box>
+                    ) : item.status !== 'pending' ? (
+                      <Box marginTop="md">
+                        <Button
+                          title={t('tradeListingOffersModal.viewChat')}
+                          variant="outline"
+                          size="sm"
+                          onPress={() => openSwapOfferChat(item, item.fromUserName)}
+                        />
                       </Box>
                     ) : null}
                   </Box>

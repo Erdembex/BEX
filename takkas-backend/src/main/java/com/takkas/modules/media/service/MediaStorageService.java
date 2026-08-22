@@ -24,13 +24,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MediaStorageService {
 
-    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".webp");
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
-        "image/jpeg", "image/png", "image/webp");
+        "image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
+        ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif");
     private static final Set<String> BUSINESS_DOC_EXTENSIONS =
         Set.of(".jpg", ".jpeg", ".png", ".webp", ".pdf");
     private static final Set<String> BUSINESS_DOC_CONTENT_TYPES = Set.of(
         "image/jpeg", "image/png", "image/webp", "application/pdf");
+
+    private static final Set<String> SUBMISSION_DOC_EXTENSIONS =
+        Set.of(".jpg", ".jpeg", ".png", ".webp", ".pdf", ".doc", ".docx", ".zip", ".txt");
+    private static final Set<String> SUBMISSION_DOC_CONTENT_TYPES = Set.of(
+        "image/jpeg", "image/png", "image/webp", "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/zip", "application/x-zip-compressed", "text/plain");
 
     private final StorageService storageService;
 
@@ -41,6 +50,11 @@ public class MediaStorageService {
     /** KYC evrakları — JPG, PNG, WEBP ve PDF */
     public List<String> storeBusinessFiles(UUID userId, MultipartFile[] files) {
         return storeFiles(userId, files, 3, this::validateBusinessDocument, BUSINESS_DOC_EXTENSIONS);
+    }
+
+    /** Görev teslimi — fotoğraf dışı dosyalar (PDF, DOC, ZIP vb.) */
+    public List<String> storeUserSubmissionDocuments(UUID userId, MultipartFile[] files) {
+        return storeFiles(userId, files, 5, this::validateSubmissionDocument, SUBMISSION_DOC_EXTENSIONS);
     }
 
     /** Bireysel CV — yalnızca PDF, tek dosya */
@@ -132,20 +146,50 @@ public class MediaStorageService {
             "Yalnızca JPG, PNG, WEBP veya PDF yüklenebilir.");
     }
 
+    private void validateSubmissionDocument(MultipartFile file) {
+        validateFile(file, SUBMISSION_DOC_CONTENT_TYPES, SUBMISSION_DOC_EXTENSIONS,
+            "Yalnızca JPG, PNG, WEBP, PDF, DOC, DOCX, ZIP veya TXT yüklenebilir.");
+    }
+
     private void validatePdf(MultipartFile file) {
         validateFile(file, Set.of("application/pdf"), Set.of(".pdf"),
             "CV yalnızca PDF formatında olabilir.");
     }
 
     private void validateFile(MultipartFile file, Set<String> allowedTypes, Set<String> allowedExts, String message) {
-        String contentType = file.getContentType();
-        if (contentType == null || !allowedTypes.contains(contentType.toLowerCase(Locale.ROOT))) {
-            throw new BusinessRuleException(message);
-        }
-        String ext = extensionOf(file.getOriginalFilename(), contentType, allowedExts).toLowerCase(Locale.ROOT);
+        String ext = extensionOf(file.getOriginalFilename(), file.getContentType(), allowedExts).toLowerCase(Locale.ROOT);
         if (!allowedExts.contains(ext)) {
             throw new BusinessRuleException("Geçersiz dosya uzantısı.");
         }
+        String contentType = resolveContentType(file.getContentType(), ext);
+        if (!allowedTypes.contains(contentType)) {
+            throw new BusinessRuleException(message);
+        }
+    }
+
+    private String resolveContentType(String rawContentType, String ext) {
+        if (rawContentType == null || rawContentType.isBlank()) {
+            return mimeFromExtension(ext);
+        }
+        String lower = rawContentType.toLowerCase(Locale.ROOT);
+        if ("application/octet-stream".equals(lower) || "binary/octet-stream".equals(lower)) {
+            return mimeFromExtension(ext);
+        }
+        return lower;
+    }
+
+    private static String mimeFromExtension(String ext) {
+        return switch (ext) {
+            case ".zip" -> "application/zip";
+            case ".pdf" -> "application/pdf";
+            case ".doc" -> "application/msword";
+            case ".docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            case ".txt" -> "text/plain";
+            case ".png" -> "image/png";
+            case ".webp" -> "image/webp";
+            case ".jpg", ".jpeg" -> "image/jpeg";
+            default -> "application/octet-stream";
+        };
     }
 
     private String extensionOf(String originalName, String contentType, Set<String> allowedExts) {
@@ -156,6 +200,8 @@ public class MediaStorageService {
             }
         }
         if (contentType != null && contentType.contains("pdf")) return ".pdf";
+        if (contentType != null && contentType.contains("zip")) return ".zip";
+        if (contentType != null && contentType.contains("plain")) return ".txt";
         if (contentType != null && contentType.contains("png")) return ".png";
         if (contentType != null && contentType.contains("webp")) return ".webp";
         return ".jpg";

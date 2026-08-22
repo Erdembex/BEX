@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useBusiness } from '@/features/business/useBusiness';
@@ -100,6 +94,10 @@ export default function CouponVerifyScreen() {
           title: t('couponVerifyScreen.expiredTitle'),
           body: t('couponVerifyScreen.expiredBody'),
         },
+        LOCKED_FOR_SWAP: {
+          title: t('couponVerifyScreen.lockedTitle'),
+          body: t('couponVerifyScreen.lockedBody'),
+        },
       };
       const msg = messages[outcome.result];
       Alert.alert(msg.title, msg.body);
@@ -173,7 +171,7 @@ export default function CouponVerifyScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>{t('couponVerifyScreen.title')}</Text>
         <Text style={styles.subtitle}>
@@ -274,7 +272,7 @@ export default function CouponVerifyScreen() {
         onClose={() => setScannerOpen(false)}
         onScan={handleScan}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

@@ -1,11 +1,12 @@
 import 'react-native-gesture-handler';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from '@shopify/restyle';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { authService } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/themeStore';
@@ -19,6 +20,11 @@ import { ToastProvider } from '@/components/common/Toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { PendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
 import { useAppFonts } from '@/hooks/useAppFonts';
+import { AppLaunchSplash } from '@/components/common/AppLaunchSplash';
+
+SplashScreen.preventAutoHideAsync().catch(() => {
+  /* Expo Go veya tekrar çağrıda sessizce yoksay */
+});
 
 export default function RootLayout() {
   const { setFirebaseUser, setBexUser, setInitialized, isInitialized } =
@@ -42,30 +48,50 @@ export default function RootLayout() {
   useEffect(() => {
     let cancelled = false;
 
-    authService.restoreSession().then(({ session, bexUser }) => {
-      if (cancelled) return;
-      setFirebaseUser(session);
-      setBexUser(bexUser);
-      setInitialized(true);
-    });
+    (async () => {
+      try {
+        const { session, bexUser } = await authService.restoreSession();
+        if (cancelled) return;
+        setFirebaseUser(session);
+        setBexUser(bexUser);
+      } catch (err) {
+        console.error('[RootLayout] Oturum geri yüklenemedi:', err);
+        if (!cancelled) {
+          setFirebaseUser(null);
+          setBexUser(null);
+        }
+      } finally {
+        if (!cancelled) setInitialized(true);
+      }
+    })();
 
     return () => {
       cancelled = true;
     };
   }, [setFirebaseUser, setBexUser, setInitialized]);
 
-  if (!isInitialized || !fontsLoaded) {
-    return (
-      <View style={styles.splash}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
+  const appReady = isInitialized && fontsLoaded;
+
+  const onLayoutRootView = useCallback(async () => {
+    if (appReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [appReady]);
+
+  useEffect(() => {
+    if (appReady) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [appReady]);
+
+  if (!appReady) {
+    return <AppLaunchSplash fontsLoaded={fontsLoaded} />;
   }
 
   return (
-    <GestureHandlerRootView style={styles.root}>
+    <GestureHandlerRootView style={styles.root} onLayout={onLayoutRootView}>
       <ThemeProvider theme={theme}>
-        <SafeAreaProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
           <ErrorBoundary>
             <ToastProvider>
               <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={Colors.background} />
@@ -101,14 +127,8 @@ export default function RootLayout() {
   );
 }
 
-function createStyles(Colors: ReturnType<typeof useThemeColors>) {
+function createStyles(_Colors: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
     root: { flex: 1 },
-    splash: {
-      flex: 1,
-      backgroundColor: Colors.background,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
   });
 }

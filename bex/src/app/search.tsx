@@ -1,12 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { businessesRepository, tasksRepository, EnrichedTask } from '@/features/data';
 import { searchBusinessProfiles, BusinessSearchHit } from '@/features/business/businessProfileApi';
@@ -63,7 +57,7 @@ export default function SearchScreen() {
   }, [initialQ, runSearch]);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>←</Text>
@@ -141,7 +135,7 @@ export default function SearchScreen() {
           ) : null}
         </ScrollView>
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
 

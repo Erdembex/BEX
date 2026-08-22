@@ -80,6 +80,10 @@ export type PendingFeedbackDto = {
   status: string;
 };
 
+function isRewardedFeedbackStatus(status: string | undefined): boolean {
+  return (status ?? '').toUpperCase() === 'REWARDED';
+}
+
 export async function fetchPendingFeedback(
   role: 'user' | 'business'
 ): Promise<PendingFeedbackDto[]> {
@@ -89,7 +93,8 @@ export async function fetchPendingFeedback(
       : '/api/individual/applications/pending-feedback';
   try {
     const { data } = await apiClient.get<PendingFeedbackDto[]>(path);
-    return Array.isArray(data) ? data : [];
+    const items = Array.isArray(data) ? data : [];
+    return items.filter((item) => isRewardedFeedbackStatus(item.status));
   } catch (error) {
     throw mapError(error, 'Bekleyen puanlar yüklenemedi.');
   }

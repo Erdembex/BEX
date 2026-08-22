@@ -40,6 +40,9 @@ public class LoginService {
         if (user.getStatus() == UserStatus.SUSPENDED)
             throw new ForbiddenException("Hesabınız askıya alınmış.");
 
+        if (user.getStatus() == UserStatus.PENDING_VERIFY || !user.isEmailVerified())
+            throw new BusinessRuleException("E-posta adresin henüz doğrulanmadı. Gelen kutunu kontrol et.");
+
         UUID profileId = resolveProfileId(user);
         String access  = tokenProvider.generateAccessToken(user, profileId);
         String refresh = refreshTokenRepository.save(RefreshToken.builder()

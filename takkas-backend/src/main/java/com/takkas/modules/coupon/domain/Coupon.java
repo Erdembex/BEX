@@ -81,16 +81,34 @@ public class Coupon {
      * yeni kupon karşı taraf için ayrıca oluşturulur. Böylece eski QR kodu
      * geçersiz kalır ve ekran görüntüsüyle tekrar kullanılamaz.
      */
-    public void archiveSwapped() {
+    public void lockForSwap() {
         if (status != CouponStatus.ACTIVE)
-            throw new BusinessRuleException("Sadece aktif kuponlar takas edilebilir.");
+            throw new BusinessRuleException("Sadece aktif kuponlar takas pazarına konabilir.");
+        status = CouponStatus.LOCKED_FOR_SWAP;
+        qrToken = null;
+    }
+
+    public void unlockFromSwap() {
+        if (status != CouponStatus.LOCKED_FOR_SWAP) return;
+        status = CouponStatus.ACTIVE;
+        qrToken = UUID.randomUUID().toString();
+    }
+
+    public void archiveSwapped() {
+        if (status != CouponStatus.ACTIVE && status != CouponStatus.LOCKED_FOR_SWAP)
+            throw new BusinessRuleException("Sadece aktif veya takasta kilitli kuponlar imha edilebilir.");
         status = CouponStatus.SWAPPED;
+        qrToken = null;
     }
 
     public boolean isActive() {
         return status == CouponStatus.ACTIVE
             && expiresAt != null
             && Instant.now().isBefore(expiresAt);
+    }
+
+    public boolean isLockedForSwap() {
+        return status == CouponStatus.LOCKED_FOR_SWAP;
     }
 
     private void validateActive() {

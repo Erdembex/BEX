@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
   RefreshControl,
@@ -14,7 +14,7 @@ import { demoStore } from '@/lib/demoStore';
 import { shouldUseDemoData } from '@/lib/devMode';
 import { Coupon } from '@/types';
 import { tradeRepository } from './tradeRepository';
-import { tradeTheme, TradeTheme } from './tradeTheme';
+import { getTradeInputStyle, useTradeTheme, TradeTheme } from './tradeTheme';
 import { CreateTradeListingInput } from './types';
 import { useTranslation } from '@/i18n';
 
@@ -26,6 +26,8 @@ interface TradeNewSwapPanelProps {
 }
 
 export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps) {
+  const theme = useTradeTheme();
+  const inputStyle = useMemo(() => getTradeInputStyle(theme), [theme]);
   const { t } = useTranslation();
   const { showToast } = useToast();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -85,8 +87,8 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
     <ScrollView
       style={{ flex: 1 }}
       contentContainerStyle={{
-        paddingHorizontal: tradeTheme.spacing.lg,
-        paddingBottom: tradeTheme.spacing['2xl'],
+        paddingHorizontal: theme.spacing.lg,
+        paddingBottom: theme.spacing['2xl'],
       }}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
@@ -95,14 +97,14 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
         padding="md"
         marginBottom="md"
         borderRadius="md"
-        backgroundColor="tradeAccentLight"
+        backgroundColor="tradeInfoBg"
         borderWidth={1}
         borderColor="tradeAccentBorder"
       >
-        <Text variant="caption" style={{ color: tradeTheme.colors.tradeAccent, fontWeight: '700' }}>
+        <Text variant="label" style={{ color: theme.colors.tradeHighlight }}>
           {t('tradeNewSwapPanel.headerTitle')}
         </Text>
-        <Text variant="bodyMuted" marginTop="xs">
+        <Text variant="body" marginTop="xs" style={{ color: theme.colors.tradeInfoText, lineHeight: 22 }}>
           {t('tradeNewSwapPanel.headerSubtitle')}
         </Text>
       </Box>
@@ -115,8 +117,8 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
           padding="md"
           borderRadius="md"
           borderWidth={1}
-          borderColor="border"
-          backgroundColor="surface"
+          borderColor="tradeInputBorder"
+          backgroundColor="tradeCard"
           marginBottom="md"
         >
           <Text variant="bodyMuted">
@@ -136,13 +138,13 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
                 padding="md"
                 borderRadius="md"
                 marginBottom="sm"
-                borderWidth={1}
-                borderColor={selected ? 'tradePrimary' : 'border'}
-        backgroundColor={selected ? 'tradePrimaryLight' : 'surface'}
+                borderWidth={selected ? 2 : 1}
+                borderColor={selected ? 'tradeCardSelectedBorder' : 'tradeInputBorder'}
+                backgroundColor={selected ? 'tradeCardSelected' : 'tradeCard'}
                 borderLeftWidth={selected ? 3 : 1}
               >
                 <Text variant="label">{coupon.rewardDescription}</Text>
-                <Text variant="caption">
+                <Text variant="caption" style={{ color: theme.colors.tradeMuted }}>
                   {t('tradeNewSwapPanel.usesLeft', { count: coupon.totalUses - coupon.usedCount })}
                 </Text>
               </Box>
@@ -158,7 +160,7 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
         value={title}
         onChangeText={setTitle}
         placeholder={t('tradeNewSwapPanel.listingTitlePlaceholder')}
-        placeholderTextColor={tradeTheme.colors.textMuted}
+        placeholderTextColor="#7A8490"
         style={inputStyle}
       />
 
@@ -169,7 +171,7 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
         value={description}
         onChangeText={setDescription}
         placeholder={t('tradeNewSwapPanel.descriptionPlaceholder')}
-        placeholderTextColor={tradeTheme.colors.textMuted}
+        placeholderTextColor="#7A8490"
         multiline
         style={[inputStyle, { minHeight: 80, textAlignVertical: 'top' }]}
       />
@@ -181,7 +183,7 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
         value={suggestedTrade}
         onChangeText={setSuggestedTrade}
         placeholder={t('tradeNewSwapPanel.suggestedTradePlaceholder')}
-        placeholderTextColor={tradeTheme.colors.textMuted}
+        placeholderTextColor="#7A8490"
         style={inputStyle}
       />
 
@@ -190,18 +192,14 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
         onPress={handleSubmit}
         loading={submitting}
         disabled={submitting || coupons.length === 0}
-        style={{ marginTop: 20 }}
+        style={{
+          marginTop: 20,
+          backgroundColor: theme.colors.tradeCta,
+          borderColor: theme.colors.tradeCta,
+        }}
+        textStyle={{ color: theme.colors.tradeCtaText }}
       />
     </ScrollView>
   );
 }
 
-const inputStyle = {
-  backgroundColor: tradeTheme.colors.white,
-  borderRadius: 8,
-  borderWidth: 1,
-  borderColor: tradeTheme.colors.border,
-  padding: 14,
-  color: tradeTheme.colors.text,
-  fontSize: 15,
-} as const;

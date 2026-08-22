@@ -5,6 +5,7 @@ import type {
   AuthResponseDto,
   BusinessProfileDto,
   IndividualProfileDto,
+  RegisterPendingResponseDto,
 } from './authTypes';
 
 export interface LoginPayload {
@@ -19,6 +20,7 @@ export interface BusinessRegisterPayload {
   category: string;
   city: string;
   district: string;
+  openAddress: string;
   phone?: string;
 }
 
@@ -50,6 +52,9 @@ function mapAuthApiError(error: unknown): Error & { code?: string } {
     if (message.includes('Geçersiz veya süresi dolmuş')) {
       return Object.assign(new Error(message), { code: 'auth/invalid-reset-token' });
     }
+    if (message.includes('henüz doğrulanmadı')) {
+      return Object.assign(new Error(message), { code: 'auth/email-not-verified' });
+    }
     if (message.includes('Yeni şifre mevcut')) {
       return Object.assign(new Error(message), { code: 'auth/same-password' });
     }
@@ -58,6 +63,9 @@ function mapAuthApiError(error: unknown): Error & { code?: string } {
     }
     if (data?.fields?.email) {
       return Object.assign(new Error(data.fields.email), { code: 'auth/invalid-email' });
+    }
+    if (message.includes('açık adres')) {
+      return Object.assign(new Error(message), { code: 'invalid-open-address' });
     }
     if (!error.response) {
       return Object.assign(
@@ -87,13 +95,13 @@ export async function loginRequest(payload: LoginPayload): Promise<AuthResponseD
 
 export async function registerBusinessRequest(
   payload: BusinessRegisterPayload
-): Promise<AuthResponseDto> {
+): Promise<RegisterPendingResponseDto> {
   try {
-    const { data } = await apiClient.post<AuthResponseDto>(
+    const { data } = await apiClient.post<RegisterPendingResponseDto>(
       '/api/auth/register/business',
       payload
     );
-    return persistAuthResponse(data);
+    return data;
   } catch (error) {
     throw mapAuthApiError(error);
   }
@@ -101,13 +109,42 @@ export async function registerBusinessRequest(
 
 export async function registerIndividualRequest(
   payload: IndividualRegisterPayload
-): Promise<AuthResponseDto> {
+): Promise<RegisterPendingResponseDto> {
   try {
-    const { data } = await apiClient.post<AuthResponseDto>(
+    const { data } = await apiClient.post<RegisterPendingResponseDto>(
       '/api/auth/register/individual',
       payload
     );
+    return data;
+  } catch (error) {
+    throw mapAuthApiError(error);
+  }
+}
+
+export async function verifyEmailRequest(
+  email: string,
+  code: string
+): Promise<AuthResponseDto> {
+  try {
+    const { data } = await apiClient.post<AuthResponseDto>('/api/auth/verify-email', {
+      email: email.trim(),
+      code: code.trim().toUpperCase(),
+    });
     return persistAuthResponse(data);
+  } catch (error) {
+    throw mapAuthApiError(error);
+  }
+}
+
+export async function resendVerificationRequest(
+  email: string
+): Promise<{ devVerificationCode?: string }> {
+  try {
+    const response = await apiClient.post<{ devVerificationCode?: string }>(
+      '/api/auth/resend-verification',
+      { email: email.trim() }
+    );
+    return response.data ?? {};
   } catch (error) {
     throw mapAuthApiError(error);
   }
@@ -197,6 +234,7 @@ export async function updateBusinessProfile(
     phone: profile.phone ?? null,
     logoUrl: profile.logoUrl ?? null,
     bio: profile.bio ?? null,
+    openAddress: profile.openAddress?.trim() || null,
   });
   return data;
 }

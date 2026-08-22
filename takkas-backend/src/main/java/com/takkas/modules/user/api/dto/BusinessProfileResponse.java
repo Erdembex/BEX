@@ -10,6 +10,7 @@ public record BusinessProfileResponse(
     BusinessCategory category,
     String city,
     String district,
+    String openAddress,
     String phone,
     String logoUrl,
     String bio,

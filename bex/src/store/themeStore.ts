@@ -14,7 +14,7 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  mode: 'dark',
+  mode: 'light',
   isHydrated: false,
 
   setMode: (mode) => {
@@ -36,7 +36,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
         set({ mode: saved });
       }
     } catch {
-      // sessiz — varsayılan koyu mod kalır
+      // sessiz — varsayılan açık mod kalır
     } finally {
       set({ isHydrated: true });
     }

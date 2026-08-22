@@ -1,10 +1,7 @@
 package com.takkas.modules.auth.service;
 
 import com.takkas.common.exception.BusinessRuleException;
-import com.takkas.common.security.JwtTokenProvider;
 import com.takkas.modules.auth.api.dto.*;
-import com.takkas.modules.auth.domain.RefreshToken;
-import com.takkas.modules.auth.repository.RefreshTokenRepository;
 import com.takkas.modules.subscription.service.SubscriptionService;
 import com.takkas.modules.user.service.UserService;
 import com.takkas.modules.user.domain.*;
@@ -16,9 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -29,20 +24,20 @@ public class RegisterService {
     private final UserRepository userRepository;
     private final BusinessProfileRepository businessProfileRepository;
     private final IndividualProfileRepository individualProfileRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final SubscriptionService subscriptionService;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
+    private final EmailVerificationService emailVerificationService;
 
-    public AuthResponse registerBusiness(BusinessRegisterRequest req) {
+    public RegisterPendingResponse registerBusiness(BusinessRegisterRequest req) {
         validateEmailUnique(req.email());
 
         User user = userRepository.save(User.builder()
             .email(req.email())
             .passwordHash(passwordEncoder.encode(req.password()))
             .userType(UserType.BUSINESS)
-            .status(UserStatus.ACTIVE)
+            .status(UserStatus.PENDING_VERIFY)
+            .emailVerified(false)
             .build());
 
         BusinessProfile profile = businessProfileRepository.save(
@@ -52,22 +47,25 @@ public class RegisterService {
                 .category(req.category())
                 .city(req.city())
                 .district(req.district())
+                .openAddress(req.openAddress().trim())
                 .phone(req.phone())
                 .build());
 
         subscriptionService.assignFreePlan(profile.getId());
 
-        return buildAuthResponse(user, profile.getId());
+        Optional<String> devCode = emailVerificationService.sendVerificationCode(user);
+        return buildPendingResponse(user.getEmail(), devCode);
     }
 
-    public AuthResponse registerIndividual(IndividualRegisterRequest req) {
+    public RegisterPendingResponse registerIndividual(IndividualRegisterRequest req) {
         validateEmailUnique(req.email());
 
         User user = userRepository.save(User.builder()
             .email(req.email())
             .passwordHash(passwordEncoder.encode(req.password()))
             .userType(UserType.INDIVIDUAL)
-            .status(UserStatus.ACTIVE)
+            .status(UserStatus.PENDING_VERIFY)
+            .emailVerified(false)
             .build());
 
         IndividualProfile profile = IndividualProfile.builder()
@@ -81,7 +79,8 @@ public class RegisterService {
 
         individualProfileRepository.save(profile);
 
-        return buildAuthResponse(user, profile.getId());
+        Optional<String> devCode = emailVerificationService.sendVerificationCode(user);
+        return buildPendingResponse(user.getEmail(), devCode);
     }
 
     private void validateEmailUnique(String email) {
@@ -89,18 +88,11 @@ public class RegisterService {
             throw new BusinessRuleException("Bu e-posta adresi zaten kayıtlı.");
     }
 
-    private AuthResponse buildAuthResponse(User user, UUID profileId) {
-        String accessToken  = tokenProvider.generateAccessToken(user, profileId);
-        String refreshToken = createRefreshToken(user);
-        return new AuthResponse(accessToken, refreshToken,
-                                user.getUserType().name(), profileId);
-    }
-
-    private String createRefreshToken(User user) {
-        return refreshTokenRepository.save(RefreshToken.builder()
-            .user(user)
-            .token(UUID.randomUUID().toString())
-            .expiresAt(Instant.now().plus(7, ChronoUnit.DAYS))
-            .build()).getToken();
+    private RegisterPendingResponse buildPendingResponse(String email, Optional<String> devCode) {
+        return new RegisterPendingResponse(
+            email,
+            "E-posta adresine doğrulama kodu gönderildi.",
+            devCode.orElse(null)
+        );
     }
 }

@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { usersRepository } from '@/features/data';
@@ -81,7 +75,7 @@ export default function PublicUserProfileByUsernameScreen() {
 
   if (notFound) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.center}>
           <Text style={styles.notFoundTitle}>{t('userProfileScreen.notFoundTitle')}</Text>
           <Text style={styles.notFoundText}>{t('userProfileScreen.notFoundText', { username: String(username) })}</Text>
@@ -89,12 +83,12 @@ export default function PublicUserProfileByUsernameScreen() {
             <Text style={styles.backText}>{t('userProfileScreen.backLink')}</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <TouchableOpacity onPress={() => router.back()} style={styles.back}>
           <Text style={styles.backText}>{t('userProfileScreen.back')}</Text>
@@ -119,7 +113,7 @@ export default function PublicUserProfileByUsernameScreen() {
           complaintRate={complaintRate}
         />
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

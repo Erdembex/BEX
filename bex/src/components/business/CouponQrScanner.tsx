@@ -1,11 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-} from 'react-native';
+import { Modal, View, Text, TouchableOpacity } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Button } from '@/components/ui';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
@@ -46,7 +41,7 @@ export function CouponQrScanner({ visible, onClose, onScan }: CouponQrScannerPro
 
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen">
-      <SafeAreaView style={styles.safe}>
+      <Screen style={styles.safe}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('couponQrScanner.title')}</Text>
           <TouchableOpacity onPress={handleClose}>
@@ -87,7 +82,7 @@ export function CouponQrScanner({ visible, onClose, onScan }: CouponQrScannerPro
             <Text style={styles.hint}>{t('couponQrScanner.scanHint')}</Text>
           </View>
         )}
-      </SafeAreaView>
+      </Screen>
     </Modal>
   );
 }

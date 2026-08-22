@@ -7,5 +7,7 @@ import java.util.List;
 
 public record SubmitSubmissionRequest(
     @NotBlank @Size(min = 10, max = 5000) String description,
-    @Size(min = 1, max = 5) List<@NotBlank String> imageUrls
+    @Size(max = 5) List<@NotBlank String> imageUrls,
+    @Size(max = 5) List<@NotBlank String> attachmentUrls,
+    @Size(max = 5) List<@NotBlank String> links
 ) {}

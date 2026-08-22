@@ -1,12 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  SectionList,
-  TouchableOpacity,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, SectionList, TouchableOpacity, RefreshControl } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
@@ -122,7 +116,7 @@ export function NotificationListScreen({ showBack = false }: NotificationListScr
   );
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       {!showBack ? <AppHeader title={t('notificationsScreen.title')} showNotifications={false} /> : null}
       <SectionList
         sections={sections}
@@ -169,7 +163,7 @@ export function NotificationListScreen({ showBack = false }: NotificationListScr
         )}
         SectionSeparatorComponent={() => <View style={styles.sectionGap} />}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

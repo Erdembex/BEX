@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, SafeAreaView, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
+import { TabScreen } from '@/components/common/Screen';
 import { SkeletonBox } from '@/components/common/Skeleton';
 import { Spacing, Radius, createThemedStyles } from '@/theme';
 
@@ -35,7 +36,7 @@ export function HomeScreenSkeleton() {
   const styles = useStyles();
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <View style={styles.header}>
         <SkeletonBox width="40%" height={22} />
       </View>
@@ -54,6 +55,6 @@ export function HomeScreenSkeleton() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </TabScreen>
   );
 }

@@ -1,12 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  ActivityIndicator,
-  RefreshControl,
-} from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { Screen } from '@/components/common/Screen';
 import { useFocusEffect } from '@react-navigation/native';
 import { useBusiness } from '@/features/business/useBusiness';
 import {
@@ -56,7 +50,7 @@ export default function BusinessAnalyticsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <Screen style={styles.safe}>
       <BackHeader title={t('businessAnalyticsScreen.title')} />
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -104,7 +98,7 @@ export default function BusinessAnalyticsScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
 

@@ -27,7 +27,7 @@ public class SwapListingService {
     private final CouponFacade couponFacade;
 
     public SwapListingResponse create(UUID ownerId, CreateSwapListingRequest req) {
-        var coupon = couponFacade.getCouponForSwap(req.offeredCouponId(), ownerId);
+        var coupon = couponFacade.getActiveCouponForSwap(req.offeredCouponId(), ownerId);
         if (swapListingRepository.existsByOfferedCouponIdAndStatus(req.offeredCouponId(), SwapListingStatus.OPEN))
             throw new BusinessRuleException("Bu kupon zaten aktif bir takas ilanında kullanılıyor.");
         if (swapOfferRepository.existsByOfferedCouponIdAndStatus(req.offeredCouponId(), SwapOfferStatus.PENDING))
@@ -36,11 +36,19 @@ public class SwapListingService {
             .ownerId(ownerId).offeredCouponId(req.offeredCouponId())
             .wantedRewardType(req.wantedRewardType()).wantedQuantity(req.wantedQuantity())
             .wantedDescription(req.wantedDescription()).expiresAt(req.expiresAt()).build());
+        couponFacade.lockForSwap(req.offeredCouponId(), ownerId);
         return SwapMapper.toListingResponse(saved, coupon);
     }
 
     public void cancel(UUID ownerId, UUID swapListingId) {
-        findOwned(swapListingId, ownerId).cancel();
+        var listing = findOwned(swapListingId, ownerId);
+        listing.cancel();
+        couponFacade.unlockFromSwap(listing.getOfferedCouponId());
+        swapOfferRepository.findAllBySwapListingIdAndStatus(swapListingId, SwapOfferStatus.PENDING)
+            .forEach(offer -> {
+                offer.reject();
+                couponFacade.unlockFromSwap(offer.getOfferedCouponId());
+            });
     }
 
     @Transactional(readOnly = true)

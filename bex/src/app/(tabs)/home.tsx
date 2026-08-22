@@ -1,14 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -34,7 +26,9 @@ import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { HomeScreenSkeleton } from '@/components/common/HomeScreenSkeleton';
 import { TaskCard } from '@/components/tasks';
 import { SearchBar } from '@/components/tasks/SearchBar';
-import { Typography, Spacing, Radius, Shadow, useThemeColors } from '@/theme';
+import { PopularBusinessCard } from '@/components/business/PopularBusinessCard';
+import { Typography, Spacing, Radius, useThemeColors, useThemeShadow } from '@/theme';
+import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
 type QuickLink = {
@@ -104,8 +98,8 @@ function getDiscoverLinks(
       label: t('home.discoverLinks.map.label'),
       hint: t('home.discoverLinks.map.hint'),
       icon: 'map',
-      tint: Colors.accent,
-      bg: Colors.accentLight,
+      tint: Colors.secondary,
+      bg: Colors.businessLight,
     },
     {
       route: '/leaderboard' as Href,
@@ -129,9 +123,14 @@ function getDiscoverLinks(
 export default function HomeScreen() {
   const { bexUser, firebaseUser, setBexUser } = useAuthStore();
   const Colors = useThemeColors();
+  const ThemeShadow = useThemeShadow();
   const { t } = useTranslation();
   const applicationStatusLabels = useApplicationStatusLabels();
-  const styles = useMemo(() => createStyles(Colors), [Colors]);
+  const tabBarPadding = useTabBarBottomPadding();
+  const styles = useMemo(
+    () => createStyles(Colors, tabBarPadding, ThemeShadow),
+    [Colors, tabBarPadding, ThemeShadow]
+  );
   const QUICK_LINKS = useMemo(() => getQuickLinks(Colors, t), [Colors, t]);
   const DISCOVER_LINKS = useMemo(() => getDiscoverLinks(Colors, t), [Colors, t]);
   const { unreadCount } = useNotifications();
@@ -256,8 +255,8 @@ export default function HomeScreen() {
   const displayName = bexUser?.displayName?.trim() || t('common.user');
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <AppHeader title={t('home.title')} />
+    <TabScreen style={{ backgroundColor: Colors.background }}>
+      <AppHeader showBrand />
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -265,12 +264,7 @@ export default function HomeScreen() {
         }
         contentContainerStyle={styles.scroll}
       >
-        <LinearGradient
-          colors={[Colors.gradientBlue, Colors.gradientMid, Colors.secondary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.hero}
-        >
+        <View style={styles.hero}>
           <TouchableOpacity
             activeOpacity={0.9}
             onPress={() => router.push('/(tabs)/profile' as Href)}
@@ -282,15 +276,18 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>{getGreeting(displayName, t)}</Text>
             <Text style={styles.subGreeting}>{t('home.subGreeting')}</Text>
           </View>
-        </LinearGradient>
+        </View>
 
         <View style={styles.searchWrap}>
-          <SearchBar
-            value={homeSearch}
-            onChangeText={setHomeSearch}
-            placeholder={t('home.searchPlaceholder')}
-            onSubmit={openTaskSearch}
-          />
+          <View style={styles.searchBarSlot}>
+            <SearchBar
+              value={homeSearch}
+              onChangeText={setHomeSearch}
+              placeholder={t('home.searchPlaceholder')}
+              onSubmit={openTaskSearch}
+              containerStyle={styles.searchBarFill}
+            />
+          </View>
           <TouchableOpacity style={styles.searchBtn} activeOpacity={0.88} onPress={openTaskSearch}>
             <Text style={styles.searchBtnText}>{t('common.search')}</Text>
           </TouchableOpacity>
@@ -392,25 +389,11 @@ export default function HomeScreen() {
               contentContainerStyle={styles.popularRow}
             >
               {popularBusinesses.map((biz) => (
-                <TouchableOpacity
+                <PopularBusinessCard
                   key={biz.id}
-                  style={styles.popularCard}
-                  activeOpacity={0.88}
+                  business={biz}
                   onPress={() => router.push(`/business/${biz.id}` as Href)}
-                >
-                  <View style={styles.popularAvatar}>
-                    <Text style={styles.popularAvatarText}>{biz.name.slice(0, 1)}</Text>
-                  </View>
-                  <Text style={styles.popularName} numberOfLines={2}>
-                    {biz.name}
-                    {biz.isVerified ? ' ✓' : ''}
-                  </Text>
-                  {biz.completedTaskCount != null && biz.completedTaskCount > 0 ? (
-                    <Text style={styles.popularMeta}>
-                      {t('home.completedTasks', { count: biz.completedTaskCount })}
-                    </Text>
-                  ) : null}
-                </TouchableOpacity>
+                />
               ))}
             </ScrollView>
           </View>
@@ -485,18 +468,22 @@ export default function HomeScreen() {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </TabScreen>
   );
 }
 
-function createStyles(Colors: ReturnType<typeof useThemeColors>) {
+function createStyles(
+  Colors: ReturnType<typeof useThemeColors>,
+  tabBarPadding: number,
+  Shadow: ReturnType<typeof useThemeShadow>
+) {
   return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
   scroll: {
-    padding: Spacing[5],
+    paddingHorizontal: Spacing[5],
     paddingTop: Spacing[2],
-    paddingBottom: Spacing[10],
+    paddingBottom: tabBarPadding,
     gap: Spacing[4],
+    flexGrow: 1,
   },
   hero: {
     flexDirection: 'row',
@@ -504,36 +491,57 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     gap: Spacing[4],
     padding: Spacing[5],
     borderRadius: Radius.xl,
+    backgroundColor: BRAND_NAVY,
+    borderWidth: 1,
+    borderColor: Colors.borderGold,
     ...Shadow.primary,
   },
   avatarRing: {
     padding: 3,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    borderWidth: 1.5,
+    borderColor: Colors.borderGold,
   },
-  heroText: { flex: 1, gap: Spacing[2] },
+  heroText: { flex: 1, minWidth: 0, gap: Spacing[2] },
   greeting: {
     ...Typography.headingMedium,
-    color: Colors.textInverse,
+    color: BRAND_NAVY_TEXT,
     fontWeight: '700',
+    flexShrink: 1,
   },
   subGreeting: {
     ...Typography.bodySmall,
-    color: 'rgba(255,255,255,0.88)',
+    color: 'rgba(240, 238, 233, 0.82)',
     lineHeight: 20,
+    fontWeight: '500',
   },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'stretch',
+    width: '100%',
     gap: Spacing[2],
   },
+  searchBarSlot: {
+    flex: 1,
+    minWidth: 0,
+    alignSelf: 'stretch',
+  },
   searchBtn: {
+    flexShrink: 0,
     backgroundColor: Colors.primary,
     borderRadius: Radius.lg,
-    paddingHorizontal: Spacing[4],
+    paddingHorizontal: Spacing[3],
+    minWidth: 72,
     height: 50,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  searchBarFill: {
+    flex: 1,
+    width: '100%',
+    alignSelf: 'stretch',
   },
   searchBtnText: {
     ...Typography.labelMedium,
@@ -545,7 +553,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     backgroundColor: Colors.primaryLight,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors.borderGold,
     gap: Spacing[1],
   },
   noticeTitle: {
@@ -581,7 +589,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderGold,
     gap: Spacing[1],
   },
   messageTitleMuted: {
@@ -598,7 +606,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderGold,
     gap: Spacing[1],
     ...Shadow.card,
   },
@@ -619,7 +627,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     color: Colors.success,
     fontWeight: '700',
   },
-  summaryValue: { ...Typography.headingLarge, color: Colors.primary },
+  summaryValue: { ...Typography.headingLarge, color: Colors.accent },
   summaryHint: { ...Typography.caption, color: Colors.primary, marginTop: Spacing[1] },
   appPreviewList: {
     marginTop: Spacing[3],
@@ -642,7 +650,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderGold,
     gap: Spacing[2],
     ...Shadow.card,
   },
@@ -659,34 +667,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
   welcomeBtnText: { ...Typography.labelLarge, color: Colors.textOnPrimary, fontWeight: '700' },
   nearbySection: { gap: Spacing[3] },
   popularSection: { gap: Spacing[3] },
-  popularRow: { gap: Spacing[3], paddingRight: Spacing[2] },
-  popularCard: {
-    width: 132,
-    padding: Spacing[3],
-    backgroundColor: Colors.card,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    gap: Spacing[2],
-  },
-  popularAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  popularAvatarText: { ...Typography.labelLarge, color: Colors.primary, fontWeight: '800' },
-  popularName: {
-    ...Typography.caption,
-    color: Colors.textPrimary,
-    fontWeight: '700',
-    textAlign: 'center',
-    minHeight: 32,
-  },
-  popularMeta: { ...Typography.caption, color: Colors.textMuted, textAlign: 'center' },
+  popularRow: { gap: Spacing[3], paddingRight: Spacing[2], paddingBottom: Spacing[1] },
   nearbyHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -710,7 +691,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.border,
+    borderColor: Colors.borderGold,
     ...Shadow.sm,
   },
   linkIconWrap: {
