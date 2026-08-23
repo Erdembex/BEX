@@ -20,8 +20,10 @@ public class ListingMapper {
             r != null ? r.getUnit() : null,
             r != null ? r.getValidityDays() : null,
             r != null ? r.getDescription() : null,
-            l.getViewCount(), l.getCreatedAt(), l.getExpiresAt()
-        );
+            l.getViewCount(), l.getCreatedAt(), l.getExpiresAt(),
+            l.getBusiness().isVerified(),
+            null,
+            0L);
     }
 
     public static ListingCardResponse toCardResponse(Listing l) {
@@ -47,6 +49,10 @@ public class ListingMapper {
             l.getExpiresAt(),
             false,
             false,
-            l.getBusiness().isVerified());
+            l.getBusiness().isVerified(),
+            l.getBusiness().getLatitude(),
+            l.getBusiness().getLongitude(),
+            null,
+            0L);
     }
 }

@@ -13,6 +13,7 @@ import {
 import { Screen } from '@/components/common/Screen';
 import { useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   fetchSwapOfferChatContext,
   fetchSwapOfferMessages,
@@ -60,6 +61,7 @@ export default function SwapChatScreen() {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const Colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemoStyles(Colors);
   const [messages, setMessages] = useState<SwapOfferMessage[]>([]);
   const [listingTitle, setListingTitle] = useState('');
@@ -184,8 +186,8 @@ export default function SwapChatScreen() {
       ) : (
         <KeyboardAvoidingView
           style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={80}
+          behavior="padding"
+          keyboardVerticalOffset={insets.top + 120}
         >
           <FlatList
             ref={listRef}

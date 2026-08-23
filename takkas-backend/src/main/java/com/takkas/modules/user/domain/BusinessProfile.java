@@ -36,6 +36,9 @@ public class BusinessProfile {
     @Column(columnDefinition = "TEXT")
     private String openAddress;
 
+    private Double latitude;
+    private Double longitude;
+
     private String phone;
     private String logoUrl;
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { Screen } from '@/components/common/Screen';
-import { router } from 'expo-router';
+import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchTopEarners, fetchTopGivers, LeaderboardEntry } from '@/features/leaderboard/leaderboardApi';
@@ -44,6 +44,14 @@ export default function LeaderboardScreen() {
 
   const list = tab === 'earners' ? earners : givers;
 
+  const openProfile = (item: LeaderboardEntry) => {
+    if (tab === 'earners') {
+      router.push(`/user/${item.profileId}` as Href);
+      return;
+    }
+    router.push(`/business/${item.profileId}` as Href);
+  };
+
   return (
     <Screen style={styles.safe}>
       <View style={styles.header}>
@@ -62,7 +70,10 @@ export default function LeaderboardScreen() {
               style={[styles.tab, active && styles.tabActive]}
               onPress={() => setTab(key)}
             >
-              <Text style={[styles.tabText, active && styles.tabTextActive]}>
+              <Text
+                style={[styles.tabText, active && styles.tabTextActive]}
+                numberOfLines={1}
+              >
                 {key === 'earners' ? t('leaderboard.topEarners') : t('leaderboard.topGivers')}
               </Text>
             </TouchableOpacity>
@@ -90,7 +101,14 @@ export default function LeaderboardScreen() {
             <Text style={styles.empty}>{t('leaderboard.empty')}</Text>
           ) : (
             list.map((item) => (
-              <View key={`${tab}-${item.profileId}`} style={styles.row}>
+              <TouchableOpacity
+                key={`${tab}-${item.profileId}`}
+                style={styles.row}
+                activeOpacity={0.88}
+                onPress={() => openProfile(item)}
+                accessibilityRole="button"
+                accessibilityLabel={item.name}
+              >
                 <Text style={styles.rank}>{t('leaderboard.rank', { rank: item.rank })}</Text>
                 <ProfileAvatar
                   name={item.name}
@@ -109,7 +127,8 @@ export default function LeaderboardScreen() {
                     {t('leaderboard.rewardCount', { count: item.rewardCount })}
                   </Text>
                 </View>
-              </View>
+                <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>
@@ -138,13 +157,19 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     },
     tab: {
       flex: 1,
-      paddingVertical: Spacing[2],
+      paddingVertical: Spacing[3],
+      paddingHorizontal: Spacing[2],
       alignItems: 'center',
+      justifyContent: 'center',
       borderRadius: Radius.md,
     },
     tabActive: { backgroundColor: Colors.card },
-    tabText: { ...Typography.labelMedium, color: Colors.textMuted },
-    tabTextActive: { color: Colors.primary },
+    tabText: {
+      ...Typography.labelMedium,
+      color: Colors.textMuted,
+      textAlign: 'center',
+    },
+    tabTextActive: { color: Colors.primary, fontWeight: '700' },
     scroll: { padding: Spacing[5], gap: Spacing[3] },
     empty: {
       ...Typography.bodyMedium,

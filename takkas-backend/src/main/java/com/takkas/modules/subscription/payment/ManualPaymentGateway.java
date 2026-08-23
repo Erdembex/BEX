@@ -50,6 +50,6 @@ public class ManualPaymentGateway implements PaymentGateway {
     }
 
     private String generateReference() {
-        return "BEX-" + (100000 + RANDOM.nextInt(900000));
+        return "PS-" + (100000 + RANDOM.nextInt(900000));
     }
 }

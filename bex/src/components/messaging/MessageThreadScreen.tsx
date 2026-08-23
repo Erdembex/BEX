@@ -110,6 +110,7 @@ export function MessageThreadScreen({
         <View style={styles.backBtn} />
       </View>
 
+      <View style={styles.chatPane}>
       <ChatThreadView
         applicationId={applicationId}
         currentUserId={firebaseUser.uid}
@@ -117,15 +118,18 @@ export function MessageThreadScreen({
         variant="fullscreen"
         peerLabel={peerLabel}
         taskTitle={taskTitle}
+        keyboardHeaderOffset={60}
         priorUnread={priorUnread}
         messagingAudience={messagingAudience}
       />
+      </View>
     </Screen>
   );
 }
 
 const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
+  chatPane: { flex: 1, minHeight: 0 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing[6] },
   header: {
     flexDirection: 'row',

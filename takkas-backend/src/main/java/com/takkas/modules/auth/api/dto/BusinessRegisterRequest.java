@@ -1,7 +1,9 @@
 package com.takkas.modules.auth.api.dto;
 
 import com.takkas.modules.user.domain.enums.BusinessCategory;
+import com.takkas.modules.user.domain.enums.Gender;
 import jakarta.validation.constraints.*;
+import java.time.LocalDate;
 
 public record BusinessRegisterRequest(
     @Email @NotBlank String email,
@@ -14,5 +16,7 @@ public record BusinessRegisterRequest(
     @NotBlank String city,
     @NotBlank String district,
     @NotBlank @Size(min = 10, max = 500) String openAddress,
+    @NotNull @Past LocalDate birthDate,
+    @NotNull Gender gender,
     String phone
 ) {}

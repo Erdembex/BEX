@@ -1,15 +1,32 @@
 import { Redirect } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/features/auth/authService';
+import { hasCompletedOnboarding } from '@/lib/onboardingStorage';
 import { createThemedStyles, useThemeColors } from '@/theme';
+
+type GuestRoute = 'loading' | 'onboarding' | 'login';
 
 export default function Index() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
   const { firebaseUser, bexUser, isInitialized, setBexUser, signOut } = useAuthStore();
+  const [guestRoute, setGuestRoute] = useState<GuestRoute>('loading');
+
+  useEffect(() => {
+    if (!isInitialized || firebaseUser) return;
+
+    let cancelled = false;
+    void hasCompletedOnboarding().then((done) => {
+      if (!cancelled) setGuestRoute(done ? 'login' : 'onboarding');
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isInitialized, firebaseUser]);
 
   useEffect(() => {
     if (!isInitialized || !firebaseUser || bexUser) return;
@@ -50,7 +67,16 @@ export default function Index() {
   }
 
   if (!firebaseUser) {
-    return <Redirect href="/(auth)/onboarding" />;
+    if (guestRoute === 'loading') {
+      return (
+        <Screen style={styles.center}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </Screen>
+      );
+    }
+    return (
+      <Redirect href={guestRoute === 'login' ? '/(auth)/login' : '/(auth)/onboarding'} />
+    );
   }
 
   // Profil henüz yükleniyor (kayıt/giriş sonrası)

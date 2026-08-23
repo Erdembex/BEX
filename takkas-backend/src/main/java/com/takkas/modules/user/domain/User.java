@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -47,6 +48,12 @@ public class User {
     @Column(nullable = false)
     @Builder.Default
     private boolean emailVerified = false;
+
+    private LocalDate birthDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private Gender gender;
 
     @CreatedDate  private Instant createdAt;
     @LastModifiedDate private Instant updatedAt;

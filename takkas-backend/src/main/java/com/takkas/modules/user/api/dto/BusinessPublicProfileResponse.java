@@ -20,4 +20,6 @@ public record BusinessPublicProfileResponse(
     long approvedComplaintCount,
     double complaintRate,
     long activeListingCount,
-    boolean isDangerous) {}
+    boolean isDangerous,
+    Double latitude,
+    Double longitude) {}

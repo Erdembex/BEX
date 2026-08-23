@@ -6,4 +6,7 @@ export type MapBusinessPin = {
   address: string;
   verified: boolean;
   district: string | null;
+  /** İlan pinlerinde görev detayına yönlendirme */
+  listingId?: string;
+  businessId?: string;
 };

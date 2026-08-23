@@ -5,9 +5,9 @@ import com.takkas.common.security.CurrentUser;
 import com.takkas.common.security.UserPrincipal;
 import com.takkas.modules.listing.api.dto.*;
 import com.takkas.modules.listing.service.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +22,7 @@ public class ListingController {
 
     private final ListingService listingService;
     private final ListingQueryService queryService;
+    private final ListingFavoriteService favoriteService;
 
     @PostMapping("/api/business/listings")
     @ResponseStatus(HttpStatus.CREATED)
@@ -55,6 +56,26 @@ public class ListingController {
     @PreAuthorize("hasRole('BUSINESS')")
     public List<ListingCardResponse> getMyListings(@CurrentUser UserPrincipal p) {
         return queryService.getBusinessListings(p.profileId());
+    }
+
+    @GetMapping("/api/listings/favorites")
+    @PreAuthorize("hasRole('INDIVIDUAL')")
+    public SavedListingsResponse getMyFavorites(@CurrentUser UserPrincipal p) {
+        return favoriteService.listForUser(p.userId());
+    }
+
+    @PostMapping("/api/listings/{id}/favorite")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('INDIVIDUAL')")
+    public void addFavorite(@CurrentUser UserPrincipal p, @PathVariable UUID id) {
+        favoriteService.save(p.userId(), id);
+    }
+
+    @DeleteMapping("/api/listings/{id}/favorite")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('INDIVIDUAL')")
+    public void removeFavorite(@CurrentUser UserPrincipal p, @PathVariable UUID id) {
+        favoriteService.remove(p.userId(), id);
     }
 
     @GetMapping("/api/listings")

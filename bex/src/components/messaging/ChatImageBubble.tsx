@@ -7,18 +7,15 @@ import {
   Pressable,
   ActivityIndicator,
   Modal,
-  Dimensions,
   Alert,
 } from 'react-native';
 import { Timestamp } from 'firebase/firestore';
 import { AuthenticatedImage } from '@/components/common/AuthenticatedImage';
-import { ZoomableImage } from '@/components/common/ZoomableImage';
+import { ImageViewerModal } from '@/components/common/ImageViewerModal';
 import { saveChatImageToGallery } from '@/lib/saveImageToGallery';
 import { formatRelativeTime } from '@/lib/dateUtils';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type ChatImageBubbleProps = {
   mediaUrl: string;
@@ -124,22 +121,12 @@ export function ChatImageBubble({
         </Pressable>
       </Modal>
 
-      <Modal
+      <ImageViewerModal
         visible={viewerOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setViewerOpen(false)}
-      >
-        <View style={styles.viewerBackdrop}>
-          <View style={styles.viewerContent}>
-            <ZoomableImage uri={mediaUrl} style={styles.viewerImage} />
-            <Text style={styles.zoomHint}>{t('chatImageBubble.zoomHint')}</Text>
-          </View>
-          <TouchableOpacity style={styles.viewerCloseBtn} onPress={() => setViewerOpen(false)}>
-            <Text style={styles.viewerCloseText}>{t('chatImageBubble.close')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        uri={mediaUrl}
+        onClose={() => setViewerOpen(false)}
+        zoomHint={t('chatImageBubble.zoomHint')}
+      />
     </View>
   );
 }
@@ -268,39 +255,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   menuItemText: { ...Typography.bodyMedium, color: Colors.textPrimary, fontWeight: '600' },
   menuItemDanger: { color: Colors.error },
   menuDivider: { height: 1, backgroundColor: Colors.borderLight },
-  viewerBackdrop: {
-    flex: 1,
-    backgroundColor: Colors.overlay ?? 'rgba(0,0,0,0.9)',
-    justifyContent: 'center',
-    padding: Spacing[4],
-  },
-  viewerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  viewerImage: {
-    width: SCREEN_WIDTH - Spacing[8],
-    height: SCREEN_HEIGHT * 0.65,
-    borderRadius: Radius.lg,
-  },
-  zoomHint: {
-    ...Typography.caption,
-    color: Colors.textOnPrimary,
-    textAlign: 'center',
-    marginTop: Spacing[3],
-    opacity: 0.85,
-  },
-  viewerCloseBtn: {
-    alignSelf: 'center',
-    marginTop: Spacing[4],
-    marginBottom: Spacing[6],
-    paddingHorizontal: Spacing[5],
-    paddingVertical: Spacing[2],
-    backgroundColor: Colors.background,
-    borderRadius: Radius.full,
-  },
-  viewerCloseText: { ...Typography.labelMedium, color: Colors.textPrimary },
   attachBtn: {
     width: 44,
     height: 44,

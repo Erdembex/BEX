@@ -77,30 +77,33 @@ export default function UserTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="messages"
+        name="trade"
         options={{
-          title: t('tabs.messages'),
-          tabBarBadge: totalUnread > 0 ? (totalUnread > 99 ? '99+' : totalUnread) : undefined,
+          title: t('tabs.trade'),
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
-              name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'}
+              name="swap-horizontal"
               focused={focused}
-              locked={!isUnlocked}
               color={color}
             />
           ),
         }}
       />
       <Tabs.Screen
-        name="applications/index"
+        name="wallet"
         options={{
-          title: t('tabs.applications'),
+          title: t('tabs.wallet'),
           tabBarIcon: ({ focused, color }) => (
-            <TabIcon
-              name={focused ? 'document-text' : 'document-text-outline'}
-              focused={focused}
-              color={color}
-            />
+            <TabIcon name={focused ? 'wallet' : 'wallet-outline'} focused={focused} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="favorites/index"
+        options={{
+          title: t('tabs.favorites'),
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'star' : 'star-outline'} focused={focused} color={color} />
           ),
         }}
       />
@@ -117,8 +120,23 @@ export default function UserTabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="trade" options={{ href: null }} />
-      <Tabs.Screen name="wallet" options={{ href: null }} />
+      <Tabs.Screen
+        name="messages"
+        options={{
+          href: null,
+          title: t('tabs.messages'),
+          tabBarBadge: totalUnread > 0 ? (totalUnread > 99 ? '99+' : totalUnread) : undefined,
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon
+              name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'}
+              focused={focused}
+              locked={!isUnlocked}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen name="applications/index" options={{ href: null }} />
       <Tabs.Screen name="notifications/index" options={{ href: null }} />
       <Tabs.Screen name="complaints/index" options={{ href: null }} />
       <Tabs.Screen name="more" options={{ href: null }} />

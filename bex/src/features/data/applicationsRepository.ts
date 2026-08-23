@@ -13,6 +13,7 @@ import { tasksRepository } from './businessesRepository';
 import { usersRepository } from './usersRepository';
 import { notifyUser, notifyAdmins } from '../notifications/notificationsRepository';
 import { refreshPendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
+import { generateCouponCode, formatCouponCodeFromId } from '@/lib/couponCode';
 import {
   acceptApplication,
   applyToListing,
@@ -270,11 +271,6 @@ export const applicationsRepository = {
   },
 };
 
-function generateCouponCode(): string {
-  const part = () => Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `BEX-${part()}-${part()}`;
-}
-
 function mapIssuedStatus(statusRaw: BusinessIssuedCoupon['statusRaw']): Coupon['status'] {
   switch (statusRaw) {
     case 'USED':
@@ -300,7 +296,7 @@ function mapIssuedToCoupon(c: BusinessIssuedCoupon, businessId: string): Coupon 
     totalUses: c.quantity,
     usedCount: c.statusRaw === 'USED' ? c.quantity : 0,
     qrCode: c.id,
-    couponCode: `BEX-${c.id.slice(0, 8).toUpperCase()}`,
+    couponCode: formatCouponCodeFromId(c.id),
     expiresAt: Timestamp.now(),
     usageHistory: [],
     status,

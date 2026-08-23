@@ -28,7 +28,7 @@ function swapChatHref(offerId: string): Href {
   return `/swap-chat/${offerId}` as Href;
 }
 
-function tradeTabHref(tab: 'mine' | 'offers'): Href {
+function tradeTabHref(tab: 'new' | 'offers'): Href {
   return { pathname: '/(tabs)/trade', params: { tab } } as Href;
 }
 
@@ -78,7 +78,7 @@ export function getNotificationTarget(
       if (item.data?.offerId) {
         return swapChatHref(item.data.offerId);
       }
-      return tradeTabHref('mine');
+      return tradeTabHref('new');
     case 'trade_offer_accepted':
     case 'trade_offer_rejected':
       if (item.data?.offerId) {

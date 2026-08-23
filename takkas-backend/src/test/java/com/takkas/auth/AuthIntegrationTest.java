@@ -2,6 +2,7 @@ package com.takkas.auth;
 
 import com.takkas.modules.auth.api.dto.IndividualRegisterRequest;
 import com.takkas.modules.auth.api.dto.LoginRequest;
+import com.takkas.modules.user.domain.enums.Gender;
 import com.takkas.modules.user.domain.enums.Skill;
 import com.takkas.support.AbstractIntegrationTest;
 import com.takkas.support.ApiTestClient.RegistrationResult;
@@ -9,6 +10,7 @@ import com.takkas.support.RequiresIntegrationInfrastructure;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +59,8 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
                 "Duplicate User",
                 "Istanbul",
                 "Kadikoy",
+                LocalDate.of(1990, 5, 20),
+                Gender.FEMALE,
                 List.of(Skill.SOCIAL_MEDIA)))
             .exchange()
             .expectStatus().isCreated();
@@ -70,6 +74,8 @@ class AuthIntegrationTest extends AbstractIntegrationTest {
                 "Duplicate User",
                 "Istanbul",
                 "Kadikoy",
+                LocalDate.of(1990, 5, 20),
+                Gender.FEMALE,
                 List.of(Skill.SOCIAL_MEDIA)))
             .exchange()
             .expectStatus().isEqualTo(422)

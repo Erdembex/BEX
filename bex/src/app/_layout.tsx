@@ -21,14 +21,16 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { PendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
 import { useAppFonts } from '@/hooks/useAppFonts';
 import { AppLaunchSplash } from '@/components/common/AppLaunchSplash';
+import { useSavedListingsStore } from '@/store/savedListingsStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* Expo Go veya tekrar çağrıda sessizce yoksay */
 });
 
 export default function RootLayout() {
-  const { setFirebaseUser, setBexUser, setInitialized, isInitialized } =
+  const { setFirebaseUser, setBexUser, setInitialized, isInitialized, firebaseUser } =
     useAuthStore();
+  const hydrateSavedListings = useSavedListingsStore((s) => s.hydrate);
   const hydrateTheme = useThemeStore((s) => s.hydrate);
   const hydrateLocale = useLocaleStore((s) => s.hydrate);
   const Colors = useThemeColors();
@@ -69,6 +71,10 @@ export default function RootLayout() {
       cancelled = true;
     };
   }, [setFirebaseUser, setBexUser, setInitialized]);
+
+  useEffect(() => {
+    hydrateSavedListings(firebaseUser?.uid ?? null);
+  }, [firebaseUser?.uid, hydrateSavedListings]);
 
   const appReady = isInitialized && fontsLoaded;
 

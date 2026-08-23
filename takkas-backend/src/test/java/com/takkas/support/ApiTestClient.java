@@ -14,6 +14,7 @@ import com.takkas.modules.listing.api.dto.ListingResponse;
 import com.takkas.modules.application.api.dto.ApplyRequest;
 import com.takkas.modules.application.api.dto.ApplicationResponse;
 import com.takkas.modules.user.domain.enums.BusinessCategory;
+import com.takkas.modules.user.domain.enums.Gender;
 import com.takkas.modules.user.domain.enums.Skill;
 import com.takkas.modules.listing.domain.enums.RewardType;
 import com.takkas.modules.listing.domain.enums.WeeklyHours;
@@ -21,12 +22,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 public class ApiTestClient {
 
     private static final String TEST_PASSWORD = "TestPass1";
+    private static final LocalDate TEST_BIRTH_DATE = LocalDate.of(1995, 3, 15);
+    private static final Gender TEST_GENDER = Gender.MALE;
 
     private final WebTestClient client;
 
@@ -80,6 +84,8 @@ public class ApiTestClient {
                 "Istanbul",
                 "Kadikoy",
                 "Moda Cad. No:12 Kadikoy Istanbul",
+                TEST_BIRTH_DATE,
+                TEST_GENDER,
                 "5550000000"))
             .exchange()
             .expectStatus().isCreated()
@@ -103,6 +109,8 @@ public class ApiTestClient {
                 "Test User " + tag,
                 "Istanbul",
                 "Kadikoy",
+                TEST_BIRTH_DATE,
+                TEST_GENDER,
                 List.of(Skill.SOCIAL_MEDIA)))
             .exchange()
             .expectStatus().isCreated()
@@ -127,6 +135,8 @@ public class ApiTestClient {
                 "Istanbul",
                 "Kadikoy",
                 "Moda Cad. No:12 Kadikoy Istanbul",
+                TEST_BIRTH_DATE,
+                TEST_GENDER,
                 "5550000000"))
             .exchange()
             .expectStatus().isCreated()
@@ -149,6 +159,8 @@ public class ApiTestClient {
                 "Test User " + suffix,
                 "Istanbul",
                 "Kadikoy",
+                TEST_BIRTH_DATE,
+                TEST_GENDER,
                 List.of(Skill.SOCIAL_MEDIA)))
             .exchange()
             .expectStatus().isCreated()

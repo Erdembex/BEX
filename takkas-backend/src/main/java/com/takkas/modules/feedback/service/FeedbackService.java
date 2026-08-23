@@ -22,8 +22,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -73,6 +77,26 @@ public class FeedbackService {
             .map(this::toResponse)
             .toList();
         return new ProfileFeedbackSummary(avg != null ? avg : 0.0, count, recent);
+    }
+
+    public record BusinessRatingSummary(double averageStars, long totalCount) {}
+
+    public Map<UUID, BusinessRatingSummary> batchBusinessRatings(Collection<UUID> profileIds) {
+        if (profileIds == null || profileIds.isEmpty()) {
+            return Map.of();
+        }
+        var ids = profileIds.stream().filter(Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        Map<UUID, BusinessRatingSummary> result = new HashMap<>();
+        for (Object[] row : feedbackRepo.averageStarsAndCountByTargetProfileIds(ids)) {
+            UUID id = (UUID) row[0];
+            double avg = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+            long count = row[2] != null ? ((Number) row[2]).longValue() : 0L;
+            result.put(id, new BusinessRatingSummary(avg, count));
+        }
+        return result;
     }
 
     public boolean hasFeedbackForApplication(UUID applicationId, UUID authorUserId) {

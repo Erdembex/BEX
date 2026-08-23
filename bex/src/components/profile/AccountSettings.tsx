@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { router, Href } from 'expo-router';
@@ -15,6 +15,7 @@ import { LocationPicker } from '@/components/common/LocationPicker';
 import { usersRepository } from '@/features/data';
 import { CompletedTask } from '@/types';
 import { useToast } from '@/components/common/Toast';
+import { openProtectedMediaUrl } from '@/lib/openProtectedMedia';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -607,7 +608,13 @@ export function AccountSettings({
           <Text style={styles.locationHint}>{t('accountSettings.cvHint')}</Text>
           {bexUser.cvUrl ? (
             <>
-              <TouchableOpacity onPress={() => Linking.openURL(bexUser.cvUrl!)}>
+              <TouchableOpacity
+                onPress={() => {
+                  void openProtectedMediaUrl(bexUser.cvUrl!).catch((err) => {
+                    showToast(err instanceof Error ? err.message : t('accountSettings.cvOpenFailed'));
+                  });
+                }}
+              >
                 <Text style={styles.cvLink}>{t('accountSettings.viewCv')}</Text>
               </TouchableOpacity>
               <View style={styles.editActions}>

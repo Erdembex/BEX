@@ -9,17 +9,37 @@ import type { MapBusinessPin } from './types';
 
 type Props = {
   city: string;
+  focusDistrict?: string | null;
   initialRegion: MapRegion;
   pins: MapBusinessPin[];
 };
 
-export function DiscoverMapView({ city, initialRegion, pins }: Props) {
+export function DiscoverMapView({ city, focusDistrict, initialRegion, pins }: Props) {
   const Colors = useThemeColors();
   const mapRef = useRef<MapView>(null);
   const bounds = useMemo(() => getCityMapBounds(city), [city]);
+  const lockDistrictView = Boolean(focusDistrict?.trim());
 
   useEffect(() => {
-    if (!mapRef.current || pins.length === 0) return;
+    if (!mapRef.current) return;
+
+    if (lockDistrictView) {
+      if (pins.length > 0) {
+        const coords = pins.map((pin) => ({
+          latitude: pin.latitude,
+          longitude: pin.longitude,
+        }));
+        mapRef.current.fitToCoordinates(coords, {
+          edgePadding: { top: 72, right: 48, bottom: 120, left: 48 },
+          animated: true,
+        });
+      } else {
+        mapRef.current.animateToRegion(initialRegion, 400);
+      }
+      return;
+    }
+
+    if (pins.length === 0) return;
 
     const coords = pins.map((pin) => ({
       latitude: pin.latitude,
@@ -42,7 +62,7 @@ export function DiscoverMapView({ city, initialRegion, pins }: Props) {
       edgePadding: { top: 72, right: 48, bottom: 120, left: 48 },
       animated: true,
     });
-  }, [pins, bounds.neighborhoodLatDelta, bounds.neighborhoodLngDelta]);
+  }, [pins, bounds.neighborhoodLatDelta, bounds.neighborhoodLngDelta, lockDistrictView, initialRegion]);
 
   const onRegionChangeComplete = useCallback(
     (next: Region) => {
@@ -88,7 +108,14 @@ export function DiscoverMapView({ city, initialRegion, pins }: Props) {
             title={pin.name}
             description={pin.address}
             pinColor={pin.verified ? '#D4B86A' : '#051F45'}
-            onCalloutPress={() => router.push(`/business/${pin.id}` as Href)}
+            onCalloutPress={() => {
+              const href = (pin.listingId ?? pin.id) as string;
+              if (pin.listingId) {
+                router.push(`/task/${href}` as Href);
+                return;
+              }
+              router.push(`/business/${href}` as Href);
+            }}
           />
         ))}
       </MapView>
@@ -96,7 +123,7 @@ export function DiscoverMapView({ city, initialRegion, pins }: Props) {
       {pins.length === 0 ? (
         <View style={[styles.emptyOverlay, { backgroundColor: Colors.overlayLight }]}>
           <Text style={[styles.emptyText, { color: Colors.textPrimary }]}>
-            Bu bölgede haritada gösterilecek işletme bulunamadı.
+            Bu bölgede haritada gösterilecek ilan bulunamadı.
           </Text>
         </View>
       ) : null}

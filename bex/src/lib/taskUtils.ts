@@ -38,20 +38,30 @@ export function getDifficultyColor(difficulty: TaskDifficulty): string {
 
 type GreetingTranslator = (key: string) => string;
 
-export function getGreeting(name: string | undefined, t: GreetingTranslator): string {
+export function getGreeting(
+  name: string | undefined,
+  t: GreetingTranslator,
+  audience: 'user' | 'business' = 'user'
+): string {
   const hour = new Date().getHours();
-  let greetingKey = 'greeting.hello';
-  if (hour < 12) greetingKey = 'greeting.morning';
-  else if (hour < 18) greetingKey = 'greeting.afternoon';
-  else greetingKey = 'greeting.evening';
+  let greetingKey: string;
+  if (hour >= 5 && hour < 12) greetingKey = 'greeting.morning';
+  else if (hour >= 12 && hour < 18) greetingKey = 'greeting.afternoon';
+  else if (hour >= 18 && hour < 22) greetingKey = 'greeting.evening';
+  else greetingKey = 'greeting.night';
 
   const greeting = t(greetingKey);
+  const helloNameKey =
+    audience === 'business' ? 'greeting.businessHelloName' : 'greeting.helloName';
+  const helloOnlyKey =
+    audience === 'business' ? 'greeting.businessHelloOnly' : 'greeting.helloOnly';
+
   if (name) {
-    return t('greeting.helloName')
+    return t(helloNameKey)
       .replace('{{greeting}}', greeting)
       .replace('{{name}}', name.split(' ')[0]);
   }
-  return t('greeting.helloOnly').replace('{{greeting}}', greeting);
+  return t(helloOnlyKey).replace('{{greeting}}', greeting);
 }
 
 export function matchesSearch(

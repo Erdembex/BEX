@@ -34,7 +34,7 @@ const TEST_STEPS: TestStep[] = [
     needsBackend: true,
     steps: [
       'Uygulamayı aç; onboarding ekranından «Giriş yap».',
-      'admin@bex.dev / E123456789y. ile giriş yap (REST modu).',
+      'Admin test hesabı ile giriş yap (geliştirme ortamı).',
       'Üstte turuncu «Sunucuya ulaşılamıyor» bandı görürsen backend kapalı veya IP yanlış demektir.',
     ],
   },

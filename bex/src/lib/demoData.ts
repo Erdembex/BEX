@@ -193,6 +193,8 @@ export function enrichTasksWithBusiness(
       ...t,
       businessName: biz?.name ?? 'İşletme',
       businessVerified: biz?.isVerified ?? false,
+      businessAverageRating: biz?.averageRating,
+      businessFeedbackCount: biz?.feedbackCount,
     };
   });
 }

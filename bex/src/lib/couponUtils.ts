@@ -90,6 +90,7 @@ export function parseCouponScan(raw: string): {
   if (payload) return { couponId: payload.couponId };
 
   const code = raw.trim().toUpperCase();
+  // PS- yeni marka; BEX- eski kuponlar için geriye dönük uyumluluk.
   if (code.startsWith('PS-') || code.startsWith('BEX-')) return { couponCode: code };
 
   return null;

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { Timestamp } from 'firebase/firestore';
 import { apiClient, getApiErrorMessage } from '@/lib/api';
+import { formatCouponCodeFromId } from '@/lib/couponCode';
 import { Coupon } from '@/types';
 
 type CouponDto = {
@@ -61,7 +62,7 @@ export function mapCouponDto(
     totalUses,
     usedCount: mapped.usedCount,
     qrCode: String(dto.id),
-    couponCode: `BEX-${String(dto.id).slice(0, 8).toUpperCase()}`,
+    couponCode: formatCouponCodeFromId(String(dto.id)),
     expiresAt: toTimestamp(dto.expiresAt),
     usageHistory: [],
     status: mapped.status,

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Platform,
   Alert,
   Image,
   NativeSyntheticEvent,
@@ -51,6 +50,8 @@ interface ChatThreadViewProps {
   variant?: 'embedded' | 'fullscreen';
   peerLabel?: string;
   taskTitle?: string;
+  /** Üst başlık çubuğu yüksekliği — klavye kaydırması için */
+  keyboardHeaderOffset?: number;
   /** Bu sohbetteki okunmamış sayısı — rozet anında düşsün */
   priorUnread?: number;
   messagingAudience?: 'user' | 'business';
@@ -69,6 +70,7 @@ export function ChatThreadView({
   variant = 'fullscreen',
   peerLabel,
   taskTitle,
+  keyboardHeaderOffset = 0,
   priorUnread = 0,
   messagingAudience = 'user',
 }: ChatThreadViewProps) {
@@ -422,8 +424,8 @@ export function ChatThreadView({
   return (
     <KeyboardAvoidingView
       style={[styles.root, isFullscreen && styles.rootFullscreen]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={isFullscreen ? 0 : 0}
+      behavior="padding"
+      keyboardVerticalOffset={isFullscreen ? insets.top + keyboardHeaderOffset : 0}
     >
       {!isFullscreen && peerLabel ? (
         <View style={styles.embeddedHeader}>
@@ -458,6 +460,10 @@ export function ChatThreadView({
             nestedScrollEnabled
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
+            removeClippedSubviews
+            maxToRenderPerBatch={12}
+            windowSize={9}
+            initialNumToRender={16}
             onScroll={handleListScroll}
             scrollEventThrottle={16}
             renderItem={({ item }) => {

@@ -11,7 +11,7 @@ import type { TextStyle, ViewStyle } from 'react-native';
 /** Takas & cüzdan — aktif uygulama temasına göre üretilir */
 export function getTradeTheme(palette: Record<ColorKey, string>) {
   const base = getTheme(palette);
-  /** Koyu modda primary çok açık (#F2E5FF) — CTA için altın, metin için koyu ton */
+  /** Koyu modda primary altın ton — CTA ve vurgular */
   const isDark = palette.textOnPrimary === '#031528';
 
   return createTheme({
@@ -43,7 +43,7 @@ export function getTradeTheme(palette: Record<ColorKey, string>) {
       tradeInputText: isDark ? palette.textInverse : palette.text,
       tradeInputBorder: isDark ? '#B8C9DC' : palette.border,
       /** Bilgi kutusu */
-      tradeInfoBg: isDark ? 'rgba(168, 199, 232, 0.16)' : palette.infoLight,
+      tradeInfoBg: isDark ? 'rgba(143, 175, 212, 0.10)' : palette.infoLight,
       tradeInfoText: palette.textSecondary,
     },
     borderRadii: {

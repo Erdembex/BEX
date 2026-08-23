@@ -1,4 +1,5 @@
 import data from './turkeyLocationsData.json';
+import { ISTANBUL_DISTRICT_COORDS } from './istanbulDistrictCoords';
 
 export type TurkeyCity = (typeof TURKEY_CITIES)[number];
 
@@ -107,4 +108,25 @@ export function getCityCenter(city: string): { lat: number; lng: number } {
   const coords = cityCoords[matched];
   if (coords) return coords;
   return { lat: 39.9334, lng: 32.8597 };
+}
+
+const DISTRICT_COORDS_BY_CITY: Record<string, Record<string, { lat: number; lng: number }>> = {
+  İstanbul: ISTANBUL_DISTRICT_COORDS,
+};
+
+/** İlçe merkez koordinatı — bilinmiyorsa il merkezine düşer */
+export function getDistrictCenter(
+  city: string,
+  district: string | null | undefined
+): { lat: number; lng: number } | null {
+  if (!district?.trim()) return null;
+  const matchedCity = matchCity(city);
+  if (!matchedCity) return null;
+  const matchedDistrict = matchDistrict(matchedCity, district);
+  if (!matchedDistrict) return null;
+
+  const cityDistricts = DISTRICT_COORDS_BY_CITY[matchedCity];
+  if (!cityDistricts) return null;
+
+  return cityDistricts[matchedDistrict] ?? null;
 }

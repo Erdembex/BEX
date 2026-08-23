@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  Dimensions,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { PortfolioItem } from '@/types';
-import { ZoomableImage } from '@/components/common/ZoomableImage';
+import { ImageViewerModal } from '@/components/common/ImageViewerModal';
 import { AuthenticatedImage } from '@/components/common/AuthenticatedImage';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
@@ -82,22 +76,13 @@ export function UserPortfolioGallery({
         </View>
       </View>
 
-      <Modal visible={!!preview} transparent animationType="fade" onRequestClose={() => setPreview(null)}>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            {preview ? (
-              <>
-                <ZoomableImage uri={preview.imageUrl} style={styles.previewImage} />
-                <Text style={styles.previewTitle}>{preview.taskTitle}</Text>
-                <Text style={styles.zoomHint}>{t('userPortfolioGallery.zoomHint')}</Text>
-              </>
-            ) : null}
-          </View>
-          <TouchableOpacity style={styles.closeBtn} onPress={() => setPreview(null)}>
-            <Text style={styles.closeText}>{t('userPortfolioGallery.close')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      <ImageViewerModal
+        visible={!!preview}
+        uri={preview?.imageUrl ?? null}
+        onClose={() => setPreview(null)}
+        caption={preview?.taskTitle}
+        zoomHint={t('userPortfolioGallery.zoomHint')}
+      />
     </>
   );
 }
@@ -132,42 +117,4 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderColor: Colors.borderLight,
   },
   emptyText: { ...Typography.bodySmall, color: Colors.textMuted, textAlign: 'center' },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: Colors.overlay,
-    justifyContent: 'center',
-    padding: Spacing[4],
-  },
-  modalContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewImage: {
-    width: SCREEN_WIDTH - Spacing[8],
-    height: SCREEN_WIDTH - Spacing[8],
-    borderRadius: Radius.lg,
-  },
-  previewTitle: {
-    ...Typography.labelMedium,
-    color: Colors.textOnPrimary,
-    textAlign: 'center',
-    marginTop: Spacing[3],
-  },
-  zoomHint: {
-    ...Typography.caption,
-    color: Colors.textOnPrimary,
-    textAlign: 'center',
-    marginTop: Spacing[2],
-    opacity: 0.85,
-  },
-  closeBtn: {
-    alignSelf: 'center',
-    marginTop: Spacing[4],
-    paddingHorizontal: Spacing[5],
-    paddingVertical: Spacing[2],
-    backgroundColor: Colors.background,
-    borderRadius: Radius.full,
-  },
-  closeText: { ...Typography.labelMedium, color: Colors.textPrimary },
 }));

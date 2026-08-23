@@ -1,80 +1,82 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuthStore } from '@/store/authStore';
 import { useBusiness } from '@/features/business/useBusiness';
-import { authService } from '@/features/auth/authService';
-import {
-  applicationsRepository,
-  tasksRepository,
-} from '@/features/data';
-import {
-  getBusinessAnalytics,
-} from '@/features/business/businessAnalyticsService';
+import { applicationsRepository, tasksRepository } from '@/features/data';
 import { useMessagingInbox } from '@/hooks/useMessagingInbox';
-import { StatCard } from '@/components/business';
-import { Button } from '@/components/ui';
-import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
+import { BusinessListingProjectCard } from '@/components/business';
 import { Typography, Spacing, Radius, useThemeColors, useThemeShadow } from '@/theme';
 import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
+import { getGreeting } from '@/lib/taskUtils';
+import { Task } from '@/types';
 
 export default function BusinessDashboardScreen() {
-  const { bexUser, signOut } = useAuthStore();
+  const { bexUser } = useAuthStore();
   const { business, loading, reload } = useBusiness();
   const Colors = useThemeColors();
   const ThemeShadow = useThemeShadow();
   const { t } = useTranslation();
+  const tabBarPadding = useTabBarBottomPadding(56);
   const styles = useMemo(() => createStyles(Colors, ThemeShadow), [Colors, ThemeShadow]);
-  const { totalUnread: messageUnread, isUnlocked: messagingUnlocked } = useMessagingInbox('business');
+  const { totalUnread: messageUnread } = useMessagingInbox('business');
+  const [activeTasks, setActiveTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState({
     newApplications: 0,
     inProgressApps: 0,
-    activeTasks: 0,
-    pendingApproval: 0,
-    completedTasks: 0,
   });
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadStats = useCallback(async () => {
+  const displayName = business?.name ?? bexUser?.displayName ?? t('common.user');
+
+  const loadDashboard = useCallback(async () => {
     if (!business) return;
-    const [apps, tasks, analytics] = await Promise.all([
+    const [apps, tasks] = await Promise.all([
       applicationsRepository.getByBusiness(business.id),
       tasksRepository.getByBusiness(business.id),
-      getBusinessAnalytics(business.id).catch(() => null),
     ]);
+    const ongoing = tasks
+      .filter((task) => task.status === 'active' || task.status === 'draft')
+      .sort((a, b) => {
+        const aTime = a.createdAt?.toMillis?.() ?? 0;
+        const bTime = b.createdAt?.toMillis?.() ?? 0;
+        return bTime - aTime;
+      });
+    setActiveTasks(ongoing);
     setStats({
       newApplications: apps.filter((a) => a.status === 'pending').length,
-      inProgressApps: apps.filter((a) =>
-        ['approved', 'submitted', 'submission_approved'].includes(a.status)
-      ).length,
-      activeTasks: analytics?.activeTasks ?? tasks.filter((t) => t.status === 'active').length,
-      pendingApproval:
-        analytics?.pendingApproval ?? tasks.filter((t) => !t.approvedByAdmin).length,
-      completedTasks: analytics?.completedTasks ?? 0,
+      inProgressApps:
+        apps.filter((a) => ['approved', 'submitted', 'submission_approved'].includes(a.status))
+          .length,
     });
   }, [business]);
 
   useFocusEffect(
     useCallback(() => {
-      loadStats();
-    }, [loadStats])
+      loadDashboard();
+    }, [loadDashboard])
   );
 
   const onRefresh = async () => {
     setRefreshing(true);
     await reload();
-    await loadStats();
+    await loadDashboard();
     setRefreshing(false);
   };
 
-  const handleLogout = async () => {
-    await authService.logout();
-    signOut();
-    router.replace('/(auth)/onboarding');
-  };
+  const gridTasks = activeTasks.slice(0, 4);
 
   if (loading) {
     return (
@@ -85,201 +87,109 @@ export default function BusinessDashboardScreen() {
   }
 
   return (
-    <Screen style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
+        showsVerticalScrollIndicator={false}
       >
-        <View style={styles.hero}>
-          <ProfileAvatar
-            name={business?.name ?? bexUser?.displayName}
-            avatarUrl={business?.logoUrl || bexUser?.avatarUrl}
-            size={56}
-          />
-          <View style={styles.heroText}>
-            <Text style={styles.greeting}>{t('business.panel.hello')}</Text>
-            <Text style={styles.name}>{business?.name ?? bexUser?.displayName}</Text>
-            {business?.isVerified ? (
-              <Text style={styles.verified}>{t('business.panel.verified')}</Text>
-            ) : null}
-          </View>
-          <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-            <Text style={styles.logoutText}>{t('business.panel.logout')}</Text>
-          </TouchableOpacity>
-        </View>
-
-        {messageUnread > 0 ? (
+        <View style={styles.topBar}>
           <TouchableOpacity
-            style={styles.messageCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/messages' as Href)}
-          >
-            <Text style={styles.messageTitle}>
-              {t('business.panel.unreadMessages', { count: messageUnread })}
-            </Text>
-            <Text style={styles.messageHint}>{t('business.panel.goToMessages')}</Text>
-          </TouchableOpacity>
-        ) : messagingUnlocked ? (
-          <TouchableOpacity
-            style={styles.messageCardMuted}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/messages' as Href)}
-          >
-            <Text style={styles.messageTitleMuted}>{t('business.panel.chatCandidates')}</Text>
-            <Text style={styles.messageHintMuted}>{t('business.panel.chatFromApproved')}</Text>
-          </TouchableOpacity>
-        ) : null}
-
-        <View style={styles.statsRow}>
-          <StatCard
-            label={t('business.panel.stats.newApplications')}
-            value={stats.newApplications}
-            emoji="📥"
-            onPress={() => router.push('/(business)/applications' as Href)}
-          />
-          <StatCard
-            label={t('business.panel.stats.inProgress')}
-            value={stats.inProgressApps}
-            emoji="💬"
-            onPress={() => router.push('/(business)/applications' as Href)}
-          />
-        </View>
-        <View style={styles.statsRow}>
-          <StatCard
-            label={t('business.panel.stats.activeTasks')}
-            value={stats.activeTasks}
-            emoji="🎯"
-            onPress={() => router.push('/(business)/tasks' as Href)}
-          />
-          <StatCard
-            label={t('business.panel.stats.pendingApproval')}
-            value={stats.pendingApproval}
-            emoji="⏳"
-            onPress={() => router.push('/(business)/tasks' as Href)}
-          />
-        </View>
-        <View style={styles.statsRow}>
-          <StatCard label={t('business.panel.stats.completedTasksLong')} value={stats.completedTasks} emoji="✅" />
-          <StatCard
-            label={t('businessDashboardScreen.averageRating')}
-            value={business?.averageRating ? `${business.averageRating.toFixed(1)} ⭐` : '—'}
-            emoji="🌟"
-          />
-        </View>
-        {business?.feedbackCount ? (
-          <Text style={styles.ratingHint}>
-            {t('businessDashboardScreen.ratingHint', { count: business.feedbackCount })}
-          </Text>
-        ) : null}
-
-        <Text style={styles.sectionTitle}>{t('businessDashboardScreen.quickAccess')}</Text>
-        <View style={styles.quickGrid}>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/messages' as Href)}
-          >
-            <Text style={styles.quickIcon}>💬</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickChat')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickChatHint')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/profile-search' as Href)}
-          >
-            <Text style={styles.quickIcon}>🔍</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickProfileSearch')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickProfileSearchHint')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/analytics' as Href)}
-          >
-            <Text style={styles.quickIcon}>📈</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickAnalytics')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickAnalyticsHint')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/notifications' as Href)}
-          >
-            <Text style={styles.quickIcon}>🔔</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickNotifications')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickNotificationsHint')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/complaint/submit-user' as Href)}
-          >
-            <Text style={styles.quickIcon}>⚠</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickUserComplaint')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickUserComplaintHint')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/complaints' as Href)}
-          >
-            <Text style={styles.quickIcon}>📋</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickMyComplaints')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickMyComplaintsHint')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
-            onPress={() => router.push('/(business)/subscription' as Href)}
-          >
-            <Text style={styles.quickIcon}>💳</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickSubscription')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickSubscriptionHint')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.quickCard}
-            activeOpacity={0.88}
+            style={styles.iconBtn}
             onPress={() => router.push('/settings' as Href)}
+            hitSlop={8}
           >
-            <Text style={styles.quickIcon}>⚙️</Text>
-            <Text style={styles.quickLabel}>{t('businessDashboardScreen.quickSettings')}</Text>
-            <Text style={styles.quickHint}>{t('businessDashboardScreen.quickSettingsHint')}</Text>
+            <Ionicons name="grid-outline" size={22} color={Colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.topTitle}>{t('tabsBusiness.panel')}</Text>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => router.push('/(business)/notifications' as Href)}
+            hitSlop={8}
+          >
+            <Ionicons name="notifications-outline" size={22} color={Colors.textPrimary} />
+            {messageUnread > 0 ? <View style={styles.notifDot} /> : null}
           </TouchableOpacity>
         </View>
 
-        <View style={styles.actions}>
-          <Button
-            title={t('businessDashboardScreen.createTask')}
-            onPress={() => router.push('/(business)/create-task')}
-          />
-          <Button
-            title={t('businessDashboardScreen.reviewApplications')}
-            variant="secondary"
-            onPress={() => router.push('/(business)/applications')}
-          />
-          <Button
-            title={t('businessDashboardScreen.verifyCoupon')}
-            variant="outline"
-            onPress={() => router.push('/(business)/coupons' as Href)}
-          />
-          {business && business.verificationStatus !== 'verified' && (
-            <Button
-              title={t('businessDashboardScreen.businessVerification')}
-              variant="secondary"
-              onPress={() => router.push('/(business)/verification' as Href)}
-            />
-          )}
+        <View style={styles.greetingBlock}>
+          <Text style={styles.greetingSmall}>{getGreeting(undefined, t, 'business')}</Text>
+          <Text style={styles.greetingName}>
+            {t('businessDashboardScreen.greetingName', { name: displayName })}
+          </Text>
         </View>
 
-        <View style={styles.note}>
-            <Text style={styles.noteTitle}>{t('business.panel.infoTitle')}</Text>
-            <Text style={styles.noteText}>{t('business.panel.infoText')}</Text>
+        <TouchableOpacity
+          style={styles.searchBar}
+          activeOpacity={0.88}
+          onPress={() => router.push('/(business)/profile-search' as Href)}
+        >
+          <Ionicons name="search-outline" size={20} color={Colors.textMuted} />
+          <Text style={styles.searchPlaceholder}>{t('businessDashboardScreen.searchPlaceholder')}</Text>
+        </TouchableOpacity>
+
+        <View style={[styles.welcomeBanner, ThemeShadow.sm]}>
+          <View style={styles.welcomeTextWrap}>
+            <Text style={styles.welcomeTitle}>{t('businessDashboardScreen.welcomeTitle')}</Text>
+            <Text style={styles.welcomeSubtitle}>{t('businessDashboardScreen.welcomeSubtitle')}</Text>
+          </View>
+          <View style={styles.welcomeArt}>
+            <Ionicons name="briefcase" size={34} color={Colors.primary} />
+          </View>
         </View>
+
+        <View style={styles.summaryRow}>
+          <TouchableOpacity
+            style={styles.summaryChip}
+            onPress={() => router.push('/(business)/applications' as Href)}
+          >
+            <Text style={styles.summaryValue}>{stats.newApplications}</Text>
+            <Text style={styles.summaryLabel}>{t('business.panel.stats.newApplications')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.summaryChip}
+            onPress={() => router.push('/(business)/applications' as Href)}
+          >
+            <Text style={styles.summaryValue}>{stats.inProgressApps}</Text>
+            <Text style={styles.summaryLabel}>{t('business.panel.stats.inProgress')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>{t('businessDashboardScreen.ongoingListings')}</Text>
+          <TouchableOpacity onPress={() => router.push('/(business)/tasks' as Href)}>
+            <Text style={styles.viewAll}>{t('common.seeAll')}</Text>
+          </TouchableOpacity>
+        </View>
+
+        {gridTasks.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>{t('businessDashboardScreen.noListingsTitle')}</Text>
+            <Text style={styles.emptyText}>{t('businessDashboardScreen.noListingsText')}</Text>
+            <TouchableOpacity
+              style={styles.emptyBtn}
+              onPress={() => router.push('/(business)/create-task' as Href)}
+            >
+              <Ionicons name="add" size={18} color={BRAND_NAVY_TEXT} />
+              <Text style={styles.emptyBtnText}>{t('businessDashboardScreen.createListing')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.projectGrid}>
+            {gridTasks.map((task, index) => (
+              <BusinessListingProjectCard
+                key={task.id}
+                task={task}
+                highlighted={index === 0}
+                onPress={() => router.push(`/(business)/edit-task/${task.id}` as Href)}
+              />
+            ))}
+          </View>
+        )}
       </ScrollView>
-    </Screen>
+    </TabScreen>
   );
 }
 
@@ -288,121 +198,178 @@ function createStyles(
   Shadow: ReturnType<typeof useThemeShadow>
 ) {
   return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: Spacing[5], paddingBottom: Spacing[10], gap: Spacing[4] },
-  hero: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing[3],
-    padding: Spacing[4],
-    borderRadius: Radius.xl,
-    marginBottom: Spacing[2],
-    backgroundColor: BRAND_NAVY,
-    borderWidth: 1,
-    borderColor: Colors.borderGold,
-    ...Shadow.card,
-  },
-  heroText: { flex: 1, gap: 2, minWidth: 0 },
-  greeting: { ...Typography.bodySmall, color: 'rgba(240, 238, 233, 0.82)', fontWeight: '600' },
-  name: { ...Typography.headingMedium, color: BRAND_NAVY_TEXT, fontWeight: '700' },
-  verified: {
-    ...Typography.caption,
-    color: Colors.accent,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  logoutBtn: {
-    paddingHorizontal: Spacing[3],
-    paddingVertical: Spacing[2],
-    borderRadius: Radius.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    borderWidth: 1,
-    borderColor: Colors.borderGold,
-  },
-  logoutText: { ...Typography.labelMedium, color: BRAND_NAVY_TEXT, fontWeight: '700' },
-  messageCard: {
-    padding: Spacing[4],
-    backgroundColor: Colors.accentLight,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.accent,
-    gap: Spacing[1],
-  },
-  messageTitle: {
-    ...Typography.labelLarge,
-    color: Colors.accentDark,
-    fontWeight: '700',
-  },
-  messageHint: {
-    ...Typography.caption,
-    color: Colors.accentDark,
-    fontWeight: '600',
-  },
-  messageCardMuted: {
-    padding: Spacing[4],
-    backgroundColor: Colors.card,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing[1],
-  },
-  messageTitleMuted: {
-    ...Typography.labelMedium,
-    color: Colors.textPrimary,
-    fontWeight: '700',
-  },
-  messageHintMuted: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: Spacing[3],
-    marginBottom: Spacing[3],
-  },
-  statSpacer: { flex: 1 },
-  ratingHint: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    marginTop: -Spacing[2],
-    marginBottom: Spacing[2],
-  },
-  sectionTitle: {
-    ...Typography.labelLarge,
-    color: Colors.textPrimary,
-    marginTop: Spacing[2],
-    marginBottom: Spacing[2],
-  },
-  quickGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing[3],
-    marginBottom: Spacing[4],
-  },
-  quickCard: {
-    width: '47%',
-    flexGrow: 1,
-    minWidth: '46%',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    padding: Spacing[3],
-    borderWidth: 1,
-    borderColor: Colors.borderGold,
-    gap: 4,
-  },
-  quickIcon: { fontSize: 22 },
-  quickLabel: { ...Typography.labelMedium, color: Colors.textPrimary },
-  quickHint: { ...Typography.caption, color: Colors.textMuted },
-  actions: { gap: Spacing[3], marginBottom: Spacing[6] },
-  note: {
-    backgroundColor: Colors.businessLight,
-    borderRadius: Radius.lg,
-    padding: Spacing[4],
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.business,
-  },
-  noteTitle: { ...Typography.labelLarge, color: Colors.textPrimary, marginBottom: Spacing[1] },
-  noteText: { ...Typography.bodySmall, color: Colors.textSecondary, lineHeight: 20 },
+    safe: { flex: 1, backgroundColor: Colors.background },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+    scroll: { paddingHorizontal: Spacing[5], paddingTop: Spacing[2], gap: Spacing[4] },
+    topBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: Spacing[1],
+    },
+    iconBtn: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+    },
+    notifDot: {
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: Colors.error,
+    },
+    topTitle: {
+      ...Typography.labelLarge,
+      color: Colors.textPrimary,
+      fontWeight: '700',
+    },
+    greetingBlock: {
+      gap: 4,
+    },
+    greetingSmall: {
+      ...Typography.bodyMedium,
+      color: Colors.textSecondary,
+      fontWeight: '600',
+    },
+    greetingName: {
+      ...Typography.displayMedium,
+      color: Colors.textPrimary,
+      fontSize: 28,
+      lineHeight: 34,
+    },
+    searchBar: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing[3],
+      backgroundColor: Colors.surface,
+      borderRadius: Radius.xl,
+      paddingHorizontal: Spacing[4],
+      paddingVertical: Spacing[4],
+      borderWidth: 1,
+      borderColor: Colors.borderLight,
+    },
+    searchPlaceholder: {
+      ...Typography.bodyMedium,
+      color: Colors.textMuted,
+      flex: 1,
+    },
+    welcomeBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: Colors.surface,
+      borderRadius: Radius.xl,
+      padding: Spacing[5],
+      borderWidth: 1,
+      borderColor: Colors.borderLight,
+      gap: Spacing[3],
+    },
+    welcomeTextWrap: {
+      flex: 1,
+      gap: Spacing[1],
+    },
+    welcomeTitle: {
+      ...Typography.headingSmall,
+      color: Colors.textPrimary,
+      fontWeight: '800',
+    },
+    welcomeSubtitle: {
+      ...Typography.bodySmall,
+      color: Colors.textSecondary,
+      lineHeight: 20,
+    },
+    welcomeArt: {
+      width: 64,
+      height: 64,
+      borderRadius: Radius.lg,
+      backgroundColor: Colors.businessLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    summaryRow: {
+      flexDirection: 'row',
+      gap: Spacing[3],
+    },
+    summaryChip: {
+      flex: 1,
+      backgroundColor: Colors.surface,
+      borderRadius: Radius.lg,
+      padding: Spacing[4],
+      borderWidth: 1,
+      borderColor: Colors.borderLight,
+      gap: 4,
+    },
+    summaryValue: {
+      ...Typography.headingMedium,
+      color: Colors.textPrimary,
+      fontWeight: '800',
+    },
+    summaryLabel: {
+      ...Typography.caption,
+      color: Colors.textSecondary,
+      fontWeight: '600',
+    },
+    sectionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: Spacing[1],
+    },
+    sectionTitle: {
+      ...Typography.headingSmall,
+      color: Colors.textPrimary,
+      fontWeight: '700',
+    },
+    viewAll: {
+      ...Typography.labelMedium,
+      color: Colors.primary,
+      fontWeight: '700',
+    },
+    projectGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: Spacing[3],
+    },
+    emptyCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: Radius.xl,
+      padding: Spacing[6],
+      alignItems: 'center',
+      gap: Spacing[3],
+      borderWidth: 1,
+      borderColor: Colors.borderLight,
+      ...Shadow.card,
+    },
+    emptyTitle: {
+      ...Typography.labelLarge,
+      color: Colors.textPrimary,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    emptyText: {
+      ...Typography.bodySmall,
+      color: Colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    emptyBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing[2],
+      backgroundColor: BRAND_NAVY,
+      paddingHorizontal: Spacing[5],
+      paddingVertical: Spacing[3],
+      borderRadius: Radius.lg,
+      marginTop: Spacing[2],
+    },
+    emptyBtnText: {
+      ...Typography.labelMedium,
+      color: BRAND_NAVY_TEXT,
+      fontWeight: '700',
+    },
   });
 }

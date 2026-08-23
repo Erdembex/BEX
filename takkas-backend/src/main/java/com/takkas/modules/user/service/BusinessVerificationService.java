@@ -132,7 +132,9 @@ public class BusinessVerificationService {
             profile.getVerificationStatus(),
             profile.getVerificationDocumentUrl(),
             profile.getVerificationDocumentName(),
-            user != null && user.isPhoneVerified()
+            user != null && user.isPhoneVerified(),
+            profile.getLatitude(),
+            profile.getLongitude()
         );
     }
 }

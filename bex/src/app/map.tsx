@@ -14,7 +14,7 @@ import { DiscoverMapView } from '@/components/map/DiscoverMapView';
 import { useAuthStore } from '@/store/authStore';
 import { resolveLocationFilter } from '@/lib/resolveLocationFilter';
 import { saveLocationFilter } from '@/lib/locationFilterStorage';
-import { formatFilterLocationLabel } from '@/lib/locationFilterUtils';
+import { formatFilterLocationLabel, isLocationAll } from '@/lib/locationFilterUtils';
 import { buildInitialMapRegion, type MapCoordinate, type MapRegion } from '@/lib/mapRegionUtils';
 import { loadMapBusinessPins } from '@/features/map/mapBusinessService';
 import type { MapBusinessPin } from '@/components/map/types';
@@ -77,7 +77,7 @@ export default function MapScreen() {
     setLoading(true);
     setLoadError(null);
     const geo = await fetchUserGeo(city);
-    setMapRegion(buildInitialMapRegion(city, geo.location, geo.city ?? city));
+    setMapRegion(buildInitialMapRegion(city, geo.location, geo.city ?? city, district));
 
     try {
       const loaded = await loadMapBusinessPins(city, district);
@@ -121,6 +121,8 @@ export default function MapScreen() {
 
   const matchedCity = city?.trim() ?? '';
   const locationLabel = formatFilterLocationLabel(city, district);
+  const focusDistrict =
+    district?.trim() && !isLocationAll(district) ? district : null;
 
   return (
     <Screen style={styles.safe} edges={['top', 'left', 'right']}>
@@ -162,8 +164,9 @@ export default function MapScreen() {
           </View>
         ) : mapRegion ? (
           <DiscoverMapView
-            key={`${matchedCity}-${pins.length}`}
+            key={`${matchedCity}-${focusDistrict ?? 'all'}`}
             city={matchedCity}
+            focusDistrict={focusDistrict}
             initialRegion={mapRegion}
             pins={pins}
           />
@@ -176,7 +179,7 @@ export default function MapScreen() {
 
       {matchedCity && !loading ? (
         <View style={styles.footer}>
-          <Text style={styles.footerText}>{t('map.businesses', { count: pins.length })}</Text>
+          <Text style={styles.footerText}>{t('map.listings', { count: pins.length })}</Text>
         </View>
       ) : null}
     </Screen>

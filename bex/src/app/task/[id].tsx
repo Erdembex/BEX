@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Application, Business } from '@/types';
 import { formatDeadline, getDifficultyColor, isTaskOpenForApplications } from '@/lib/taskUtils';
 import { TaskCard } from '@/components/tasks';
+import { ListingStarButton } from '@/components/tasks/ListingStarButton';
 import { TaskDetailSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { Button } from '@/components/ui';
 import { DangerBadge } from '@/components/profile/DangerBadge';
@@ -119,9 +120,12 @@ export default function TaskDetailScreen() {
   return (
     <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-          <Text style={styles.backText}>{t('taskDetailScreen.back')}</Text>
-        </TouchableOpacity>
+        <View style={styles.topRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+            <Text style={styles.backText}>{t('taskDetailScreen.back')}</Text>
+          </TouchableOpacity>
+          <ListingStarButton listingId={task.id} size={26} />
+        </View>
 
         {task.featured && (
           <View style={styles.featuredBadge}>
@@ -239,6 +243,11 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: Spacing[4] },
   scroll: { padding: Spacing[5], gap: Spacing[4], paddingBottom: Spacing[10] },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   back: { alignSelf: 'flex-start' },
   backText: { ...Typography.labelMedium, color: Colors.textSecondary },
   backLink: { ...Typography.labelMedium, color: Colors.primary },

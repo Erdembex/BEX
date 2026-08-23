@@ -27,4 +27,8 @@ public record ListingCardResponse(
     Instant expiresAt,
     boolean businessComplaintListed,
     boolean businessIsDangerous,
-    boolean businessVerified) {}
+    boolean businessVerified,
+    Double businessLatitude,
+    Double businessLongitude,
+    Double businessAverageRating,
+    Long businessFeedbackCount) {}

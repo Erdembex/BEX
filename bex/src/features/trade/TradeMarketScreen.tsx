@@ -12,7 +12,6 @@ import { tradeRepository } from './tradeRepository';
 import { tradeTheme, TradeTheme, useTradeTheme } from './tradeTheme';
 import { Spacing, useThemeColors } from '@/theme';
 import { TradeListing, TradeOffer } from './types';
-import { TradeMyListingsPanel } from './TradeMyListingsPanel';
 import { TradeMyOffersPanel } from './TradeMyOffersPanel';
 import { TradeNewSwapPanel } from './TradeNewSwapPanel';
 import { TradeHistoryPanel } from './TradeHistoryPanel';
@@ -22,7 +21,7 @@ import { useTranslation } from '@/i18n';
 
 const Box = createBox<TradeTheme>();
 
-type TradeTab = 'market' | 'new' | 'history' | 'mine' | 'offers';
+type TradeTab = 'market' | 'new' | 'history' | 'offers';
 
 interface TradeListingCardProps {
   item: TradeListing;
@@ -154,7 +153,6 @@ function TradeTabSwitch({
     { id: 'market', label: t('tradeMarketScreen.tabMarket'), short: t('tradeMarketScreen.tabMarketShort') },
     { id: 'new', label: t('tradeMarketScreen.tabNew'), short: t('tradeMarketScreen.tabNewShort') },
     { id: 'history', label: t('tradeMarketScreen.tabHistory'), short: t('tradeMarketScreen.tabHistoryShort') },
-    { id: 'mine', label: t('tradeMarketScreen.tabMine'), short: t('tradeMarketScreen.tabMineShort') },
     { id: 'offers', label: t('tradeMarketScreen.tabOffers'), short: t('tradeMarketScreen.tabOffersShort') },
   ];
   return (
@@ -209,7 +207,6 @@ export function TradeMarketScreen() {
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<TradeTab>('market');
   const [listings, setListings] = useState<TradeListing[]>([]);
-  const [myListings, setMyListings] = useState<TradeListing[]>([]);
   const [myOffers, setMyOffers] = useState<TradeOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -219,7 +216,6 @@ export function TradeMarketScreen() {
   const load = useCallback(async () => {
     if (!firebaseUser) {
       setListings([]);
-      setMyListings([]);
       setMyOffers([]);
       setLoadError(null);
       setLoading(false);
@@ -241,14 +237,9 @@ export function TradeMarketScreen() {
       }
 
       try {
-        const [mine, sent] = await Promise.all([
-          tradeRepository.getMyListings(firebaseUser.uid),
-          tradeRepository.getMyOffers(firebaseUser.uid),
-        ]);
-        setMyListings(mine);
+        const sent = await tradeRepository.getMyOffers(firebaseUser.uid);
         setMyOffers(sent);
       } catch {
-        setMyListings([]);
         setMyOffers([]);
       }
     } catch (err) {
@@ -269,18 +260,19 @@ export function TradeMarketScreen() {
 
   React.useEffect(() => {
     if (
-      tabParam === 'mine' ||
       tabParam === 'offers' ||
       tabParam === 'market' ||
       tabParam === 'new' ||
       tabParam === 'history'
     ) {
       setTab(tabParam);
+    } else if (tabParam === 'mine') {
+      setTab('new');
     }
   }, [tabParam]);
 
   React.useEffect(() => {
-    if (firebaseUser && (tab === 'mine' || tab === 'offers' || tab === 'history')) {
+    if (firebaseUser && (tab === 'offers' || tab === 'history')) {
       load();
     }
   }, [tab, firebaseUser, load]);
@@ -359,21 +351,6 @@ export function TradeMarketScreen() {
             ) : (
               <Box paddingHorizontal="lg">
                 <Text variant="bodyMuted">{t('tradeMarketScreen.loginForHistory')}</Text>
-              </Box>
-            )
-          ) : tab === 'mine' ? (
-            firebaseUser ? (
-              <Box flex={1}>
-                <TradeMyListingsPanel
-                  ownerId={firebaseUser.uid}
-                  listings={myListings}
-                  onRefresh={onRefresh}
-                  refreshing={refreshing}
-                />
-              </Box>
-            ) : (
-              <Box paddingHorizontal="lg">
-                <Text variant="bodyMuted">{t('tradeMarketScreen.loginForListings')}</Text>
               </Box>
             )
           ) : tab === 'offers' ? (

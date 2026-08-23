@@ -45,6 +45,9 @@ export function getAuthErrorMessage(code: string): string {
     'invalid-username': 'Kullanıcı adı 3-30 karakter olmalı (a-z, 0-9, _).',
     'invalid-location': 'Şehir ve ilçe seçmelisin.',
     'invalid-open-address': 'Açık adres en az 10 karakter olmalı (sokak, mahalle, bina no).',
+    'invalid-birth-date': 'Geçerli bir doğum tarihi gir (GG.AA.YYYY).',
+    'invalid-gender': 'Cinsiyet seçmelisin.',
+    'invalid-age': 'Kayıt için en az 13 yaşında olmalısın.',
   };
   return map[code] ?? `Bilinmeyen hata (${code})`;
 }
@@ -215,10 +218,12 @@ export const authService = {
   }> {
     await clearTokens();
 
-    const { email, password, displayName, role = 'user', city, district } = data;
+    const { email, password, displayName, role = 'user', city, district, birthDate, gender } = data;
     const name = (displayName ?? '').trim();
     const resolvedCity = city?.trim() || 'İstanbul';
     const resolvedDistrict = district?.trim() || 'Kadıköy';
+    const resolvedBirthDate = birthDate?.trim() ?? '';
+    const resolvedGender = gender ?? '';
 
     const pending =
       role === 'business'
@@ -230,6 +235,8 @@ export const authService = {
             city: resolvedCity,
             district: resolvedDistrict,
             openAddress: (data.openAddress ?? '').trim(),
+            birthDate: resolvedBirthDate,
+            gender: resolvedGender,
           })
         : await registerIndividualRequest({
             email,
@@ -237,6 +244,8 @@ export const authService = {
             fullName: name,
             city: resolvedCity,
             district: resolvedDistrict,
+            birthDate: resolvedBirthDate,
+            gender: resolvedGender,
             skills: ['OTHER'],
           });
 

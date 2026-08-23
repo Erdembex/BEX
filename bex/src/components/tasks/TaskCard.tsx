@@ -5,6 +5,7 @@ import { DIFFICULTY_LABELS, CATEGORY_LABELS } from '../../constants/taskLabels';
 import { formatDeadline, getDifficultyColor } from '../../lib/taskUtils';
 import { Typography, Radius, Spacing, Shadow, createThemedStyles } from '../../theme';
 import { DangerBadge } from '../profile/DangerBadge';
+import { ListingStarButton } from './ListingStarButton';
 import { useTranslation } from '@/i18n';
 
 export interface TaskCardProps {
@@ -14,6 +15,7 @@ export interface TaskCardProps {
   businessIsDangerous?: boolean;
   compact?: boolean;
   onPress?: () => void;
+  showSaveButton?: boolean;
 }
 
 export function TaskCard({
@@ -23,6 +25,7 @@ export function TaskCard({
   businessIsDangerous = false,
   compact = false,
   onPress,
+  showSaveButton = true,
 }: TaskCardProps) {
   const { t } = useTranslation();
   const styles = useStyles();
@@ -65,6 +68,7 @@ export function TaskCard({
             {DIFFICULTY_LABELS[task.difficulty]}
           </Text>
         </View>
+        {showSaveButton ? <ListingStarButton listingId={task.id} size={20} /> : null}
       </View>
 
       <Text style={styles.title} numberOfLines={compact ? 2 : 3}>

@@ -21,6 +21,8 @@ export interface BusinessRegisterPayload {
   city: string;
   district: string;
   openAddress: string;
+  birthDate: string;
+  gender: string;
   phone?: string;
 }
 
@@ -30,6 +32,8 @@ export interface IndividualRegisterPayload {
   fullName: string;
   city: string;
   district: string;
+  birthDate: string;
+  gender: string;
   skills: string[];
 }
 

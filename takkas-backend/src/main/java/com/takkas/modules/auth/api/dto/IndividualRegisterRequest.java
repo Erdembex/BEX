@@ -1,7 +1,9 @@
 package com.takkas.modules.auth.api.dto;
 
+import com.takkas.modules.user.domain.enums.Gender;
 import com.takkas.modules.user.domain.enums.Skill;
 import jakarta.validation.constraints.*;
+import java.time.LocalDate;
 import java.util.List;
 
 public record IndividualRegisterRequest(
@@ -13,5 +15,7 @@ public record IndividualRegisterRequest(
     @NotBlank String fullName,
     @NotBlank String city,
     @NotBlank String district,
+    @NotNull @Past LocalDate birthDate,
+    @NotNull Gender gender,
     @NotEmpty List<Skill> skills
 ) {}

@@ -29,17 +29,4 @@ public interface CouponRepository extends JpaRepository<Coupon, UUID> {
 
     @Query("SELECT c FROM Coupon c WHERE c.status = 'ACTIVE' AND c.expiresAt BETWEEN :now AND :threshold")
     List<Coupon> findExpiringCoupons(@Param("now") Instant now, @Param("threshold") Instant threshold);
-
-    @Query(value = """
-        SELECT owner_id, COUNT(*) AS cnt FROM coupons
-        WHERE status IN ('ACTIVE', 'USED', 'SWAPPED')
-        GROUP BY owner_id ORDER BY cnt DESC LIMIT :limit
-        """, nativeQuery = true)
-    List<Object[]> findTopEarners(@Param("limit") int limit);
-
-    @Query(value = """
-        SELECT business_id, COUNT(*) AS cnt FROM coupons
-        GROUP BY business_id ORDER BY cnt DESC LIMIT :limit
-        """, nativeQuery = true)
-    List<Object[]> findTopGivers(@Param("limit") int limit);
 }

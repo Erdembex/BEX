@@ -102,12 +102,12 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     },
     heroTitle: {
       ...Typography.headingLarge,
-      color: Colors.textInverse,
+      color: Colors.textPrimary,
       textAlign: 'center',
     },
     heroSubtitle: {
       ...Typography.bodyMedium,
-      color: 'rgba(255,255,255,0.85)',
+      color: Colors.textSecondary,
       textAlign: 'center',
     },
     section: {

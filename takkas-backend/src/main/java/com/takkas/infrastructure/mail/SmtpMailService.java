@@ -42,7 +42,7 @@ public class SmtpMailService implements MailService {
     @Override
     public boolean sendPasswordResetEmail(String to, String token) {
         String body = """
-            BEX hesabın için şifre sıfırlama kodun:
+            Passla hesabın için şifre sıfırlama kodun:
 
             %s
 
@@ -50,7 +50,7 @@ public class SmtpMailService implements MailService {
 
             Bu isteği sen yapmadıysan bu e-postayı yok say.
             """.formatted(token);
-        boolean sent = deliver(to, "BEX — Şifre sıfırlama kodu", body);
+        boolean sent = deliver(to, "Passla — Şifre sıfırlama kodu", body);
         log.info("[MailService] Şifre sıfırlama kodu: to={} token={} sent={}", to, token, sent);
         return sent;
     }

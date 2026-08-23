@@ -4,7 +4,7 @@ import { t } from '@/i18n';
 type TradeNotifyData = {
   listingId: string;
   offerId: string;
-  tradeTab: 'mine' | 'offers';
+  tradeTab: 'new' | 'offers';
 };
 
 export async function notifyTradeOfferReceived(params: {
@@ -17,7 +17,7 @@ export async function notifyTradeOfferReceived(params: {
   const data: TradeNotifyData = {
     listingId: params.listingId,
     offerId: params.offerId,
-    tradeTab: 'mine',
+    tradeTab: 'new',
   };
 
   await notifyUser({

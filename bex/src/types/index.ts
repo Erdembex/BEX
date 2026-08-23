@@ -262,6 +262,8 @@ export interface ApplicationMessage {
   mediaUrl?: string;
 }
 
+export type UserGender = 'MALE' | 'FEMALE' | 'OTHER';
+
 // ─── Auth form ───────────────────────────────────────────────
 export interface AuthFormData {
   email: string;
@@ -272,6 +274,9 @@ export interface AuthFormData {
   city?: string;
   district?: string;
   openAddress?: string;
+  /** YYYY-MM-DD */
+  birthDate?: string;
+  gender?: UserGender;
 }
 
 // ─── Firestore koleksiyon isimleri ───────────────────────────

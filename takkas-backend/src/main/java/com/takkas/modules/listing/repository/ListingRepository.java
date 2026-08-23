@@ -35,7 +35,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
           AND (l.visibility IS NULL OR l.visibility = com.takkas.modules.listing.domain.enums.ListingVisibility.PUBLIC)
           AND (l.expiresAt IS NULL OR l.expiresAt > :now)
           AND (:city IS NULL OR b.city = :city)
-          AND (:district IS NULL OR b.district = :district)
+          AND (:district IS NULL OR LOWER(TRIM(b.district)) = :district)
           AND (:#{#skills == null || #skills.isEmpty()} = true OR s.skill IN :skills)
           AND (:rewardType IS NULL OR r.rewardType = :rewardType)
           AND l.createdAt < :cursor
@@ -62,7 +62,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
           AND (l.visibility IS NULL OR l.visibility = com.takkas.modules.listing.domain.enums.ListingVisibility.PUBLIC)
           AND (l.expiresAt IS NULL OR l.expiresAt > :now)
           AND (:city IS NULL OR b.city = :city)
-          AND (:district IS NULL OR b.district = :district)
+          AND (:district IS NULL OR LOWER(TRIM(b.district)) = :district)
           AND (:#{#skills == null || #skills.isEmpty()} = true OR s.skill IN :skills)
           AND (:rewardType IS NULL OR r.rewardType = :rewardType)
           AND (LOWER(l.title) LIKE LOWER(CONCAT('%', :q, '%'))

@@ -70,7 +70,7 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     await authService.logout();
     signOut();
-    router.replace('/(auth)/onboarding');
+    router.replace('/(auth)/login');
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';

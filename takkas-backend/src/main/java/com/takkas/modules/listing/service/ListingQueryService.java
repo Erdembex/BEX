@@ -6,6 +6,7 @@ import com.takkas.modules.application.repository.ApplicationRepository;
 import com.takkas.modules.complaint.domain.enums.ComplaintStatus;
 import com.takkas.modules.complaint.repository.BusinessComplaintRepository;
 import com.takkas.modules.complaint.service.TrustMetricsService;
+import com.takkas.modules.feedback.service.FeedbackService;
 import com.takkas.modules.listing.api.dto.*;
 import com.takkas.modules.listing.domain.enums.ListingStatus;
 import com.takkas.modules.listing.mapper.ListingMapper;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,6 +31,7 @@ public class ListingQueryService {
     private final ListingRepository listingRepository;
     private final ListingCacheService cacheService;
     private final TrustMetricsService trustMetricsService;
+    private final FeedbackService feedbackService;
     private final BusinessComplaintRepository businessComplaintRepository;
     private final ApplicationRepository applicationRepository;
 
@@ -42,7 +45,7 @@ public class ListingQueryService {
         Instant now = Instant.now();
         Instant cursor = filter.cursor() != null ? filter.cursor() : now.plusSeconds(60);
         String city = blankToNull(filter.city());
-        String district = blankToNull(filter.district());
+        String district = normalizeDistrict(filter.district());
         String q = blankToNull(filter.q());
         var rewardType = filter.rewardType();
         var page = PageRequest.of(0, size);
@@ -63,7 +66,33 @@ public class ListingQueryService {
             throw new ResourceNotFoundException("İlan bulunamadı.");
         }
         if (incrementView) cacheService.incrementViewCount(listingId);
-        return ListingMapper.toResponse(listing);
+        var response = ListingMapper.toResponse(listing);
+        UUID businessId = listing.getBusiness().getId();
+        var rating = feedbackService.batchBusinessRatings(List.of(businessId)).get(businessId);
+        if (rating == null) {
+            return response;
+        }
+        return new ListingResponse(
+            response.id(),
+            response.businessId(),
+            response.businessName(),
+            response.businessLogoUrl(),
+            response.title(),
+            response.description(),
+            response.weeklyHours(),
+            response.status(),
+            response.skills(),
+            response.rewardType(),
+            response.rewardQuantity(),
+            response.rewardUnit(),
+            response.validityDays(),
+            response.rewardDescription(),
+            response.viewCount(),
+            response.createdAt(),
+            response.expiresAt(),
+            response.businessVerified(),
+            rating.averageStars(),
+            rating.totalCount());
     }
 
     private List<ListingCardResponse> enrichCards(List<ListingCardResponse> cards) {
@@ -80,10 +109,13 @@ public class ListingQueryService {
             .collect(Collectors.toSet());
         Map<UUID, TrustMetricsService.TrustMetrics> metrics =
             trustMetricsService.batchForBusinesses(businessIds);
+        Map<UUID, FeedbackService.BusinessRatingSummary> ratings =
+            feedbackService.batchBusinessRatings(businessIds);
 
         return cards.stream().map(card -> {
             UUID bizId = card.businessProfileId();
             var trust = bizId != null ? metrics.get(bizId) : null;
+            var rating = bizId != null ? ratings.get(bizId) : null;
             boolean listed = bizId != null && businessComplaintRepository
                 .existsByBusinessProfileIdAndStatus(bizId, ComplaintStatus.APPROVED);
             return new ListingCardResponse(
@@ -107,7 +139,11 @@ public class ListingQueryService {
                 card.expiresAt(),
                 listed,
                 trust != null && trust.isDangerous(),
-                card.businessVerified());
+                card.businessVerified(),
+                card.businessLatitude(),
+                card.businessLongitude(),
+                rating != null ? rating.averageStars() : card.businessAverageRating(),
+                rating != null ? rating.totalCount() : card.businessFeedbackCount());
         }).toList();
     }
 
@@ -122,5 +158,10 @@ public class ListingQueryService {
     private static String blankToNull(String value) {
         if (value == null || value.isBlank()) return null;
         return value.trim();
+    }
+
+    private static String normalizeDistrict(String value) {
+        String trimmed = blankToNull(value);
+        return trimmed != null ? trimmed.toLowerCase(Locale.ROOT) : null;
     }
 }

@@ -70,7 +70,7 @@ export default function BusinessProfileScreen() {
   const handleLogout = async () => {
     await authService.logout();
     signOut();
-    router.replace('/(auth)/onboarding');
+    router.replace('/(auth)/login');
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -164,9 +164,9 @@ export default function BusinessProfileScreen() {
                 />
               ) : null}
               <Button
-                title={t('businessProfileScreen.subscriptionButton')}
+                title={t('businessProfileScreen.couponsButton')}
                 variant="outline"
-                onPress={() => router.push('/(business)/subscription' as Href)}
+                onPress={() => router.push('/(business)/coupons' as Href)}
               />
             </View>
           </>

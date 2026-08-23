@@ -2,11 +2,11 @@ import type { ColorKey } from './colors';
 
 /**
  * Açık mod — Passla marka paleti
- * Krem zemin · Safir metin/CTA · Lila vurgu yüzeyleri · Altın ödül · Buz mavi bilgi
+ * Krem zemin · Safir metin/CTA · Altın vurgu yüzeyleri · Buz mavi bilgi
  */
 export const LightColors: Record<ColorKey, string> = {
   primary: '#051F45',
-  primaryLight: '#F2E5FF',
+  primaryLight: '#F3EBD0',
   primaryDark: '#031528',
 
   secondary: '#2E5A8A',
@@ -55,12 +55,12 @@ export const LightColors: Record<ColorKey, string> = {
   difficultyHard: '#B53A45',
 
   overlay: 'rgba(3, 21, 40, 0.5)',
-  overlayLight: 'rgba(242, 229, 255, 0.45)',
+  overlayLight: 'rgba(212, 184, 106, 0.30)',
 
   transparent: 'transparent',
   white: '#FFFFFF',
 
-  gradientBlue: '#F2E5FF',
+  gradientBlue: '#F3EBD0',
   gradientGold: '#D4B86A',
   gradientMid: '#F0EEE9',
 };

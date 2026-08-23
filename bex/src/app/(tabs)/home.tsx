@@ -46,20 +46,20 @@ function getQuickLinks(
 ): QuickLink[] {
   return [
     {
-      route: '/(tabs)/messages' as Href,
-      label: t('home.quickLinks.messages.label'),
-      hint: t('home.quickLinks.messages.hint'),
-      icon: 'chatbubble-ellipses',
-      tint: Colors.info,
-      bg: Colors.infoLight,
-    },
-    {
       route: '/(tabs)/tasks' as Href,
       label: t('home.quickLinks.tasks.label'),
       hint: t('home.quickLinks.tasks.hint'),
       icon: 'briefcase',
       tint: Colors.primary,
       bg: Colors.primaryLight,
+    },
+    {
+      route: '/(tabs)/messages' as Href,
+      label: t('home.quickLinks.messages.label'),
+      hint: t('home.quickLinks.messages.hint'),
+      icon: 'chatbubble-ellipses',
+      tint: Colors.info,
+      bg: Colors.infoLight,
     },
     {
       route: '/(tabs)/applications' as Href,
@@ -94,14 +94,6 @@ function getDiscoverLinks(
 ): QuickLink[] {
   return [
     {
-      route: '/map' as Href,
-      label: t('home.discoverLinks.map.label'),
-      hint: t('home.discoverLinks.map.hint'),
-      icon: 'map',
-      tint: Colors.secondary,
-      bg: Colors.businessLight,
-    },
-    {
       route: '/leaderboard' as Href,
       label: t('home.discoverLinks.leaderboard.label'),
       hint: t('home.discoverLinks.leaderboard.hint'),
@@ -133,6 +125,7 @@ export default function HomeScreen() {
   );
   const QUICK_LINKS = useMemo(() => getQuickLinks(Colors, t), [Colors, t]);
   const DISCOVER_LINKS = useMemo(() => getDiscoverLinks(Colors, t), [Colors, t]);
+  const ALL_LINKS = useMemo(() => [...QUICK_LINKS, ...DISCOVER_LINKS], [QUICK_LINKS, DISCOVER_LINKS]);
   const { unreadCount } = useNotifications();
   const { totalUnread: messageUnread, isUnlocked: messagingUnlocked } = useMessagingInbox('user');
   const openNotifications = useOpenNotifications();
@@ -402,10 +395,13 @@ export default function HomeScreen() {
         {nearbyTasks.length > 0 ? (
           <View style={styles.nearbySection}>
             <View style={styles.nearbyHeader}>
-              <Text style={styles.sectionTitle}>{nearbySectionTitle}</Text>
+              <Text style={[styles.sectionTitle, styles.nearbyHeaderTitle]} numberOfLines={2}>
+                {nearbySectionTitle}
+              </Text>
               <TouchableOpacity
                 onPress={() => router.push('/(tabs)/tasks' as Href)}
                 activeOpacity={0.85}
+                style={styles.seeAllBtn}
               >
                 <Text style={styles.seeAll}>{t('common.seeAll')}</Text>
               </TouchableOpacity>
@@ -428,28 +424,7 @@ export default function HomeScreen() {
 
         <Text style={styles.sectionTitle}>{t('home.discoverMore')}</Text>
         <View style={styles.links}>
-          {DISCOVER_LINKS.map((link) => (
-            <TouchableOpacity
-              key={link.label}
-              style={styles.linkCard}
-              activeOpacity={0.88}
-              onPress={() => router.push(link.route)}
-            >
-              <View style={[styles.linkIconWrap, { backgroundColor: link.bg }]}>
-                <Ionicons name={link.icon} size={20} color={link.tint} />
-              </View>
-              <View style={styles.linkText}>
-                <Text style={styles.linkLabel}>{link.label}</Text>
-                <Text style={styles.linkHint}>{link.hint}</Text>
-              </View>
-              <Text style={styles.linkArrow}>›</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <Text style={styles.sectionTitle}>{t('home.quickAccess')}</Text>
-        <View style={styles.links}>
-          {QUICK_LINKS.map((link) => (
+          {ALL_LINKS.map((link) => (
             <TouchableOpacity
               key={link.label}
               style={styles.linkCard}
@@ -670,9 +645,19 @@ function createStyles(
   popularRow: { gap: Spacing[3], paddingRight: Spacing[2], paddingBottom: Spacing[1] },
   nearbyHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: Spacing[2],
+    gap: Spacing[3],
+  },
+  nearbyHeaderTitle: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    marginTop: 0,
+  },
+  seeAllBtn: {
+    flexShrink: 0,
+    paddingTop: 2,
   },
   seeAll: { ...Typography.labelMedium, color: Colors.primary, fontWeight: '700' },
   nearbyList: { gap: Spacing[3] },

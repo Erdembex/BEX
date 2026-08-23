@@ -34,6 +34,8 @@ while IFS='=' read -r key value || [ -n "$key" ]; do
   [ -z "$key" ] && continue
   case "$key" in \#*) continue ;; esac
   value="${value//$'\r'/}"
+  value="${value%%#*}"
+  value="$(printf '%s' "$value" | sed 's/[[:space:]]*$//')"
   if sudo grep -q "^${key}=" "$ENV_FILE" 2>/dev/null; then
     sudo sed -i "s|^${key}=.*|${key}=${value}|" "$ENV_FILE"
   else
@@ -42,10 +44,11 @@ while IFS='=' read -r key value || [ -n "$key" ]; do
 done < /tmp/passla-mail-secrets.env
 rm -f /tmp/passla-mail-secrets.env
 sudo systemctl restart takkas
-sleep 90
-curl -sS -m 15 http://127.0.0.1:8080/actuator/health || echo HEALTH_FAIL
+sleep 120
+curl -sS -m 20 http://127.0.0.1:8080/actuator/health || echo HEALTH_FAIL
 echo
-sudo grep -E '^SPRING_MAIL_(HOST|FROM|USERNAME)=' "$ENV_FILE"
+sudo grep -E '^SPRING_MAIL_(HOST|FROM|USERNAME)=' "$ENV_FILE" 2>/dev/null || echo "MAIL_ENV_MISSING"
+sudo grep -q '^SPRING_MAIL_PASSWORD=.' "$ENV_FILE" 2>/dev/null && echo "SPRING_MAIL_PASSWORD=set" || echo "SPRING_MAIL_PASSWORD=MISSING"
 '@
 
 $bashScript | ssh -i $SshKey -o StrictHostKeyChecking=no $Remote "bash -s"

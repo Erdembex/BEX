@@ -58,7 +58,7 @@ export default function AdminPanelScreen() {
   const handleLogout = async () => {
     await authService.logout();
     signOut();
-    router.replace('/(auth)/onboarding');
+    router.replace('/(auth)/login');
   };
 
   const handleSeedCatalog = async () => {

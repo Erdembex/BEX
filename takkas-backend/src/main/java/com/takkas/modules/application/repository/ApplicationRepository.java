@@ -60,4 +60,18 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID> 
           AND (img = :url OR img LIKE CONCAT('%', :filename))
         """)
     boolean isPublicPortfolioImage(@Param("url") String url, @Param("filename") String filename);
+
+    @Query(value = """
+        SELECT individual_id, COUNT(*) AS cnt FROM applications
+        WHERE status = 'REWARDED'
+        GROUP BY individual_id ORDER BY cnt DESC LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findTopRewardedIndividuals(@Param("limit") int limit);
+
+    @Query(value = """
+        SELECT business_id, COUNT(*) AS cnt FROM applications
+        WHERE status = 'REWARDED'
+        GROUP BY business_id ORDER BY cnt DESC LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findTopRewardingBusinesses(@Param("limit") int limit);
 }

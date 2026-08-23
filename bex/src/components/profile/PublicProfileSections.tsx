@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { CompletedTask, PortfolioItem } from '@/types';
 import { CompletedTasksList, CompletedTasksStat } from '@/components/profile/CompletedTasksList';
 import { UserPortfolioGallery } from '@/components/profile/UserPortfolioGallery';
@@ -9,6 +9,7 @@ import { fetchProfileFeedback } from '@/features/feedback/feedbackApi';
 import { PORTFOLIO_GALLERY_LIMIT } from '@/features/portfolio/profileLimits';
 import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
+import { openProtectedMediaUrl } from '@/lib/openProtectedMedia';
 
 interface PublicProfileSectionsProps {
   profileId?: string;
@@ -80,7 +81,16 @@ export function PublicProfileSections({
       ) : null}
 
       {cvUrl ? (
-        <TouchableOpacity onPress={() => Linking.openURL(cvUrl)}>
+        <TouchableOpacity
+          onPress={() => {
+            void openProtectedMediaUrl(cvUrl).catch((err) => {
+              Alert.alert(
+                t('common.error'),
+                err instanceof Error ? err.message : t('publicProfile.cvOpenFailed')
+              );
+            });
+          }}
+        >
           <Text style={styles.cvLink}>{t('publicProfile.viewCv')}</Text>
         </TouchableOpacity>
       ) : null}

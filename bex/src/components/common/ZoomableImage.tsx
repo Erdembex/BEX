@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { ImageStyle, StyleProp } from 'react-native';
+import {
+  ActivityIndicator,
+  ImageStyle,
+  StyleProp,
+  View,
+  StyleSheet,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
@@ -7,6 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { buildAuthenticatedImageSource } from '@/lib/authenticatedImage';
+import { useThemeColors } from '@/theme';
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
@@ -17,9 +24,11 @@ type ZoomableImageProps = {
 };
 
 export function ZoomableImage({ uri, style }: ZoomableImageProps) {
+  const Colors = useThemeColors();
   const [source, setSource] = useState<{ uri: string; headers?: Record<string, string> } | null>(
     null
   );
+  const [loading, setLoading] = useState(true);
 
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
@@ -30,6 +39,8 @@ export function ZoomableImage({ uri, style }: ZoomableImageProps) {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setSource(null);
     buildAuthenticatedImageSource(uri).then((next) => {
       if (cancelled || !next || typeof next === 'number') return;
       setSource(next as { uri: string; headers?: Record<string, string> });
@@ -112,15 +123,37 @@ export function ZoomableImage({ uri, style }: ZoomableImageProps) {
     ],
   }));
 
-  if (!source) return null;
+  if (!source) {
+    return (
+      <View style={[style, styles.loadingWrap, { backgroundColor: Colors.borderLight }]}>
+        <ActivityIndicator size="large" color={Colors.textMuted} />
+      </View>
+    );
+  }
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.Image
-        source={source}
-        style={[style, animatedStyle]}
-        resizeMode="contain"
-      />
+      <View style={style}>
+        <Animated.Image
+          source={source}
+          style={[StyleSheet.absoluteFillObject, animatedStyle]}
+          resizeMode="contain"
+          onLoadStart={() => setLoading(true)}
+          onLoadEnd={() => setLoading(false)}
+        />
+        {loading ? (
+          <View style={[StyleSheet.absoluteFillObject, styles.loadingWrap]}>
+            <ActivityIndicator size="large" color={Colors.textMuted} />
+          </View>
+        ) : null}
+      </View>
     </GestureDetector>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

@@ -57,15 +57,24 @@ export type EnrichedTask = Task & {
   businessVerified?: boolean;
   businessIsDangerous?: boolean;
   businessComplaintListed?: boolean;
+  businessAverageRating?: number;
+  businessFeedbackCount?: number;
   locationLabel?: string;
+  businessLatitude?: number;
+  businessLongitude?: number;
 };
 
 function asEnriched(tasks: EnrichedTask[]): EnrichedTask[] {
-  return tasks.map((task) => ({
-    ...task,
-    businessName: task.businessName || getDemoBusinessName(task.businessId),
-    businessVerified: task.businessVerified ?? false,
-  }));
+  return tasks.map((task) => {
+    const biz = DEMO_BUSINESSES.find((b) => b.id === task.businessId);
+    return {
+      ...task,
+      businessName: task.businessName || getDemoBusinessName(task.businessId),
+      businessVerified: task.businessVerified ?? false,
+      businessAverageRating: task.businessAverageRating ?? biz?.averageRating,
+      businessFeedbackCount: task.businessFeedbackCount ?? biz?.feedbackCount,
+    };
+  });
 }
 
 export const tasksRepository = {

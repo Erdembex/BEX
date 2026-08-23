@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextInputProps,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '../../theme';
 import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
 
@@ -19,6 +20,7 @@ interface InputProps extends TextInputProps {
   onRightIconPress?: () => void;
   containerStyle?: ViewStyle;
   isPassword?: boolean;
+  variant?: 'default' | 'glass';
 }
 
 const useStyles = createThemedStyles((Colors) => ({
@@ -92,6 +94,21 @@ const useStyles = createThemedStyles((Colors) => ({
     color: Colors.textMuted,
     marginTop: 2,
   },
+  labelGlass: {
+    ...Typography.labelMedium,
+    color: 'rgba(240, 238, 233, 0.88)',
+  },
+  containerGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  containerGlassFocused: {
+    borderColor: 'rgba(231, 198, 99, 0.65)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+  },
+  inputGlass: {
+    color: '#F0EEE9',
+  },
 }));
 
 export function Input({
@@ -103,6 +120,7 @@ export function Input({
   onRightIconPress,
   containerStyle,
   isPassword = false,
+  variant = 'default',
   style: inputStyle,
   ...props
 }: InputProps) {
@@ -112,18 +130,23 @@ export function Input({
   const [showPassword, setShowPassword] = useState(false);
 
   const hasError = !!error;
+  const isGlass = variant === 'glass';
+  const placeholderColor = isGlass ? 'rgba(240, 238, 233, 0.45)' : Colors.textMuted;
+  const selectionColor = isGlass ? '#E7C663' : Colors.primary;
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label ? (
+        <Text style={isGlass ? styles.labelGlass : styles.label}>{label}</Text>
+      ) : null}
 
       <View
         style={[
           styles.container,
           props.multiline && styles.containerMultiline,
-          isFocused && styles.containerFocused,
+          isGlass && styles.containerGlass,
+          isFocused && (isGlass ? styles.containerGlassFocused : styles.containerFocused),
           hasError && styles.containerError,
-          containerStyle,
         ]}
       >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
@@ -131,12 +154,13 @@ export function Input({
         <TextInput
           style={[
             styles.input,
+            isGlass && styles.inputGlass,
             props.multiline && styles.inputMultiline,
             leftIcon ? styles.inputWithLeft : null,
             inputStyle,
           ]}
-          placeholderTextColor={Colors.textMuted}
-          selectionColor={Colors.primary}
+          placeholderTextColor={placeholderColor}
+          selectionColor={selectionColor}
           secureTextEntry={isPassword && !showPassword}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -150,9 +174,15 @@ export function Input({
             onPress={() => setShowPassword(!showPassword)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Text style={styles.passwordToggle}>
-              {showPassword ? '🙈' : '👁'}
-            </Text>
+            {isGlass ? (
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color="rgba(240, 238, 233, 0.72)"
+              />
+            ) : (
+              <Text style={styles.passwordToggle}>{showPassword ? '🙈' : '👁'}</Text>
+            )}
           </TouchableOpacity>
         ) : rightIcon ? (
           <TouchableOpacity

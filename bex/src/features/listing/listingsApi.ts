@@ -15,6 +15,10 @@ type ListingCardDto = {
   businessCategory?: string;
   businessCity?: string | null;
   businessDistrict?: string | null;
+  businessLatitude?: number | null;
+  businessLongitude?: number | null;
+  businessAverageRating?: number | null;
+  businessFeedbackCount?: number | null;
   businessComplaintListed?: boolean;
   businessIsDangerous?: boolean;
   businessVerified?: boolean;
@@ -49,6 +53,9 @@ type ListingDetailDto = {
   viewCount?: number;
   createdAt?: string;
   expiresAt?: string | null;
+  businessVerified?: boolean;
+  businessAverageRating?: number | null;
+  businessFeedbackCount?: number | null;
 };
 
 type ListingsPageDto = {
@@ -183,6 +190,10 @@ function mapCardToTask(dto: ListingCardDto, businessId = ''): EnrichedTask {
     businessIsDangerous: dto.businessIsDangerous ?? false,
     businessComplaintListed: dto.businessComplaintListed ?? false,
     locationLabel: formatLocationLabel(dto.businessCity, dto.businessDistrict),
+    businessLatitude: dto.businessLatitude ?? undefined,
+    businessLongitude: dto.businessLongitude ?? undefined,
+    businessAverageRating: dto.businessAverageRating ?? undefined,
+    businessFeedbackCount: dto.businessFeedbackCount ?? undefined,
   };
 }
 
@@ -212,6 +223,8 @@ function mapResponseToTask(dto: ListingResponseDto): EnrichedTask {
     featured: false,
     businessName: dto.businessName?.trim() || 'İşletme',
     businessVerified: dto.businessVerified ?? false,
+    businessAverageRating: dto.businessAverageRating ?? undefined,
+    businessFeedbackCount: dto.businessFeedbackCount ?? undefined,
   };
 }
 

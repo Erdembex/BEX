@@ -7,7 +7,7 @@ import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { tasksRepository, EnrichedTask } from '@/features/data';
 import { shouldUseListingsRest } from '@/features/listing/listingsApi';
 import { TaskCategory, TaskDifficulty } from '@/types';
-import { SearchBar, CategoryFilter, TaskCard, RewardFilterChips } from '@/components/tasks';
+import { SearchBar, CategoryFilter, ListingProjectCard, RewardFilterChips } from '@/components/tasks';
 import { LocationFilter } from '@/components/common/LocationPicker';
 import { TaskListSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
@@ -176,6 +176,8 @@ export default function TasksScreen() {
   }, [loadInitial, filterReady]);
 
   const displayed = filterTasks(tasks);
+  const listLoading = loading;
+  const listEmptyMessage = t('tasksScreen.noResults');
 
   const listHeader = useMemo(
     () => (
@@ -260,6 +262,8 @@ export default function TasksScreen() {
         style={styles.listContainer}
         data={displayed}
         keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.gridRow}
         contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -270,24 +274,24 @@ export default function TasksScreen() {
         onEndReachedThreshold={0.3}
         ListHeaderComponent={listHeader}
         ListFooterComponent={
-          loadingMore ? <ActivityIndicator color={Colors.primary} style={{ padding: 16 }} /> : null
+          loadingMore ? (
+            <ActivityIndicator color={Colors.primary} style={{ padding: 16 }} />
+          ) : null
         }
         ListEmptyComponent={
-          loading ? (
+          listLoading ? (
             <TaskListSkeleton count={5} />
           ) : loadError ? (
             <Text style={[styles.emptyState, styles.emptyError]}>{loadError}</Text>
           ) : (
-            <Text style={styles.emptyState}>{t('tasksScreen.noResults')}</Text>
+            <Text style={styles.emptyState}>{listEmptyMessage}</Text>
           )
         }
-        renderItem={({ item }) => (
-          <TaskCard
+        renderItem={({ item, index }) => (
+          <ListingProjectCard
             task={item}
-            businessName={item.businessName}
-            businessVerified={item.businessVerified}
-            businessIsDangerous={item.businessIsDangerous}
-            compact
+            variant="user"
+            highlighted={index === 0}
             onPress={() => router.push(`/task/${item.id}`)}
           />
         )}
@@ -315,6 +319,13 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderColor: Colors.borderGold,
   },
   toolBtnText: { ...Typography.caption, color: Colors.primary, fontWeight: '600' },
+  toolBtnActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  toolBtnTextActive: {
+    color: Colors.textOnGold,
+  },
   filters: { paddingHorizontal: Spacing[5], gap: Spacing[3], paddingBottom: Spacing[3] },
   diffRow: { flexDirection: 'row', gap: Spacing[2] },
   diffChip: {
@@ -331,7 +342,8 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     color: Colors.textOnPrimary,
     fontWeight: '700',
   },
-  list: { paddingHorizontal: Spacing[5], gap: Spacing[4], flexGrow: 1 },
+  list: { flexGrow: 1 },
+  gridRow: { gap: Spacing[3], paddingHorizontal: Spacing[5], marginBottom: Spacing[3] },
   emptyState: {
     ...Typography.bodyMedium,
     color: Colors.textTertiary,

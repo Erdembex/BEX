@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
 import { clearTokens } from '@/lib/auth/tokenStorage';
-import { UserRole } from '@/types';
+import { UserRole, UserGender } from '@/types';
+import {
+  calculateAge,
+  formatBirthDateIso,
+  isRegistrationAgeValid,
+  parseBirthDateInput,
+} from '@/lib/birthDateUtils';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { Button, Input, PasslaLogo } from '@/components/ui';
 import { LocationPicker } from '@/components/common/LocationPicker';
@@ -38,8 +44,19 @@ export default function RegisterScreen() {
   const [city, setCity] = useState('İstanbul');
   const [district, setDistrict] = useState('Kadıköy');
   const [openAddress, setOpenAddress] = useState('');
+  const [birthDateInput, setBirthDateInput] = useState('');
+  const [gender, setGender] = useState<UserGender | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const parsedBirthDate = useMemo(() => parseBirthDateInput(birthDateInput), [birthDateInput]);
+  const computedAge = parsedBirthDate ? calculateAge(parsedBirthDate) : null;
+
+  const GENDERS: { id: UserGender; label: string }[] = [
+    { id: 'MALE', label: t('registerScreen.genderMale') },
+    { id: 'FEMALE', label: t('registerScreen.genderFemale') },
+    { id: 'OTHER', label: t('registerScreen.genderOther') },
+  ];
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -65,6 +82,14 @@ export default function RegisterScreen() {
     if (role === 'business' && openAddress.trim().length < 10) {
       newErrors.openAddress = t('registerScreen.errorOpenAddress');
     }
+    if (!parsedBirthDate) {
+      newErrors.birthDate = t('registerScreen.errorBirthDate');
+    } else if (!isRegistrationAgeValid(parsedBirthDate)) {
+      newErrors.birthDate = t('registerScreen.errorAge');
+    }
+    if (!gender) {
+      newErrors.gender = t('registerScreen.errorGender');
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -87,6 +112,8 @@ export default function RegisterScreen() {
         role,
         city,
         district,
+        birthDate: formatBirthDateIso(parsedBirthDate!),
+        gender: gender!,
         ...(role === 'business' ? { openAddress: openAddress.trim() } : {}),
       });
 
@@ -112,6 +139,8 @@ export default function RegisterScreen() {
         setErrors({ email: message });
       } else if (code === 'invalid-open-address') {
         setErrors({ openAddress: message });
+      } else if (message.includes('13 yaş')) {
+        setErrors({ birthDate: message });
       } else {
         setErrors({ general: message });
       }
@@ -138,7 +167,7 @@ export default function RegisterScreen() {
 
           {/* Başlık */}
           <View style={styles.header}>
-            <PasslaLogo size="sm" centered />
+            <PasslaLogo size="md" centered tone="onDark" />
             <Text style={styles.title}>{t('registerScreen.title')}</Text>
             <Text style={styles.subtitle}>
               {t('registerScreen.subtitle')}
@@ -176,6 +205,44 @@ export default function RegisterScreen() {
                   )}
                 </TouchableOpacity>
               ))}
+            </View>
+          </View>
+
+          <View style={styles.demographicsSection}>
+            <Input
+              label={t('registerScreen.birthDateLabel')}
+              placeholder={t('registerScreen.birthDatePlaceholder')}
+              value={birthDateInput}
+              onChangeText={setBirthDateInput}
+              error={errors.birthDate}
+              keyboardType="numbers-and-punctuation"
+              hint={
+                computedAge != null && !errors.birthDate
+                  ? t('registerScreen.ageLabel', { age: computedAge })
+                  : t('registerScreen.birthDateHint')
+              }
+            />
+
+            <View style={styles.genderSection}>
+              <Text style={styles.sectionLabel}>{t('registerScreen.genderLabel')}</Text>
+              <View style={styles.genderRow}>
+                {GENDERS.map((option) => {
+                  const selected = gender === option.id;
+                  return (
+                    <TouchableOpacity
+                      key={option.id}
+                      onPress={() => setGender(option.id)}
+                      style={[styles.genderChip, selected && styles.genderChipActive]}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={[styles.genderChipText, selected && styles.genderChipTextActive]}>
+                        {option.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {errors.gender ? <Text style={styles.fieldError}>{errors.gender}</Text> : null}
             </View>
           </View>
 
@@ -323,6 +390,41 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   roleSection: {
     gap: Spacing[3],
+  },
+  demographicsSection: {
+    gap: Spacing[4],
+  },
+  genderSection: {
+    gap: Spacing[2],
+  },
+  genderRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing[2],
+  },
+  genderChip: {
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[3],
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  genderChipActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  genderChipText: {
+    ...Typography.labelMedium,
+    color: Colors.textSecondary,
+  },
+  genderChipTextActive: {
+    color: Colors.textPrimary,
+    fontWeight: '700',
+  },
+  fieldError: {
+    ...Typography.caption,
+    color: Colors.error,
   },
   locationNote: {
     ...Typography.caption,

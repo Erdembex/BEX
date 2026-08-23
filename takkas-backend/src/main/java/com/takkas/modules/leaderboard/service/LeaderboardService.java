@@ -1,6 +1,6 @@
 package com.takkas.modules.leaderboard.service;
 
-import com.takkas.modules.coupon.repository.CouponRepository;
+import com.takkas.modules.application.repository.ApplicationRepository;
 import com.takkas.modules.leaderboard.api.dto.LeaderboardEntryResponse;
 import com.takkas.modules.user.domain.BusinessProfile;
 import com.takkas.modules.user.domain.IndividualProfile;
@@ -18,13 +18,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LeaderboardService {
 
-    private final CouponRepository couponRepository;
+    private final ApplicationRepository applicationRepository;
     private final IndividualProfileRepository individualProfileRepository;
     private final BusinessProfileRepository businessProfileRepository;
 
     public List<LeaderboardEntryResponse> topEarners(int limit) {
         int capped = Math.min(Math.max(limit, 1), 50);
-        List<Object[]> rows = couponRepository.findTopEarners(capped);
+        List<Object[]> rows = applicationRepository.findTopRewardedIndividuals(capped);
         if (rows.isEmpty()) return List.of();
 
         var ownerIds = rows.stream().map(r -> (UUID) r[0]).toList();
@@ -52,7 +52,7 @@ public class LeaderboardService {
 
     public List<LeaderboardEntryResponse> topGivers(int limit) {
         int capped = Math.min(Math.max(limit, 1), 50);
-        List<Object[]> rows = couponRepository.findTopGivers(capped);
+        List<Object[]> rows = applicationRepository.findTopRewardingBusinesses(capped);
         if (rows.isEmpty()) return List.of();
 
         var businessIds = rows.stream().map(r -> (UUID) r[0]).toList();

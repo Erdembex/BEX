@@ -8,7 +8,7 @@ export { onTradeOfferCreated, onTradeOfferUpdated } from './triggers/tradeOffers
 
 function generateCouponCode(): string {
   const part = () => Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `BEX-${part()}-${part()}`;
+  return `PS-${part()}-${part()}`;
 }
 
 async function assertBusinessOwner(businessId: string, uid: string): Promise<void> {

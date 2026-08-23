@@ -12,8 +12,9 @@ import com.takkas.modules.listing.domain.enums.ListingStatus;
 import com.takkas.modules.listing.repository.ListingRepository;
 import com.takkas.modules.user.api.dto.*;
 import com.takkas.modules.user.domain.*;
-import com.takkas.modules.user.repository.*;
 import com.takkas.modules.user.UsernameUtils;
+import com.takkas.modules.user.repository.*;
+import com.takkas.infrastructure.geocoding.BusinessGeocodingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,7 @@ public class UserService {
     private final ComplaintService complaintService;
     private final TrustMetricsService trustMetricsService;
     private final FeedbackService feedbackService;
+    private final BusinessGeocodingService geocodingService;
 
     public BusinessProfileResponse getBusinessProfile(UUID profileId) {
         BusinessProfile p = businessRepo.findById(profileId)
@@ -97,7 +99,9 @@ public class UserService {
             trust.approvedComplaintCount(),
             trust.complaintRate(),
             activeListings,
-            trust.isDangerous());
+            trust.isDangerous(),
+            profile.getLatitude(),
+            profile.getLongitude());
     }
 
     public List<IndividualSearchResult> searchIndividualProfiles(String query) {
@@ -219,6 +223,7 @@ public class UserService {
         p.setPhone(req.phone());
         p.setLogoUrl(req.logoUrl());
         p.setBio(req.bio());
+        geocodingService.applyGeocode(p);
         return toResponse(p);
     }
 
@@ -273,7 +278,9 @@ public class UserService {
             p.getVerificationStatus(),
             p.getVerificationDocumentUrl(),
             p.getVerificationDocumentName(),
-            user != null && user.isPhoneVerified()
+            user != null && user.isPhoneVerified(),
+            p.getLatitude(),
+            p.getLongitude()
         );
     }
 

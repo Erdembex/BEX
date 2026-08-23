@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, Linking, Alert, TouchableOpacity } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   cancelSubscriptionAtPeriodEnd,
@@ -13,7 +13,7 @@ import {
   SubscriptionPlan,
   BusinessSubscription,
 } from '@/features/subscription/subscriptionApi';
-import { BackHeader } from '@/components/navigation/BackHeader';
+import { AppHeader } from '@/components/navigation/AppHeader';
 import { Button } from '@/components/ui';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
@@ -62,6 +62,7 @@ function formatDate(iso?: string): string {
 export default function BusinessSubscriptionScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
 
   const PERIOD_OPTIONS: { key: BillingPeriod; label: string }[] = [
@@ -185,20 +186,20 @@ export default function BusinessSubscriptionScreen() {
 
   if (loading) {
     return (
-      <Screen style={styles.safe}>
-        <BackHeader title={t('subscriptionScreen.headerTitle')} />
+      <TabScreen style={styles.safe}>
+        <AppHeader title={t('subscriptionScreen.headerTitle')} />
         <View style={styles.center}>
           <Text style={styles.muted}>{t('subscriptionScreen.loading')}</Text>
         </View>
-      </Screen>
+      </TabScreen>
     );
   }
 
   return (
-    <Screen style={styles.safe}>
-      <BackHeader title={t('subscriptionScreen.headerTitle')} />
+    <TabScreen style={styles.safe}>
+      <AppHeader title={t('subscriptionScreen.headerTitle')} />
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
@@ -356,7 +357,7 @@ export default function BusinessSubscriptionScreen() {
           {t('subscriptionScreen.footerNote')}
         </Text>
       </ScrollView>
-    </Screen>
+    </TabScreen>
   );
 }
 

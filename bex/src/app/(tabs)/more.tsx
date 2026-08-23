@@ -22,8 +22,6 @@ const MORE_LINKS: MoreLink[] = [
     hintKey: 'moreScreen.settingsHint',
     icon: '⚙',
   },
-  { route: '/(tabs)/trade' as Href, labelKey: 'moreScreen.trade', hintKey: 'moreScreen.tradeHint', icon: '⇄' },
-  { route: '/(tabs)/wallet' as Href, labelKey: 'moreScreen.wallet', hintKey: 'moreScreen.walletHint', icon: '▣' },
   {
     route: '/(tabs)/complaints' as Href,
     labelKey: 'moreScreen.complaint',

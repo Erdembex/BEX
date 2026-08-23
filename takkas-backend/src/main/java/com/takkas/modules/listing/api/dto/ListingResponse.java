@@ -12,5 +12,8 @@ public record ListingResponse(
     ListingStatus status, List<Skill> skills,
     RewardType rewardType, Integer rewardQuantity, String rewardUnit,
     Integer validityDays, String rewardDescription,
-    int viewCount, Instant createdAt, Instant expiresAt
+    int viewCount, Instant createdAt, Instant expiresAt,
+    boolean businessVerified,
+    Double businessAverageRating,
+    Long businessFeedbackCount
 ) {}

@@ -3,18 +3,14 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Modal,
   Linking,
-  Dimensions,
 } from 'react-native';
 import { resolveMediaUrl } from '@/lib/mediaUrl';
 import { isPortfolioImageUrl } from '@/lib/portfolioUtils';
-import { ZoomableImage } from '@/components/common/ZoomableImage';
+import { ImageViewerModal } from '@/components/common/ImageViewerModal';
 import { AuthenticatedImage } from '@/components/common/AuthenticatedImage';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 type PreviewItem = {
   id: string;
@@ -75,24 +71,12 @@ export function ImagePreviewGrid({ urls, thumbSize = 88 }: ImagePreviewGridProps
         )}
       </View>
 
-      <Modal
+      <ImageViewerModal
         visible={!!preview}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setPreview(null)}
-      >
-        <View style={styles.modalBackdrop}>
-          <View style={styles.modalContent}>
-            {preview ? (
-              <ZoomableImage uri={preview.uri} style={styles.previewImage} />
-            ) : null}
-            <Text style={styles.zoomHint}>{t('imagePreviewGrid.zoomHint')}</Text>
-          </View>
-          <TouchableOpacity style={styles.closeBtn} onPress={() => setPreview(null)}>
-            <Text style={styles.closeText}>{t('imagePreviewGrid.close')}</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        uri={preview?.uri ?? null}
+        onClose={() => setPreview(null)}
+        zoomHint={t('imagePreviewGrid.zoomHint')}
+      />
     </>
   );
 }
@@ -112,36 +96,4 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderColor: Colors.borderLight,
   },
   fileLinkText: { ...Typography.bodySmall, color: Colors.primary },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: Colors.overlay,
-    justifyContent: 'center',
-    padding: Spacing[4],
-  },
-  modalContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewImage: {
-    width: SCREEN_WIDTH - Spacing[8],
-    height: SCREEN_WIDTH - Spacing[8],
-    borderRadius: Radius.lg,
-  },
-  zoomHint: {
-    ...Typography.caption,
-    color: Colors.textOnPrimary,
-    textAlign: 'center',
-    marginTop: Spacing[3],
-    opacity: 0.85,
-  },
-  closeBtn: {
-    alignSelf: 'center',
-    marginTop: Spacing[4],
-    paddingHorizontal: Spacing[5],
-    paddingVertical: Spacing[2],
-    backgroundColor: Colors.background,
-    borderRadius: Radius.full,
-  },
-  closeText: { ...Typography.labelMedium, color: Colors.textPrimary },
 }));

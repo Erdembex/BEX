@@ -6,8 +6,8 @@ import { useBusiness } from '@/features/business/useBusiness';
 import { useMessagingInbox } from '@/hooks/useMessagingInbox';
 import { useMessagingInboxStore } from '@/store/messagingInboxStore';
 import { useThemeColors } from '@/theme';
-import { useTabBarStyle } from '@/components/common/Screen';
 import { useTranslation } from '@/i18n';
+import { BusinessTabBar } from '@/components/business/BusinessTabBar';
 
 function TabIcon({
   name,
@@ -34,7 +34,6 @@ export default function BusinessTabsLayout() {
   const { isUnlocked } = useMessagingInbox('business');
   const totalUnread = useMessagingInboxStore((s) => s.businessTotalUnread);
   const Colors = useThemeColors();
-  const tabBarStyle = useTabBarStyle(Colors.surface, Colors.borderLight);
   const { t } = useTranslation();
 
   if (bexUser && bexUser.role !== 'business') {
@@ -44,11 +43,12 @@ export default function BusinessTabsLayout() {
   return (
     <Tabs
       initialRouteName="panel"
+      tabBar={(props) => <BusinessTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.secondary,
         tabBarInactiveTintColor: Colors.textTertiary,
-        tabBarStyle,
+        tabBarStyle: { display: 'none' },
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
@@ -107,18 +107,19 @@ export default function BusinessTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="coupons/index"
+        name="subscription"
         options={{
-          title: t('tabsBusiness.coupons'),
+          title: t('tabsBusiness.subscription'),
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
-              name={focused ? 'pricetag' : 'pricetag-outline'}
+              name={focused ? 'diamond' : 'diamond-outline'}
               focused={focused}
               color={color}
             />
           ),
         }}
       />
+      <Tabs.Screen name="coupons/index" options={{ href: null }} />
       <Tabs.Screen
         name="profile"
         options={{
@@ -140,7 +141,6 @@ export default function BusinessTabsLayout() {
       <Tabs.Screen name="edit-task/[id]" options={{ href: null }} />
       <Tabs.Screen name="complaints/index" options={{ href: null }} />
       <Tabs.Screen name="verification" options={{ href: null }} />
-      <Tabs.Screen name="subscription" options={{ href: null }} />
     </Tabs>
   );
 }

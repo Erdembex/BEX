@@ -18,5 +18,7 @@ public record BusinessProfileResponse(
     BusinessVerificationStatus verificationStatus,
     String verificationDocumentUrl,
     String verificationDocumentName,
-    boolean phoneVerified
+    boolean phoneVerified,
+    Double latitude,
+    Double longitude
 ) {}
