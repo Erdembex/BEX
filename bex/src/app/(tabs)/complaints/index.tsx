@@ -4,6 +4,7 @@ import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Button } from '@/components/ui';
 import {
   useComplaintReasonLabels,
@@ -50,7 +51,7 @@ export default function ComplaintBexScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('complaintsScreen.title')} />
+      <AppHeader title={t('complaintsScreen.title')} {...userHubBackHeaderProps()} />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={

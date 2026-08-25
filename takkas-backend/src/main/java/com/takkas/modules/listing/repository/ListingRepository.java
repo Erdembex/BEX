@@ -66,6 +66,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
           AND (:#{#skills == null || #skills.isEmpty()} = true OR s.skill IN :skills)
           AND (:rewardType IS NULL OR r.rewardType = :rewardType)
           AND (LOWER(l.title) LIKE LOWER(CONCAT('%', :q, '%'))
+               OR LOWER(l.description) LIKE LOWER(CONCAT('%', :q, '%'))
                OR LOWER(b.businessName) LIKE LOWER(CONCAT('%', :q, '%'))
                OR LOWER(r.description) LIKE LOWER(CONCAT('%', :q, '%'))
                OR LOWER(CAST(r.rewardType AS string)) LIKE LOWER(CONCAT('%', :q, '%')))

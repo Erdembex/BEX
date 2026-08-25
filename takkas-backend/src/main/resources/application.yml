@@ -49,8 +49,13 @@ app:
     access-token: ${EXPO_ACCESS_TOKEN:}
   listings:
     # Yerel geliştirmede true — görev oluşturulunca kullanıcılara hemen görünür.
-    # Production'da LISTINGS_AUTO_APPROVE=false yapın.
+    # Production profili varsayılan olarak false kullanır (admin moderasyonu).
     auto-approve-on-create: ${LISTINGS_AUTO_APPROVE:true}
+  ratelimit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+  cors:
+    # Virgülle ayrılmış origin kalıpları. Production'da kendi domainlerinizi verin.
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}
 stripe:
   secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}

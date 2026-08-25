@@ -9,6 +9,7 @@ import com.takkas.modules.listing.repository.ListingRepository;
 import com.takkas.modules.messaging.mapper.MessageMapper;
 import com.takkas.modules.messaging.repository.ConversationRepository;
 import com.takkas.modules.messaging.repository.MessageRepository;
+import com.takkas.modules.user.service.UserBlockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class MessageService {
     private final MessageBufferService bufferService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ListingRepository listingRepository;
+    private final UserBlockService userBlockService;
 
     @Transactional
     public MessageResponse send(UUID conversationId, UUID senderId, String content, String mediaUrl) {
@@ -103,6 +105,7 @@ public class MessageService {
         if (!conv.isWritable()) {
             throw new BusinessRuleException("Bu konuşmaya mesaj gönderilemez.");
         }
+        userBlockService.ensureCanInteract(senderId, conv.peerUserId(senderId));
         return conv;
     }
 

@@ -122,6 +122,7 @@ export const tasksRepository = {
       city?: string;
       district?: string;
       category?: TaskCategory | null;
+      skills?: string[];
       q?: string;
       rewardType?: string;
     }
@@ -136,9 +137,11 @@ export const tasksRepository = {
       try {
         const { mapCategoryToBackendSkill } = await import('../listing/listingsApi');
         const skills =
-          filters?.category != null
-            ? [mapCategoryToBackendSkill(filters.category)]
-            : undefined;
+          filters?.skills?.length
+            ? filters.skills
+            : filters?.category != null
+              ? [mapCategoryToBackendSkill(filters.category)]
+              : undefined;
         const page = await discoverListings({
           pageSize,
           cursor: restCursor,

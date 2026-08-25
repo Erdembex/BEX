@@ -63,4 +63,10 @@ public class Conversation {
     public boolean isParticipant(UUID userId) {
         return businessUserId.equals(userId) || individualUserId.equals(userId);
     }
+
+    public UUID peerUserId(UUID userId) {
+        if (businessUserId.equals(userId)) return individualUserId;
+        if (individualUserId.equals(userId)) return businessUserId;
+        throw new BusinessRuleException("Konuşma katılımcısı değilsiniz.");
+    }
 }

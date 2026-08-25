@@ -8,17 +8,22 @@ import {
   fetchPublicProfile,
   fetchPublicProfileByProfileId,
   fetchPublicProfileByUsername,
+  PublicUserProfile,
 } from '@/features/portfolio/publicProfileApi';
 import { PortfolioItem, CompletedTask } from '@/types';
+
+function formatPublicProfileName(profile: PublicUserProfile): string {
+  const username = profile.username?.trim();
+  if (username) return `@${username}`;
+  return profile.fullName?.trim() || 'Kullanıcı';
+}
 
 export const usersRepository = {
   async getDisplayName(uid: string): Promise<string> {
     if (await hasRestAuthSession()) {
       try {
-        const profile = isBackendId(uid)
-          ? await fetchPublicProfileByProfileId(uid)
-          : await fetchPublicProfile(uid);
-        if (profile?.fullName) return profile.fullName;
+        const profile = await fetchPublicProfile(uid);
+        if (profile) return formatPublicProfileName(profile);
       } catch {
         // devProfile yedeğine düş
       }
@@ -52,6 +57,7 @@ export const usersRepository = {
 
   async getPublicProfileStats(userId: string): Promise<{
     profileId: string;
+    userId: string;
     username: string;
     completedTaskCount: number;
     completedTasks: CompletedTask[];
@@ -72,6 +78,7 @@ export const usersRepository = {
         if (!profile) return null;
         return {
           profileId: profile.profileId,
+          userId: profile.userId || userId,
           username: profile.username,
           completedTaskCount: profile.completedTaskCount,
           completedTasks: profile.completedTasks,
@@ -94,6 +101,7 @@ export const usersRepository = {
   },
 
   async getPublicProfileByUsername(username: string): Promise<{
+    userId: string;
     username: string;
     completedTaskCount: number;
     completedTasks: CompletedTask[];
@@ -115,6 +123,7 @@ export const usersRepository = {
       if (!profile) return null;
       return {
         profileId: profile.profileId,
+        userId: profile.userId,
         username: profile.username,
         completedTaskCount: profile.completedTaskCount,
         completedTasks: profile.completedTasks,

@@ -11,8 +11,15 @@ const NETWORK_CONFIG = `<?xml version="1.0" encoding="utf-8"?>
   </base-config>
 </network-security-config>`;
 
-/** Preview/emulator HTTP (127.0.0.1, 10.0.2.2, LAN) icin cleartext ac */
+/**
+ * Preview/emulator HTTP (127.0.0.1, 10.0.2.2, LAN) icin cleartext ac.
+ * Production derlemelerinde devre disi: yayin APK/AAB'si sadece HTTPS kullanir.
+ */
 function withAndroidCleartext(config) {
+  if (process.env.APP_VARIANT === 'production') {
+    return config;
+  }
+
   config = withAndroidManifest(config, (cfg) => {
     const app = cfg.modResults.manifest.application?.[0];
     if (app) {

@@ -14,6 +14,7 @@ import { router, Href } from 'expo-router';
 import { CouponCard, CouponQrModal } from '@/components/wallet';
 import { WalletSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Button } from '@/components/ui';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 
@@ -94,7 +95,7 @@ export default function WalletScreen() {
   if (loading) {
     return (
       <TabScreen style={styles.safe}>
-        <AppHeader title={t('walletScreen.title')} />
+        <AppHeader title={t('walletScreen.title')} {...userHubBackHeaderProps()} />
         <WalletSkeleton />
       </TabScreen>
     );
@@ -102,7 +103,7 @@ export default function WalletScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('walletScreen.title')} />
+      <AppHeader title={t('walletScreen.title')} {...userHubBackHeaderProps()} />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={

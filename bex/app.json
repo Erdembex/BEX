@@ -2,7 +2,7 @@
   "expo": {
     "name": "Passla",
     "slug": "bex",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -27,7 +27,7 @@
       }
     },
     "android": {
-      "versionCode": 2,
+      "versionCode": 3,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#051f45",
@@ -37,14 +37,16 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ],
+      "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
-        "android.permission.READ_MEDIA_VIDEO",
-        "android.permission.READ_MEDIA_AUDIO"
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.READ_MEDIA_VIDEO"
       ]
     },
     "web": {
@@ -73,7 +75,8 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Passla, kupon QR kodlarını okutmak için kameraya erişim ister."
+          "cameraPermission": "Passla, kupon QR kodlarını okutmak için kameraya erişim ister.",
+          "recordAudioAndroidPermission": false
         }
       ],
       [
@@ -99,6 +102,8 @@
     "extra": {
       "appCheckDebugToken": "",
       "privacyPolicyUrl": "https://passla.com.tr/gizlilik.html",
+      "termsOfServiceUrl": "https://passla.com.tr/kullanim-kosullari.html",
+      "accountDeletionUrl": "https://passla.com.tr/hesap-silme.html",
       "router": {},
       "eas": {
         "projectId": "1883a871-3730-4cbb-a11e-120480fbbe20"

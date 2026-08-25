@@ -56,6 +56,7 @@ public class AuthController {
     public void logout(@CurrentUser UserPrincipal principal,
                        @Valid @RequestBody RefreshTokenRequest req) {
         refreshTokenRepository.findByToken(req.refreshToken())
+            .filter(rt -> rt.getUser().getId().equals(principal.userId()))
             .ifPresent(rt -> {
                 rt.setRevoked(true);
                 refreshTokenRepository.save(rt);

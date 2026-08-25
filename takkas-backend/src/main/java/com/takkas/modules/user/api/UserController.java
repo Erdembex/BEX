@@ -62,42 +62,48 @@ public class UserController {
     /** Herkese açık bireysel profil — onaylı portföy görselleri ve tamamlanan görev sayısı */
     @GetMapping("/individual/profiles/{profileId}/public")
     @PreAuthorize("isAuthenticated()")
-    public IndividualPublicProfileResponse getPublicProfile(@PathVariable UUID profileId) {
-        return userService.getPublicIndividualProfile(profileId);
+    public IndividualPublicProfileResponse getPublicProfile(@CurrentUser UserPrincipal viewer,
+                                                            @PathVariable UUID profileId) {
+        return userService.getPublicIndividualProfile(profileId, viewer.userId());
     }
 
     /** userId ile herkese açık profil (eski uid linkleri için) */
     @GetMapping("/users/{userId}/public-profile")
     @PreAuthorize("isAuthenticated()")
-    public IndividualPublicProfileResponse getPublicProfileByUserId(@PathVariable UUID userId) {
-        return userService.getPublicIndividualProfileByUserId(userId);
+    public IndividualPublicProfileResponse getPublicProfileByUserId(@CurrentUser UserPrincipal viewer,
+                                                                    @PathVariable UUID userId) {
+        return userService.getPublicIndividualProfileByUserId(userId, viewer.userId());
     }
 
     /** Kullanıcı adı ile herkese açık profil — işletme aday araması */
     @GetMapping("/individual/profiles/by-username/{username}/public")
     @PreAuthorize("isAuthenticated()")
-    public IndividualPublicProfileResponse getPublicProfileByUsername(@PathVariable String username) {
-        return userService.getPublicIndividualProfileByUsername(username);
+    public IndividualPublicProfileResponse getPublicProfileByUsername(@CurrentUser UserPrincipal viewer,
+                                                                      @PathVariable String username) {
+        return userService.getPublicIndividualProfileByUsername(username, viewer.userId());
     }
 
     /** Herkese açık işletme profili — kupon ve görev kartları için */
     @GetMapping("/business/profiles/{profileId}/public")
     @PreAuthorize("isAuthenticated()")
-    public BusinessPublicProfileResponse getPublicBusinessProfile(@PathVariable UUID profileId) {
-        return userService.getPublicBusinessProfile(profileId);
+    public BusinessPublicProfileResponse getPublicBusinessProfile(@CurrentUser UserPrincipal viewer,
+                                                                  @PathVariable UUID profileId) {
+        return userService.getPublicBusinessProfile(profileId, viewer.userId());
     }
 
     /** Şikayet formu için işletme adı araması */
     @GetMapping("/business/profiles/search")
     @PreAuthorize("isAuthenticated()")
-    public List<BusinessSearchResult> searchBusinessProfiles(@RequestParam(required = false) String q) {
-        return userService.searchBusinessProfiles(q);
+    public List<BusinessSearchResult> searchBusinessProfiles(@CurrentUser UserPrincipal viewer,
+                                                             @RequestParam(required = false) String q) {
+        return userService.searchBusinessProfiles(q, viewer.userId());
     }
 
     /** İşletme — kullanıcı adı ile aday arama (şikayet formu) */
     @GetMapping("/business/individuals/search")
     @PreAuthorize("hasRole('BUSINESS')")
-    public List<IndividualSearchResult> searchIndividualProfiles(@RequestParam(required = false) String q) {
-        return userService.searchIndividualProfiles(q);
+    public List<IndividualSearchResult> searchIndividualProfiles(@CurrentUser UserPrincipal viewer,
+                                                                 @RequestParam(required = false) String q) {
+        return userService.searchIndividualProfiles(q, viewer.userId());
     }
 }

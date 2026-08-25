@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record IndividualPublicProfileResponse(
     UUID profileId,
+    UUID userId,
     String username,
     String fullName,
     String avatarUrl,

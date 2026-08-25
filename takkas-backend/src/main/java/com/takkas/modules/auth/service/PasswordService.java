@@ -2,6 +2,7 @@ package com.takkas.modules.auth.service;
 
 import com.takkas.common.exception.BusinessRuleException;
 import com.takkas.common.exception.ResourceNotFoundException;
+import com.takkas.common.logging.LogMask;
 import com.takkas.infrastructure.mail.MailService;
 import com.takkas.modules.auth.api.dto.ChangePasswordRequest;
 import com.takkas.modules.auth.api.dto.ForgotPasswordRequest;
@@ -64,13 +65,12 @@ public class PasswordService {
         resetTokenRepository.invalidateOtherTokens(user.getId(), resetToken.getId(), Instant.now());
 
         boolean mailSent = mailService.sendPasswordResetEmail(user.getEmail(), token);
-        if (!mailSent) {
-            log.warn("[PasswordReset] E-posta gönderilemedi — kod loglandı: email={} token={}",
-                user.getEmail(), token);
-        }
 
-        log.info("[PasswordReset] Kod oluşturuldu: email={} token={} expires={}",
-            user.getEmail(), token, expiresAt);
+        log.info("[PasswordReset] Kod oluşturuldu: email={} expires={} mailSent={}",
+            LogMask.email(user.getEmail()), expiresAt, mailSent);
+        if (exposeDevResetToken) {
+            log.info("[PasswordReset] (dev) token={}", token);
+        }
 
         if (exposeDevResetToken && !mailSent) {
             return Optional.of(token);

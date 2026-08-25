@@ -16,6 +16,7 @@ import { useSavedListingsStore } from '@/store/savedListingsStore';
 import { useAuthStore } from '@/store/authStore';
 import { ListingProjectCard } from '@/components/tasks';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -87,7 +88,7 @@ export default function FavoritesScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('tabs.favorites')} />
+      <AppHeader title={t('tabs.favorites')} {...userHubBackHeaderProps()} />
       <FlatList
         data={tasks}
         keyExtractor={(item) => item.id}

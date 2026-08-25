@@ -6,7 +6,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Screen } from '@/components/common/Screen';
 import { LocationFilter } from '@/components/common/LocationPicker';
@@ -18,7 +18,7 @@ import { formatFilterLocationLabel, isLocationAll } from '@/lib/locationFilterUt
 import { buildInitialMapRegion, type MapCoordinate, type MapRegion } from '@/lib/mapRegionUtils';
 import { loadMapBusinessPins } from '@/features/map/mapBusinessService';
 import type { MapBusinessPin } from '@/components/map/types';
-import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
+import { Typography, Spacing, createThemedStyles, useThemeColors, Radius } from '@/theme';
 import { BRAND_NAVY } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
@@ -26,6 +26,8 @@ export default function MapScreen() {
   const Colors = useThemeColors();
   const styles = useStyles();
   const { t } = useTranslation();
+  const { pickFor } = useLocalSearchParams<{ pickFor?: string }>();
+  const pickingForTasks = pickFor === 'tasks';
   const { bexUser, isInitialized } = useAuthStore();
 
   const [city, setCity] = useState<string | null>(null);
@@ -119,6 +121,11 @@ export default function MapScreen() {
     }, [filterReady, loadPins])
   );
 
+  const applyPickedLocation = useCallback(async () => {
+    await saveLocationFilter({ city, district });
+    router.replace('/(tabs)/tasks' as import('expo-router').Href);
+  }, [city, district]);
+
   const matchedCity = city?.trim() ?? '';
   const locationLabel = formatFilterLocationLabel(city, district);
   const focusDistrict =
@@ -179,7 +186,13 @@ export default function MapScreen() {
 
       {matchedCity && !loading ? (
         <View style={styles.footer}>
-          <Text style={styles.footerText}>{t('map.listings', { count: pins.length })}</Text>
+          {pickingForTasks ? (
+            <TouchableOpacity style={styles.applyBtn} onPress={applyPickedLocation} activeOpacity={0.88}>
+              <Text style={styles.applyBtnText}>{t('locationPicker.applyLocationToTasks')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.footerText}>{t('map.listings', { count: pins.length })}</Text>
+          )}
         </View>
       ) : null}
     </Screen>
@@ -225,5 +238,16 @@ const useStyles = createThemedStyles((Colors) => ({
     color: BRAND_NAVY,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  applyBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing[3],
+    alignItems: 'center',
+  },
+  applyBtnText: {
+    ...Typography.labelMedium,
+    color: Colors.textOnPrimary,
+    fontWeight: '700',
   },
 }));

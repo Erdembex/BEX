@@ -118,6 +118,8 @@ export default function RootLayout() {
                 <Stack.Screen name="setup-guide" />
                 <Stack.Screen name="expo-test-guide" />
                 <Stack.Screen name="settings" />
+                <Stack.Screen name="delete-account" />
+                <Stack.Screen name="blocked-users" />
                 <Stack.Screen name="about" />
                 <Stack.Screen name="leaderboard" />
                 <Stack.Screen name="map" />

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hesap Silme — Passla</title>
+  <style>
+    :root { --bg: #0E0618; --accent: #F5B301; --text: #f3f0f7; --muted: #a89bb8; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+    .updated { color: var(--muted); font-size: 0.875rem; margin-bottom: 2rem; }
+    h2 { font-size: 1.15rem; margin: 1.75rem 0 0.75rem; color: var(--accent); }
+    p, li { margin-bottom: 0.75rem; color: var(--muted); }
+    ul, ol { padding-left: 1.25rem; margin-bottom: 1rem; }
+    a { color: var(--accent); }
+    nav { margin-bottom: 2rem; }
+    nav a { color: var(--accent); text-decoration: none; }
+    .card { border: 1px solid rgba(245,179,1,0.35); border-radius: 12px; padding: 1.25rem; margin: 1rem 0; }
+    .cta { display: inline-block; background: var(--accent); color: #14091f; font-weight: 700;
+           padding: 0.75rem 1.25rem; border-radius: 10px; text-decoration: none; margin-top: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    th, td { text-align: left; padding: 0.6rem 0.5rem; border-bottom: 1px solid rgba(168,155,184,0.25);
+             color: var(--muted); font-size: 0.95rem; vertical-align: top; }
+    th { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav><a href="/">← Passla Ana Sayfa</a></nav>
+    <h1>Hesap ve veri silme</h1>
+    <p class="updated">Uygulama: Passla · Son güncelleme: 24 Ağustos 2026</p>
+
+    <p>
+      Passla hesabınızı ve kişisel verilerinizi kalıcı olarak silebilirsiniz.
+      En hızlı yol uygulama içinden silmektir; uygulamaya erişemiyorsanız
+      aşağıdaki talep yöntemini kullanın.
+    </p>
+
+    <h2>1. Uygulama içinden silme (önerilen)</h2>
+    <ol>
+      <li>Passla uygulamasını açın ve hesabınıza giriş yapın.</li>
+      <li><strong>Profil → Ayarlar</strong> ekranına gidin.</li>
+      <li><strong>Veriler ve hesap</strong> bölümünde <strong>Hesabımı sil</strong>'e dokunun.</li>
+      <li>İsterseniz önce <strong>Verilerimi indir</strong> ile bir kopyasını cihazınıza kaydedin.</li>
+      <li>Şifrenizi girip onaylayın. İşlem anında uygulanır ve geri alınamaz.</li>
+    </ol>
+
+    <h2>2. Uygulamaya erişemiyorsanız</h2>
+    <div class="card">
+      <p>
+        Hesabınızda kayıtlı e-posta adresinden bize yazın. Kimlik doğrulaması
+        için talebin hesabın e-posta adresinden gelmesi gerekir.
+      </p>
+      <p><strong>E-posta:</strong> <a href="mailto:destek@passla.com.tr">destek@passla.com.tr</a></p>
+      <p><strong>Sonuçlandırma süresi:</strong> en geç 30 gün</p>
+      <a class="cta" href="mailto:destek@passla.com.tr?subject=Hesap%20silme%20talebi&amp;body=Passla%20hesab%C4%B1m%C4%B1n%20ve%20ki%C5%9Fisel%20verilerimin%20silinmesini%20talep%20ediyorum.%0A%0AHesab%C4%B1n%20e-posta%20adresi%3A%20%0AKullan%C4%B1c%C4%B1%20ad%C4%B1%20(varsa)%3A%20%0A">
+        Silme talebi gönder
+      </a>
+    </div>
+
+    <h2>Silinen ve saklanan veriler</h2>
+    <table>
+      <thead>
+        <tr><th>Veri</th><th>Silme sonrası</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ad, kullanıcı adı, e-posta, telefon, doğum tarihi, cinsiyet</td><td>Anında silinir</td></tr>
+        <tr><td>Profil fotoğrafı, ön yazı (bio), CV dosyası</td><td>Anında silinir</td></tr>
+        <tr><td>İşletme adresi, konum, logo, doğrulama belgesi</td><td>Anında silinir</td></tr>
+        <tr><td>Oturum ve bildirim kayıtları</td><td>Anında silinir, tüm cihazlardan çıkış yapılır</td></tr>
+        <tr><td>Kullanılmamış kuponlar</td><td>Geçersiz olur</td></tr>
+        <tr><td>Açık ilanlar (işletme hesapları)</td><td>Kapatılır, yeni başvuru almaz</td></tr>
+        <tr><td>Tamamlanmış görev, başvuru ve şikayet kayıtları</td><td>Karşı tarafın geçmişi olduğu için kimliksiz biçimde kalır</td></tr>
+        <tr><td>Fatura ve ödeme kayıtları</td><td>Vergi mevzuatı gereği yasal saklama süresi boyunca tutulur</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Verilerinizin bir kopyasını almak</h2>
+    <p>
+      Silmeden önce verilerinizi indirmek isterseniz uygulamada
+      <strong>Profil → Ayarlar → Verilerimi indir</strong> adımını kullanın.
+      Profiliniz, kuponlarınız ve ilanlarınız JSON dosyası olarak iner.
+    </p>
+
+    <h2>Account and data deletion (English)</h2>
+    <p>
+      To delete your <strong>Passla</strong> account, open the app and go to
+      <strong>Profile → Settings → Delete my account</strong>, then confirm with your
+      password. Deletion is applied immediately and cannot be undone.
+    </p>
+    <p>
+      If you cannot access the app, email
+      <a href="mailto:destek@passla.com.tr">destek@passla.com.tr</a> from the address
+      registered to your account. Requests are completed within 30 days.
+    </p>
+    <p>
+      <strong>Deleted immediately:</strong> name, username, email, phone, date of birth,
+      gender, profile photo, bio, CV, business address and location, verification documents,
+      sessions and push notification tokens. Unused coupons are voided and open listings are
+      closed.
+    </p>
+    <p>
+      <strong>Retained:</strong> completed task, application, and complaint records are kept in
+      anonymised form because they are also the counterparty's history; invoice and payment
+      records are kept for the statutory period required by tax law.
+    </p>
+
+    <p style="margin-top:2rem;">
+      <a href="/gizlilik.html">Gizlilik Politikası</a> ·
+      <a href="/kullanim-kosullari.html">Kullanım Koşulları</a> ·
+      <a href="/destek.html">Destek</a>
+    </p>
+  </div>
+</body>
+</html>

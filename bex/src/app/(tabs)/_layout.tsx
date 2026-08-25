@@ -46,7 +46,7 @@ export default function UserTabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textTertiary,
-        tabBarStyle,
+        tabBarStyle: { ...tabBarStyle, display: 'none', height: 0 },
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '600',

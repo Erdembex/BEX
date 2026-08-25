@@ -23,6 +23,9 @@ public class ActiveUserGuard {
     }
 
     public void ensureActive(User user) {
+        if (user.getStatus() == UserStatus.DELETED) {
+            throw new ForbiddenException("Bu hesap silinmiş.");
+        }
         if (user.getStatus() == UserStatus.SUSPENDED) {
             throw new ForbiddenException("Hesabınız askıya alınmış.");
         }

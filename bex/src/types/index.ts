@@ -170,6 +170,8 @@ export interface Application {
   createdAt: Timestamp;
   /** Mevcut kullanıcı bu görev için puan verdi mi */
   feedbackSubmitted?: boolean;
+  /** İşletme tarafında başvuran adı (REST detay yanıtından) */
+  applicantName?: string;
 }
 
 export type CreateApplication = Pick<

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Screen } from '@/components/common/Screen';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { isAuthEmulatorActive } from '@/lib/firebase';
 import { shouldUseDemoData } from '@/lib/devMode';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
@@ -89,6 +89,11 @@ export default function SetupGuideScreen() {
   const styles = useScreenStyles();
   const demoMode = shouldUseDemoData();
   const emulator = isAuthEmulatorActive();
+
+  // Yayın derlemesinde deep link ile açılmasın.
+  if (!__DEV__) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <Screen style={styles.safe}>

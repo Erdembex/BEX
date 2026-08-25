@@ -7,6 +7,7 @@ import { usersRepository } from '@/features/data';
 import { CompletedTask, PortfolioItem } from '@/types';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { PublicProfileSections } from '@/components/profile/PublicProfileSections';
+import { BlockUserButton } from '@/components/user/BlockUserButton';
 import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -21,6 +22,7 @@ export default function PublicUserProfileByUsernameScreen() {
   const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [profileId, setProfileId] = useState('');
+  const [targetUserId, setTargetUserId] = useState('');
   const [averageRating, setAverageRating] = useState(0);
   const [feedbackCount, setFeedbackCount] = useState(0);
   const [isDangerous, setIsDangerous] = useState(false);
@@ -43,6 +45,7 @@ export default function PublicUserProfileByUsernameScreen() {
       setCompletedTasks(stats.completedTasks);
       setPortfolio(stats.portfolio);
       setProfileId(stats.profileId);
+      setTargetUserId(stats.userId);
       setAverageRating(stats.averageRating);
       setFeedbackCount(stats.feedbackCount);
       setIsDangerous(stats.isDangerous);
@@ -97,6 +100,9 @@ export default function PublicUserProfileByUsernameScreen() {
         <View style={styles.hero}>
           <ProfileAvatar name={displayName} avatarUrl={avatarUrl} size={72} />
           <Text style={styles.title}>{displayName}</Text>
+          {targetUserId ? (
+            <BlockUserButton targetUserId={targetUserId} displayName={displayName} variant="ghost" />
+          ) : null}
         </View>
 
         <PublicProfileSections

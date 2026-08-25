@@ -13,6 +13,7 @@ const VISUALS: Record<NotificationType, NotificationVisual> = {
   trade_offer_received: { icon: '↔', tint: '#B45309' },
   trade_offer_accepted: { icon: '✓', tint: '#166534' },
   trade_offer_rejected: { icon: '↩', tint: '#6B7280' },
+  trade_offer_message: { icon: '💬', tint: '#B45309' },
   task_approved: { icon: '📋', tint: '#0F766E' },
   kyc_result: { icon: '🛡', tint: '#4338CA' },
   general: { icon: '🔔', tint: '#374151' },

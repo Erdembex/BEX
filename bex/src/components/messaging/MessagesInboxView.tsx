@@ -18,12 +18,14 @@ type MessagesInboxViewProps = {
   audience: MessagingAudience;
   chatRoute: (applicationId: string) => Href;
   showMenu?: boolean;
+  onBack?: () => void;
 };
 
 export function MessagesInboxView({
   audience,
   chatRoute,
   showMenu = audience === 'user',
+  onBack,
 }: MessagesInboxViewProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
@@ -68,8 +70,12 @@ export function MessagesInboxView({
 
   return (
     <TabScreen style={styles.safe}>
-      {showMenu ? (
-        <AppHeader title={t('messagesInboxView.headerTitle')} showMenu />
+      {showMenu || onBack ? (
+        <AppHeader
+          title={t('messagesInboxView.headerTitle')}
+          showMenu={showMenu && !onBack}
+          onBack={onBack}
+        />
       ) : (
         <View style={styles.bizHeader}>
           <Text style={styles.bizTitle}>{t('messagesInboxView.headerTitle')}</Text>

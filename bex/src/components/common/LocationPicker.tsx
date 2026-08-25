@@ -19,6 +19,7 @@ import { resolveLocationFromDevice } from '@/hooks/useDeviceLocation';
 import { LocationSelectorModal } from '@/components/common/LocationSelectorModal';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
+import { router, Href } from 'expo-router';
 
 type LocationFieldsProps = {
   city: string | null;
@@ -30,6 +31,8 @@ type LocationFieldsProps = {
   /** Kayıt/profil modunda il ve ilçe zorunlu */
   required?: boolean;
   showGps?: boolean;
+  showMapPicker?: boolean;
+  mapPickerReturnTo?: Href;
   error?: string;
 };
 
@@ -73,6 +76,8 @@ function LocationFields({
   allowClear = false,
   required = false,
   showGps = true,
+  showMapPicker = false,
+  mapPickerReturnTo,
   error,
 }: LocationFieldsProps) {
   const styles = useScreenStyles();
@@ -122,6 +127,16 @@ function LocationFields({
 
   return (
     <View style={styles.wrap}>
+      {showMapPicker ? (
+        <TouchableOpacity
+          style={styles.mapBtn}
+          onPress={() => router.push('/map?pickFor=tasks' as Href)}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.mapBtnText}>{t('locationPicker.pickFromMap')}</Text>
+        </TouchableOpacity>
+      ) : null}
+
       {showGps ? (
         <TouchableOpacity
           style={styles.gpsBtn}
@@ -212,6 +227,8 @@ type LocationFilterProps = {
   district: string | null;
   onCityChange: (city: string | null) => void;
   onDistrictChange: (district: string | null) => void;
+  showMapPicker?: boolean;
+  mapPickerReturnTo?: Href;
 };
 
 /** Görev keşfet — il/ilçe filtresi (81 il, 973 ilçe + GPS) */
@@ -220,6 +237,8 @@ export function LocationFilter({
   district,
   onCityChange,
   onDistrictChange,
+  showMapPicker = false,
+  mapPickerReturnTo,
 }: LocationFilterProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
@@ -234,6 +253,8 @@ export function LocationFilter({
         onDistrictChange={onDistrictChange}
         allowClear
         showGps
+        showMapPicker={showMapPicker}
+        mapPickerReturnTo={mapPickerReturnTo}
       />
     </View>
   );
@@ -282,6 +303,21 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 44,
+  },
+  mapBtn: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    paddingVertical: Spacing[3],
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: Colors.borderGold,
+  },
+  mapBtnText: {
+    ...Typography.labelMedium,
+    color: Colors.primary,
+    fontWeight: '700',
   },
   gpsBtnText: {
     ...Typography.labelMedium,

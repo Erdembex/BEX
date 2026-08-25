@@ -15,6 +15,7 @@ import com.takkas.modules.messaging.service.MessageImageReportService;
 import com.takkas.modules.messaging.service.MessageBufferService;
 import com.takkas.modules.messaging.service.MessageService;
 import com.takkas.modules.messaging.service.OfferService;
+import com.takkas.modules.user.service.UserBlockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
@@ -39,10 +40,13 @@ public class ConversationController {
     private final OfferService offerService;
     private final MessageImageReportService messageImageReportService;
     private final ListingRepository listingRepository;
+    private final UserBlockService userBlockService;
 
     @GetMapping
     public List<ConversationResponse> getInbox(@CurrentUser UserPrincipal p) {
+        var blockedPeers = userBlockService.blockedPeerUserIds(p.userId());
         return conversationRepository.findAllByParticipant(p.userId()).stream()
+            .filter(c -> !blockedPeers.contains(c.peerUserId(p.userId())))
             .map(c -> ConversationMapper.toResponse(c,
                 bufferService.getUnreadCount(c.getId(), p.userId())))
             .toList();
@@ -55,6 +59,7 @@ public class ConversationController {
             .orElseThrow(() -> new ForbiddenException("Bu başvuru için konuşma bulunamadı."));
         if (!conv.isParticipant(p.userId()))
             throw new ForbiddenException("Erişim yetkiniz yok.");
+        userBlockService.ensureCanInteract(p.userId(), conv.peerUserId(p.userId()));
         return ConversationMapper.toResponse(conv,
             bufferService.getUnreadCount(conv.getId(), p.userId()));
     }
@@ -65,6 +70,7 @@ public class ConversationController {
             .orElseThrow(() -> new ForbiddenException("Konuşma bulunamadı."));
         if (!conv.isParticipant(p.userId()))
             throw new ForbiddenException("Erişim yetkiniz yok.");
+        userBlockService.ensureCanInteract(p.userId(), conv.peerUserId(p.userId()));
         return ConversationMapper.toResponse(conv,
             bufferService.getUnreadCount(conv.getId(), p.userId()));
     }
@@ -75,8 +81,11 @@ public class ConversationController {
                                                        @PathVariable UUID id,
                                                        @RequestParam(required = false) Instant cursor,
                                                        @RequestParam(defaultValue = "20") int pageSize) {
-        if (!conversationRepository.isParticipant(id, p.userId()))
+        var conv = conversationRepository.findById(id)
+            .orElseThrow(() -> new ForbiddenException("Konuşma bulunamadı."));
+        if (!conv.isParticipant(p.userId()))
             throw new ForbiddenException("Erişim yetkiniz yok.");
+        userBlockService.ensureCanInteract(p.userId(), conv.peerUserId(p.userId()));
         messageRepository.markAllAsRead(id, p.userId());
         bufferService.clearUnread(id, p.userId());
         Instant effectiveCursor = CursorPagination.effectiveCursor(cursor);

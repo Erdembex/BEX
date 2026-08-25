@@ -20,9 +20,8 @@ import {
   clearSavedCredentials,
 } from '@/lib/credentialStorage';
 import { Typography, Spacing, Radius } from '@/theme';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, PasslaLogo } from '@/components/ui';
 import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
-import { AuthLoginHero } from '@/components/auth/AuthLoginHero';
 import { AuthGlassCard } from '@/components/auth/AuthGlassCard';
 import { useTranslation } from '@/i18n';
 
@@ -108,7 +107,9 @@ export default function LoginScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <AuthLoginHero />
+          <View style={styles.logoWrap}>
+            <PasslaLogo size="md" centered tone="onDark" />
+          </View>
 
           <AuthGlassCard>
             <View style={styles.header}>
@@ -199,6 +200,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[6],
     paddingVertical: Spacing[8],
     gap: Spacing[6],
+  },
+  logoWrap: {
+    alignItems: 'center',
   },
   header: {
     marginBottom: Spacing[6],

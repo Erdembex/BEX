@@ -12,16 +12,114 @@ ASSETS = ROOT / "assets"
 BRANDING = ASSETS / "branding"
 
 WORDMARK_SRC = Path.home() / "Desktop" / "passla-logo.png"
-FALLBACK_WORDMARK = ROOT / "assets" / "icon.png"
+REPO_WORDMARK = BRANDING / "passla-wordmark-source.png"
+FALLBACK_WORDMARK = BRANDING / "passla-logo.png"
 
 NAVY = (5, 31, 69)
 CREAM = (240, 238, 233)
+SPRAY_LUM_THRESHOLD = 68
 
 
 def load_wordmark_src() -> Path:
     if WORDMARK_SRC.exists():
         return WORDMARK_SRC
-    return FALLBACK_WORDMARK
+    if REPO_WORDMARK.exists():
+        return REPO_WORDMARK
+    if FALLBACK_WORDMARK.exists():
+        return FALLBACK_WORDMARK
+    return ROOT / "assets" / "icon.png"
+
+
+def _dilate_max(alpha: np.ndarray, radius: int = 2) -> np.ndarray:
+    out = alpha.astype(np.float32)
+    for _ in range(radius):
+        padded = np.pad(out, 1, mode="constant")
+        merged = out.copy()
+        h, w = out.shape
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                merged = np.maximum(
+                    merged,
+                    padded[1 + dy : 1 + dy + h, 1 + dx : 1 + dx + w],
+                )
+        out = merged
+    return out
+
+
+def extract_graffiti_alpha(img: Image.Image, *, lum_threshold: float = SPRAY_LUM_THRESHOLD) -> np.ndarray:
+    data = np.array(img.convert("RGBA"), dtype=np.float32)
+    lum = data[:, :, :3].mean(axis=2)
+
+    norm = np.clip((lum - lum_threshold) / max(255 - lum_threshold, 1), 0, 1)
+    core = (norm ** 0.72 * 255).astype(np.float32)
+
+    speckle = np.where(
+        (lum > lum_threshold * 0.52) & (lum <= lum_threshold * 1.05),
+        np.clip((lum - lum_threshold * 0.52) * 2.4, 0, 110),
+        0,
+    ).astype(np.float32)
+
+    alpha = np.clip(np.maximum(core, speckle), 0, 255)
+    alpha = _dilate_max(alpha.astype(np.uint8), radius=1).astype(np.float32)
+    alpha = np.maximum(alpha, core * 0.92)
+    return np.clip(alpha, 0, 255).astype(np.uint8)
+
+
+def spray_tint_rgb(
+    data: np.ndarray,
+    alpha: np.ndarray,
+    *,
+    base_rgb: tuple[int, int, int],
+    highlight_strength: float = 0.42,
+) -> np.ndarray:
+    visible = alpha > 0
+    lum = data[:, :, :3].mean(axis=2)
+    lo = float(lum[visible].min()) if visible.any() else 0.0
+    hi = float(lum[visible].max()) if visible.any() else 255.0
+    span = max(hi - lo, 1.0)
+    grain = np.clip((lum - lo) / span, 0, 1)
+
+    out = np.zeros((*alpha.shape, 4), dtype=np.uint8)
+    for ch in range(3):
+        src = data[:, :, ch]
+        base = base_rgb[ch]
+        tinted = base + grain * (255 - base) * highlight_strength
+        mixed = 0.58 * src + 0.42 * tinted
+        out[:, :, ch] = np.where(visible, np.clip(mixed, 0, 255), 0).astype(np.uint8)
+    out[:, :, 3] = alpha
+    return out
+
+
+def clean_ss_mask(alpha: np.ndarray) -> np.ndarray:
+    bright = alpha > 24
+    h, w = bright.shape
+    visited = np.zeros_like(bright, bool)
+    keep = np.zeros_like(bright, bool)
+
+    for sy in range(h):
+        for sx in range(w):
+            if not bright[sy, sx] or visited[sy, sx]:
+                continue
+            q = deque([(sy, sx)])
+            pts: list[tuple[int, int]] = []
+            while q:
+                y, x = q.popleft()
+                if y < 0 or x < 0 or y >= h or x >= w or visited[y, x] or not bright[y, x]:
+                    continue
+                visited[y, x] = True
+                pts.append((x, y))
+                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    q.append((y + dy, x + dx))
+            xs = [p[0] for p in pts]
+            area = len(pts)
+            if min(xs) <= 4 and area < 500:
+                continue
+            if area < 40:
+                continue
+            for x, y in pts:
+                keep[y, x] = True
+
+    return np.where(keep, alpha, 0).astype(np.uint8)
 
 
 def detect_ss_box(img: Image.Image) -> tuple[int, int, int, int]:
@@ -77,59 +175,13 @@ def detect_ss_box(img: Image.Image) -> tuple[int, int, int, int]:
     )
 
 
-def extract_graffiti_alpha(img: Image.Image, *, lum_threshold: float = 88) -> np.ndarray:
-    data = np.array(img.convert("RGBA"), dtype=np.float32)
-    lum = data[:, :, :3].mean(axis=2)
-    alpha = np.zeros(lum.shape, dtype=np.uint8)
-    visible = lum > lum_threshold
-    alpha[visible] = np.clip((lum[visible] - lum_threshold) * 3.2 + 80, 0, 255).astype(np.uint8)
-    return alpha
-
-
-def clean_ss_mask(alpha: np.ndarray) -> np.ndarray:
-    bright = alpha > 24
-    h, w = bright.shape
-    visited = np.zeros_like(bright, bool)
-    keep = np.zeros_like(bright, bool)
-
-    for sy in range(h):
-        for sx in range(w):
-            if not bright[sy, sx] or visited[sy, sx]:
-                continue
-            q = deque([(sy, sx)])
-            pts: list[tuple[int, int]] = []
-            while q:
-                y, x = q.popleft()
-                if y < 0 or x < 0 or y >= h or x >= w or visited[y, x] or not bright[y, x]:
-                    continue
-                visited[y, x] = True
-                pts.append((x, y))
-                for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                    q.append((y + dy, x + dx))
-            xs = [p[0] for p in pts]
-            area = len(pts)
-            if min(xs) <= 4 and area < 500:
-                continue
-            if area < 40:
-                continue
-            for x, y in pts:
-                keep[y, x] = True
-
-    return np.where(keep, alpha, 0).astype(np.uint8)
-
-
 def extract_ss_graffiti(crop: Image.Image) -> Image.Image:
     data = np.array(crop.convert("RGBA"), dtype=np.float32)
-    alpha = clean_ss_mask(extract_graffiti_alpha(crop))
-
-    out = np.zeros((*alpha.shape, 4), dtype=np.uint8)
-    visible = alpha > 0
-    for ch in range(3):
-        out[:, :, ch] = np.where(
-            visible, np.clip(data[:, :, ch], 175, 255), 0
-        ).astype(np.uint8)
-    out[:, :, 3] = alpha
-    return Image.fromarray(out, "RGBA")
+    alpha = clean_ss_mask(extract_graffiti_alpha(crop, lum_threshold=SPRAY_LUM_THRESHOLD))
+    return Image.fromarray(
+        spray_tint_rgb(data, alpha, base_rgb=(255, 255, 255), highlight_strength=0.38),
+        "RGBA",
+    )
 
 
 def extract_full_wordmark(src: Path) -> tuple[Image.Image, Image.Image]:
@@ -143,18 +195,8 @@ def extract_full_wordmark(src: Path) -> tuple[Image.Image, Image.Image]:
         data = data[bbox[1] : bbox[3], bbox[0] : bbox[2]]
 
     alpha_arr = np.array(alpha_img, dtype=np.uint8)
-    visible = alpha_arr > 0
-
-    white = np.zeros((*alpha_arr.shape, 4), dtype=np.uint8)
-    for ch in range(3):
-        white[:, :, ch] = np.where(visible, np.clip(data[:, :, ch], 175, 255), 0).astype(np.uint8)
-    white[:, :, 3] = alpha_arr
-
-    navy = np.zeros_like(white)
-    navy[:, :, 0] = NAVY[0]
-    navy[:, :, 1] = NAVY[1]
-    navy[:, :, 2] = NAVY[2]
-    navy[:, :, 3] = alpha_arr
+    white = spray_tint_rgb(data, alpha_arr, base_rgb=(255, 255, 255), highlight_strength=0.45)
+    navy = spray_tint_rgb(data, alpha_arr, base_rgb=NAVY, highlight_strength=0.28)
 
     return Image.fromarray(white, "RGBA"), Image.fromarray(navy, "RGBA")
 
@@ -186,6 +228,7 @@ def main() -> None:
     icon_path = ASSETS / "icon.png"
     icon.convert("RGB").save(icon_path, "PNG", compress_level=1)
     icon.save(ASSETS / "android-icon-foreground.png", "PNG", compress_level=1)
+    ss_graffiti.save(BRANDING / "passla-icon-mark.png", "PNG", compress_level=1)
 
     favicon = icon.resize((192, 192), Image.Resampling.LANCZOS)
     favicon.convert("RGB").save(ASSETS / "favicon.png", "PNG", compress_level=1)

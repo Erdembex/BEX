@@ -25,12 +25,16 @@ app:
   admin:
     seed-enabled: ${ADMIN_SEED_ENABLED:false}
     sync-password-on-startup: false
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://passla.com.tr,https://www.passla.com.tr}
   listings:
-    auto-approve-on-create: true
+    # Production varsayılanı false: her ilan admin moderasyonundan geçer.
+    auto-approve-on-create: ${LISTINGS_AUTO_APPROVE:false}
   dev:
     expose-password-reset-token: false
     expose-phone-code: false
     expose-email-verification-code: false
+    log-mail-content: false
 
 springdoc:
   api-docs:

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Screen } from '@/components/common/Screen';
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { API_BASE_URL } from '@/lib/api/config';
 import { useBackendHealth } from '@/hooks/useBackendHealth';
 import { shouldUseDemoData } from '@/lib/devMode';
@@ -134,6 +134,11 @@ export default function ExpoTestGuideScreen() {
   };
 
   const doneCount = TEST_STEPS.filter((s) => checked[s.id]).length;
+
+  // Yayın derlemesinde deep link ile açılmasın.
+  if (!__DEV__) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <Screen style={styles.safe}>

@@ -20,6 +20,7 @@ import com.takkas.modules.user.domain.IndividualProfile;
 import com.takkas.modules.user.repository.BusinessProfileRepository;
 import com.takkas.modules.user.repository.IndividualProfileRepository;
 import com.takkas.modules.user.repository.UserRepository;
+import com.takkas.modules.user.service.UserBlockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -45,6 +46,7 @@ public class OfferService {
     private final DomainEventPublisher eventPublisher;
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageBufferService bufferService;
+    private final UserBlockService userBlockService;
 
     public OfferResponse sendOffer(UUID conversationId, UUID senderId, SendOfferRequest req) {
         Conversation conv = getWritable(conversationId, senderId);
@@ -108,6 +110,7 @@ public class OfferService {
         Conversation conv = conversationRepository.findById(conversationId)
             .orElseThrow(() -> new ResourceNotFoundException("Konuşma bulunamadı."));
         if (!conv.isParticipant(acceptorId)) throw new ForbiddenException("Erişim yetkiniz yok.");
+        userBlockService.ensureCanInteract(acceptorId, conv.peerUserId(acceptorId));
         Offer offer = offerRepository.findById(offerId)
             .orElseThrow(() -> new ResourceNotFoundException("Teklif bulunamadı."));
         if (offer.getMessage().getSenderId().equals(acceptorId))
@@ -175,6 +178,7 @@ public class OfferService {
             .orElseThrow(() -> new ResourceNotFoundException("Konuşma bulunamadı."));
         if (!conv.isParticipant(userId)) throw new ForbiddenException("Erişim yetkiniz yok.");
         if (!conv.isWritable()) throw new BusinessRuleException("Bu konuşmaya işlem yapılamaz.");
+        userBlockService.ensureCanInteract(userId, conv.peerUserId(userId));
         return conv;
     }
 }

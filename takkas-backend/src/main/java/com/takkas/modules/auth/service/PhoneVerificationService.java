@@ -1,6 +1,7 @@
 package com.takkas.modules.auth.service;
 
 import com.takkas.common.exception.BusinessRuleException;
+import com.takkas.common.logging.LogMask;
 import com.takkas.modules.auth.api.dto.SendPhoneCodeRequest;
 import com.takkas.modules.auth.api.dto.VerifyPhoneCodeRequest;
 import com.takkas.modules.auth.domain.PhoneVerificationCode;
@@ -51,8 +52,11 @@ public class PhoneVerificationService {
 
         codeRepository.invalidateOtherCodes(userId, entry.getId(), Instant.now());
 
-        log.info("[PhoneVerify] Kod oluşturuldu: userId={} phone={} code={} expires={}",
-            userId, phone, code, expiresAt);
+        log.info("[PhoneVerify] Kod oluşturuldu: userId={} phone={} expires={}",
+            userId, LogMask.phone(phone), expiresAt);
+        if (exposeDevCode) {
+            log.info("[PhoneVerify] (dev) code={}", code);
+        }
 
         return exposeDevCode ? Optional.of(code) : Optional.empty();
     }

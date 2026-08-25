@@ -1,6 +1,7 @@
 package com.takkas.modules.auth.service;
 
 import com.takkas.common.exception.BusinessRuleException;
+import com.takkas.common.logging.LogMask;
 import com.takkas.common.security.JwtTokenProvider;
 import com.takkas.infrastructure.mail.MailService;
 import com.takkas.modules.auth.api.dto.AuthResponse;
@@ -62,13 +63,12 @@ public class EmailVerificationService {
             user.getId(), verificationToken.getId(), Instant.now());
 
         boolean mailSent = mailService.sendVerificationEmail(user.getEmail(), token);
-        if (!mailSent) {
-            log.warn("[EmailVerification] E-posta gönderilemedi — kod loglandı: email={} token={}",
-                user.getEmail(), token);
-        }
 
-        log.info("[EmailVerification] Kod oluşturuldu: email={} token={} expires={}",
-            user.getEmail(), token, expiresAt);
+        log.info("[EmailVerification] Kod oluşturuldu: email={} expires={} mailSent={}",
+            LogMask.email(user.getEmail()), expiresAt, mailSent);
+        if (exposeDevVerificationCode) {
+            log.info("[EmailVerification] (dev) token={}", token);
+        }
 
         if (exposeDevVerificationCode && !mailSent) {
             return Optional.of(token);

@@ -39,6 +39,7 @@ public class UserService {
     private final TrustMetricsService trustMetricsService;
     private final FeedbackService feedbackService;
     private final BusinessGeocodingService geocodingService;
+    private final UserBlockService userBlockService;
 
     public BusinessProfileResponse getBusinessProfile(UUID profileId) {
         BusinessProfile p = businessRepo.findById(profileId)
@@ -52,33 +53,37 @@ public class UserService {
         return toResponse(p);
     }
 
-    public IndividualPublicProfileResponse getPublicIndividualProfile(UUID profileId) {
+    public IndividualPublicProfileResponse getPublicIndividualProfile(UUID profileId, UUID viewerUserId) {
         IndividualProfile profile = individualRepo.findById(profileId)
             .orElseThrow(() -> new ResourceNotFoundException("Profil bulunamadı."));
+        userBlockService.ensureCanInteract(viewerUserId, profile.getUser().getId());
         return buildPublicProfile(profile);
     }
 
-    public IndividualPublicProfileResponse getPublicIndividualProfileByUserId(UUID userId) {
+    public IndividualPublicProfileResponse getPublicIndividualProfileByUserId(UUID userId, UUID viewerUserId) {
         IndividualProfile profile = individualRepo.findByUserId(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Profil bulunamadı."));
+        userBlockService.ensureCanInteract(viewerUserId, userId);
         return buildPublicProfile(profile);
     }
 
-    public IndividualPublicProfileResponse getPublicIndividualProfileByUsername(String username) {
+    public IndividualPublicProfileResponse getPublicIndividualProfileByUsername(String username, UUID viewerUserId) {
         String normalized = UsernameUtils.normalize(username);
         UsernameUtils.validate(normalized);
         IndividualProfile profile = individualRepo.findByUsernameIgnoreCase(normalized)
             .orElseThrow(() -> new ResourceNotFoundException("Profil bulunamadı."));
+        userBlockService.ensureCanInteract(viewerUserId, profile.getUser().getId());
         return buildPublicProfile(profile);
     }
 
-    public BusinessPublicProfileResponse getPublicBusinessProfile(UUID profileId) {
+    public BusinessPublicProfileResponse getPublicBusinessProfile(UUID profileId, UUID viewerUserId) {
         BusinessProfile profile = businessRepo.findById(profileId)
             .orElseThrow(() -> new ResourceNotFoundException("İşletme bulunamadı."));
         UUID ownerUserId = userRepository.findUserIdByBusinessProfileId(profileId);
         if (ownerUserId == null) {
             throw new ResourceNotFoundException("İşletme sahibi bulunamadı.");
         }
+        userBlockService.ensureCanInteract(viewerUserId, ownerUserId);
         var feedback = feedbackService.getProfileFeedback(profileId, 1);
         var trust = trustMetricsService.getForBusiness(profileId);
         long activeListings = listingRepository.countByBusinessIdAndStatus(profileId, ListingStatus.ACTIVE);
@@ -104,12 +109,15 @@ public class UserService {
             profile.getLongitude());
     }
 
-    public List<IndividualSearchResult> searchIndividualProfiles(String query) {
+    public List<IndividualSearchResult> searchIndividualProfiles(String query, UUID viewerUserId) {
         String term = query != null ? query.trim().replace("@", "") : "";
+        var blockedIds = userBlockService.blockedByViewerUserIds(viewerUserId);
         List<IndividualProfile> profiles = term.length() >= 2
             ? individualRepo.findTop20ByUsernameContainingIgnoreCaseOrderByUsernameAsc(term)
             : individualRepo.findTop20ByOrderByUsernameAsc();
-        return profiles.stream().map(p -> {
+        return profiles.stream()
+            .filter(p -> !blockedIds.contains(p.getUser().getId()))
+            .map(p -> {
             var trust = trustMetricsService.getForIndividual(p.getId());
             return new IndividualSearchResult(
                 p.getId(),
@@ -120,12 +128,19 @@ public class UserService {
         }).toList();
     }
 
-    public List<BusinessSearchResult> searchBusinessProfiles(String query) {
+    public List<BusinessSearchResult> searchBusinessProfiles(String query, UUID viewerUserId) {
         String term = query != null ? query.trim() : "";
+        var blockedIds = userBlockService.blockedByViewerUserIds(viewerUserId);
         List<BusinessProfile> profiles = term.length() >= 2
             ? businessRepo.findTop20ByBusinessNameContainingIgnoreCaseOrderByBusinessNameAsc(term)
             : businessRepo.findTop20ByOrderByBusinessNameAsc();
-        return profiles.stream().map(this::toSearchResult).toList();
+        return profiles.stream()
+            .filter(p -> {
+                UUID ownerId = userRepository.findUserIdByBusinessProfileId(p.getId());
+                return ownerId == null || !blockedIds.contains(ownerId);
+            })
+            .map(this::toSearchResult)
+            .toList();
     }
 
     private BusinessSearchResult toSearchResult(BusinessProfile profile) {
@@ -177,6 +192,7 @@ public class UserService {
 
         return new IndividualPublicProfileResponse(
             profile.getId(),
+            profile.getUser().getId(),
             profile.getUsername(),
             profile.getFullName(),
             profile.getAvatarUrl(),

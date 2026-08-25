@@ -15,6 +15,7 @@ import {
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { Button, Input, PasslaLogo } from '@/components/ui';
 import { LocationPicker } from '@/components/common/LocationPicker';
+import { PRIVACY_URL, TERMS_URL, openLegalPage } from '@/lib/legalLinks';
 import { useTranslation } from '@/i18n';
 
 export default function RegisterScreen() {
@@ -47,7 +48,16 @@ export default function RegisterScreen() {
   const [birthDateInput, setBirthDateInput] = useState('');
   const [gender, setGender] = useState<UserGender | null>(null);
   const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleOpenLegal = async (url: string) => {
+    try {
+      await openLegalPage(url);
+    } catch {
+      setErrors((prev) => ({ ...prev, terms: t('registerScreen.legalLinkFailed') }));
+    }
+  };
 
   const parsedBirthDate = useMemo(() => parseBirthDateInput(birthDateInput), [birthDateInput]);
   const computedAge = parsedBirthDate ? calculateAge(parsedBirthDate) : null;
@@ -89,6 +99,9 @@ export default function RegisterScreen() {
     }
     if (!gender) {
       newErrors.gender = t('registerScreen.errorGender');
+    }
+    if (!termsAccepted) {
+      newErrors.terms = t('registerScreen.errorTermsNotAccepted');
     }
 
     setErrors(newErrors);
@@ -325,14 +338,30 @@ export default function RegisterScreen() {
               isPassword
             />
 
-            {/* Gizlilik notu */}
-            <Text style={styles.termsText}>
-              {t('registerScreen.termsPrefix')}
-              <Text style={styles.termsLink}>{t('registerScreen.termsOfService')}</Text>
-              {t('registerScreen.termsMiddle')}
-              <Text style={styles.termsLink}>{t('registerScreen.privacyPolicy')}</Text>
-              {t('registerScreen.termsSuffix')}
-            </Text>
+            {/* Yasal onay */}
+            <TouchableOpacity
+              style={styles.termsRow}
+              onPress={() => setTermsAccepted((prev) => !prev)}
+              activeOpacity={0.8}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: termsAccepted }}
+            >
+              <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+                {termsAccepted ? <Text style={styles.checkboxMark}>✓</Text> : null}
+              </View>
+              <Text style={styles.termsText}>
+                {t('registerScreen.termsPrefix')}
+                <Text style={styles.termsLink} onPress={() => handleOpenLegal(TERMS_URL)}>
+                  {t('registerScreen.termsOfService')}
+                </Text>
+                {t('registerScreen.termsMiddle')}
+                <Text style={styles.termsLink} onPress={() => handleOpenLegal(PRIVACY_URL)}>
+                  {t('registerScreen.privacyPolicy')}
+                </Text>
+                {t('registerScreen.termsSuffix')}
+              </Text>
+            </TouchableOpacity>
+            {errors.terms ? <Text style={styles.termsError}>{errors.terms}</Text> : null}
 
             <Button
               title={t('registerScreen.submit')}
@@ -506,16 +535,47 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderRadius: Radius.md,
     marginTop: -Spacing[2],
   },
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing[3],
+    marginTop: -Spacing[2],
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  checkboxChecked: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
+  },
+  checkboxMark: {
+    ...Typography.labelSmall,
+    color: Colors.white,
+    fontWeight: '800',
+  },
   termsText: {
     ...Typography.caption,
-    color: Colors.textTertiary,
-    textAlign: 'center',
+    color: Colors.textSecondary,
+    flex: 1,
     lineHeight: 18,
-    marginTop: -Spacing[2],
   },
   termsLink: {
     color: Colors.primary,
     fontWeight: '600',
+    textDecorationLine: 'underline',
+  },
+  termsError: {
+    ...Typography.caption,
+    color: Colors.error,
+    marginTop: -Spacing[3],
   },
   loginRow: {
     flexDirection: 'row',

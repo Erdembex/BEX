@@ -22,6 +22,10 @@ app:
     sync-password-on-startup: false
   dev:
     expose-email-verification-code: true
+  ratelimit:
+    enabled: false
+  listings:
+    auto-approve-on-create: true
 
 stripe:
   secret-key: sk_test_placeholder

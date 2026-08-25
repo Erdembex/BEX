@@ -19,6 +19,8 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, UUID> {
 
     void deleteByToken(String token);
 
+    void deleteByUserId(UUID userId);
+
     @Modifying
     @Query("DELETE FROM FcmToken f WHERE f.isActive = false AND f.updatedAt < :threshold")
     int deleteInactiveTokensOlderThan(@Param("threshold") Instant threshold);

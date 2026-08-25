@@ -1,5 +1,5 @@
-# BEX — EAS production secrets kurulumu (Windows)
-# Usage: .\scripts\setup-eas-secrets.ps1 -ApiDomain "api.bex.app"
+# Passla — EAS environment variables (production + preview)
+# Usage: .\scripts\setup-eas-secrets.ps1 -ApiDomain "api.passla.com.tr" -FirebaseApiKey "..." ...
 param(
   [string]$ApiDomain = "",
   [string]$ApiUrl = "",
@@ -15,20 +15,42 @@ param(
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot\..
 
-Write-Host "==> EAS login kontrol..." -ForegroundColor Cyan
-npx eas whoami 2>$null
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "Once: npx eas login" -ForegroundColor Yellow
-  exit 1
+function Invoke-Eas {
+  param(
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$EasArgs
+  )
+  $prev = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  & npx --yes eas @EasArgs
+  $code = $LASTEXITCODE
+  $ErrorActionPreference = $prev
+  if ($code -ne 0) {
+    throw "eas $($EasArgs -join ' ') failed (exit $code)"
+  }
 }
 
-function Set-EasSecret($Name, $Value) {
+Write-Host "==> EAS login kontrol..." -ForegroundColor Cyan
+Invoke-Eas whoami | Out-Host
+
+function Set-EasEnv {
+  param(
+    [string]$Name,
+    [string]$Value,
+    [string]$Environment
+  )
   if ([string]::IsNullOrWhiteSpace($Value)) {
-    Write-Host "  ATLA: $Name (deger verilmedi)" -ForegroundColor DarkYellow
+    Write-Host "  ATLA: $Name ($Environment)" -ForegroundColor DarkYellow
     return
   }
-  Write-Host "  -> $Name" -ForegroundColor Green
-  npx eas secret:create --name $Name --value $Value --force
+  Write-Host "  -> $Name ($Environment)" -ForegroundColor Green
+  Invoke-Eas env:create $Environment `
+    --name $Name `
+    --value $Value `
+    --force `
+    --non-interactive `
+    --visibility plaintext `
+    --scope project | Out-Null
 }
 
 if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
@@ -39,19 +61,29 @@ if ([string]::IsNullOrWhiteSpace($ApiUrl)) {
   $ApiUrl = "https://$ApiDomain"
 }
 
-Write-Host "==> Secrets olusturuluyor (API: $ApiUrl)" -ForegroundColor Cyan
+$vars = [ordered]@{
+  EXPO_PUBLIC_API_BASE_URL                 = $ApiUrl
+  EXPO_PUBLIC_EAS_PROJECT_ID               = $EasProjectId
+  EXPO_PUBLIC_FIREBASE_API_KEY             = $FirebaseApiKey
+  EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN         = $FirebaseAuthDomain
+  EXPO_PUBLIC_FIREBASE_PROJECT_ID          = $FirebaseProjectId
+  EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET      = $FirebaseStorageBucket
+  EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = $FirebaseMessagingSenderId
+  EXPO_PUBLIC_FIREBASE_APP_ID              = $FirebaseAppId
+  EXPO_PUBLIC_USE_DEMO_DATA                = "false"
+}
 
-Set-EasSecret "EXPO_PUBLIC_API_BASE_URL" $ApiUrl
-Set-EasSecret "EXPO_PUBLIC_EAS_PROJECT_ID" $EasProjectId
-Set-EasSecret "EXPO_PUBLIC_FIREBASE_API_KEY" $FirebaseApiKey
-Set-EasSecret "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN" $FirebaseAuthDomain
-Set-EasSecret "EXPO_PUBLIC_FIREBASE_PROJECT_ID" $FirebaseProjectId
-Set-EasSecret "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET" $FirebaseStorageBucket
-Set-EasSecret "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID" $FirebaseMessagingSenderId
-Set-EasSecret "EXPO_PUBLIC_FIREBASE_APP_ID" $FirebaseAppId
-Set-EasSecret "EXPO_PUBLIC_USE_DEMO_DATA" "false"
+foreach ($envName in @("production", "preview")) {
+  Write-Host "==> Environment: $envName (API: $ApiUrl)" -ForegroundColor Cyan
+  foreach ($entry in $vars.GetEnumerator()) {
+    Set-EasEnv -Name $entry.Key -Value $entry.Value -Environment $envName
+  }
+}
 
-Write-Host "`n==> Mevcut secrets:" -ForegroundColor Cyan
-npx eas secret:list
+Write-Host "`n==> production env:" -ForegroundColor Cyan
+Invoke-Eas env:list production | Out-Host
+
+Write-Host "`n==> preview env:" -ForegroundColor Cyan
+Invoke-Eas env:list preview | Out-Host
 
 Write-Host "`nTamam. Sonraki: npm run build:preview:android" -ForegroundColor Green

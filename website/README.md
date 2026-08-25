@@ -1,6 +1,6 @@
 # Passla — Statik Web Sitesi
 
-Mağaza yayını için **gizlilik politikası** ve **destek** sayfaları.
+Mağaza yayını için **gizlilik politikası**, **kullanım koşulları**, **hesap silme** ve **destek** sayfaları.
 
 ## Dosyalar
 
@@ -8,9 +8,21 @@ Mağaza yayını için **gizlilik politikası** ve **destek** sayfaları.
 |-------|-----|
 | `index.html` | `https://passla.com.tr/` |
 | `gizlilik.html` | `https://passla.com.tr/gizlilik.html` |
+| `kullanim-kosullari.html` | `https://passla.com.tr/kullanim-kosullari.html` |
+| `hesap-silme.html` | `https://passla.com.tr/hesap-silme.html` |
 | `destek.html` | `https://passla.com.tr/destek.html` |
 
-Play Store / App Store gizlilik URL'si: **`https://passla.com.tr/gizlilik.html`**
+Mağaza formlarına girilecek URL'ler:
+
+| Alan | URL |
+|------|-----|
+| Play Store / App Store gizlilik politikası | `https://passla.com.tr/gizlilik.html` |
+| Play Console → Veri güvenliği → hesap silme URL'si | `https://passla.com.tr/hesap-silme.html` |
+| App Store Connect → EULA / Kullanım koşulları | `https://passla.com.tr/kullanim-kosullari.html` |
+
+> **Yayın öncesi:** `gizlilik.html` ve `kullanim-kosullari.html` içindeki köşeli
+> parantezli alanlar (şirket unvanı, adres, VKN/MERSİS, yetkili mahkeme ili)
+> ticaret sicil bilgileriyle doldurulmalıdır.
 
 ## Cloudflare + Oracle (önerilen)
 

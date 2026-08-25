@@ -1,12 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import { Screen } from '@/components/common/Screen';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, Href } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuthStore } from '@/store/authStore';
 import { usersRepository } from '@/features/data';
 import { CompletedTask, PortfolioItem } from '@/types';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { PublicProfileSections } from '@/components/profile/PublicProfileSections';
+import { BlockUserButton } from '@/components/user/BlockUserButton';
+import { Button } from '@/components/ui';
 import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -14,13 +17,15 @@ export default function PublicUserProfileScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
   const { t } = useTranslation();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { bexUser } = useAuthStore();
+  const { id, applicationId } = useLocalSearchParams<{ id: string; applicationId?: string }>();
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [completedCount, setCompletedCount] = useState(0);
   const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [profileId, setProfileId] = useState('');
+  const [targetUserId, setTargetUserId] = useState('');
   const [averageRating, setAverageRating] = useState(0);
   const [feedbackCount, setFeedbackCount] = useState(0);
   const [isDangerous, setIsDangerous] = useState(false);
@@ -41,6 +46,7 @@ export default function PublicUserProfileScreen() {
       setCompletedTasks(stats.completedTasks);
       setPortfolio(stats.portfolio);
       setProfileId(stats.profileId);
+      setTargetUserId(stats.userId);
       setAverageRating(stats.averageRating);
       setFeedbackCount(stats.feedbackCount);
       setIsDangerous(stats.isDangerous);
@@ -81,6 +87,33 @@ export default function PublicUserProfileScreen() {
         <View style={styles.hero}>
           <ProfileAvatar name={displayName} avatarUrl={avatarUrl} size={72} />
           <Text style={styles.title}>{displayName}</Text>
+          <View style={styles.actions}>
+            {bexUser?.role === 'business' ? (
+              <Button
+                title={t('applicationDetailBizScreen.reportUser')}
+                variant="outline"
+                onPress={() =>
+                  router.push({
+                    pathname: '/complaint/submit-user',
+                    params: {
+                      applicationId: applicationId ?? '',
+                      applicationLabel: displayName,
+                    },
+                  } as Href)
+                }
+              />
+            ) : null}
+            {targetUserId ? (
+              <BlockUserButton
+                targetUserId={targetUserId}
+                displayName={displayName}
+                variant="outline"
+                onBlocked={() => {
+                  if (router.canGoBack()) router.back();
+                }}
+              />
+            ) : null}
+          </View>
         </View>
 
         <PublicProfileSections
@@ -108,5 +141,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   back: { alignSelf: 'flex-start' },
   backText: { ...Typography.labelMedium, color: Colors.textSecondary },
   hero: { alignItems: 'center', gap: Spacing[2] },
+  actions: { width: '100%', gap: Spacing[2], marginTop: Spacing[1] },
   title: { ...Typography.headingLarge, color: Colors.textPrimary },
 }));

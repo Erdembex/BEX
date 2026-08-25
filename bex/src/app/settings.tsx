@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
@@ -12,6 +12,8 @@ import { isAuthEmulatorActive } from '@/lib/firebase';
 import { API_BASE_URL } from '@/lib/api/config';
 import { useBackendHealth } from '@/hooks/useBackendHealth';
 import { AccountSettings } from '@/components/profile/AccountSettings';
+import { exportAccountDataToFile } from '@/features/account/exportAccountData';
+import { PRIVACY_URL, TERMS_URL, openLegalPage } from '@/lib/legalLinks';
 import { Button } from '@/components/ui';
 import { Typography, Spacing, useThemeColors, useIsDarkMode } from '@/theme';
 import { useTranslation } from '@/i18n';
@@ -26,6 +28,8 @@ export default function SettingsScreen() {
   const setLocale = useLocaleStore((s) => s.setLocale);
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(Colors), [Colors]);
+  const [exporting, setExporting] = useState(false);
+  const [dataError, setDataError] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +47,18 @@ export default function SettingsScreen() {
     await authService.logout();
     signOut();
     router.replace('/(auth)/login');
+  };
+
+  const handleExportData = async () => {
+    setExporting(true);
+    setDataError('');
+    try {
+      await exportAccountDataToFile();
+    } catch (err: any) {
+      setDataError(err?.message || t('settings.downloadFailed'));
+    } finally {
+      setExporting(false);
+    }
   };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -103,6 +119,48 @@ export default function SettingsScreen() {
           onUserUpdated={setBexUser}
           showAdminLink={bexUser?.role === 'admin'}
         />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.dataAndAccount')}</Text>
+
+          {dataError ? <Text style={styles.errorText}>{dataError}</Text> : null}
+
+          <Button
+            title={t('settings.downloadMyData')}
+            variant="outline"
+            onPress={handleExportData}
+            loading={exporting}
+          />
+          <Text style={styles.rowHint}>{t('settings.downloadMyDataHint')}</Text>
+
+          <Button
+            title={t('settings.blockedUsers')}
+            variant="outline"
+            onPress={() => router.push('/blocked-users' as Href)}
+          />
+          <Text style={styles.rowHint}>{t('settings.blockedUsersHint')}</Text>
+
+          <Button
+            title={t('settings.deleteAccount')}
+            variant="danger"
+            onPress={() => router.push('/delete-account' as Href)}
+          />
+          <Text style={styles.rowHint}>{t('settings.deleteAccountHint')}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t('settings.legal')}</Text>
+          <Button
+            title={t('settings.terms')}
+            variant="ghost"
+            onPress={() => openLegalPage(TERMS_URL)}
+          />
+          <Button
+            title={t('settings.privacy')}
+            variant="ghost"
+            onPress={() => openLegalPage(PRIVACY_URL)}
+          />
+        </View>
 
         <Button
           title={t('settings.aboutPassla')}
@@ -214,6 +272,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     rowText: { flex: 1, gap: 2 },
     rowLabel: { ...Typography.labelLarge, color: Colors.textPrimary, fontWeight: '700' },
     rowHint: { ...Typography.caption, color: Colors.textTertiary },
+    errorText: { ...Typography.bodySmall, color: Colors.error },
     meta: { alignItems: 'center', gap: Spacing[1], marginTop: Spacing[2] },
     metaText: { ...Typography.caption, color: Colors.textTertiary },
   });

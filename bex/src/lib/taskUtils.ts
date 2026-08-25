@@ -57,9 +57,10 @@ export function getGreeting(
     audience === 'business' ? 'greeting.businessHelloOnly' : 'greeting.helloOnly';
 
   if (name) {
+    const firstName = name.trim().split(/[\s_]+/)[0] || name.trim();
     return t(helloNameKey)
       .replace('{{greeting}}', greeting)
-      .replace('{{name}}', name.split(' ')[0]);
+      .replace('{{name}}', firstName);
   }
   return t(helloOnlyKey).replace('{{greeting}}', greeting);
 }

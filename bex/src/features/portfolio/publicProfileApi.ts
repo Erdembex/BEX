@@ -8,6 +8,7 @@ import { PortfolioItem, CompletedTask } from '@/types';
 
 export type PublicProfileDto = {
   profileId?: string;
+  userId?: string;
   username?: string;
   fullName?: string;
   avatarUrl?: string | null;
@@ -36,6 +37,7 @@ export type PublicProfileDto = {
 
 export type PublicUserProfile = {
   profileId: string;
+  userId: string;
   username: string;
   fullName: string;
   avatarUrl: string | null;
@@ -104,6 +106,7 @@ function mapPublicProfile(dto: PublicProfileDto): PublicUserProfile {
 
   return {
     profileId,
+    userId: String(dto.userId ?? ''),
     username: dto.username?.trim() || '',
     fullName: dto.fullName?.trim() || 'Kullanıcı',
     avatarUrl: dto.avatarUrl?.trim() ? resolveMediaUrl(dto.avatarUrl.trim()) : null,

@@ -14,6 +14,7 @@ import { getApplicationQuickAction, getApplicationTarget } from '@/lib/applicati
 import { formatRelativeTime } from '@/lib/dateUtils';
 import { TaskListSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 
 function useStatusColors(): Record<ApplicationStatus, string> {
@@ -87,7 +88,7 @@ export default function MyApplicationsScreen() {
   if (loading) {
     return (
       <TabScreen style={styles.safe}>
-        <AppHeader title={t('applicationsScreen.title')} />
+        <AppHeader title={t('applicationsScreen.title')} {...userHubBackHeaderProps()} />
         <TaskListSkeleton count={3} />
       </TabScreen>
     );
@@ -95,7 +96,7 @@ export default function MyApplicationsScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('applicationsScreen.title')} />
+      <AppHeader title={t('applicationsScreen.title')} {...userHubBackHeaderProps()} />
       <FlatList
         data={applications}
         keyExtractor={(item) => item.id}

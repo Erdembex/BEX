@@ -1,5 +1,6 @@
 package com.takkas.infrastructure.mail;
 
+import com.takkas.common.logging.LogMask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,6 +20,10 @@ public class SmtpMailService implements MailService {
     @Value("${spring.mail.from:noreply@passla.com.tr}")
     private String fromAddress;
 
+    /** Sadece yerel geliştirmede açılır: SMTP yoksa mail gövdesini loga yazar. */
+    @Value("${app.dev.log-mail-content:false}")
+    private boolean logMailContent;
+
     public SmtpMailService(ObjectProvider<JavaMailSender> mailSenderProvider) {
         this.mailSenderProvider = mailSenderProvider;
     }
@@ -35,7 +40,7 @@ public class SmtpMailService implements MailService {
             Bu isteği sen yapmadıysan bu e-postayı yok say.
             """.formatted(token);
         boolean sent = deliver(to, "Passla — E-posta doğrulama kodu", body);
-        log.info("[MailService] Doğrulama kodu: to={} token={} sent={}", to, token, sent);
+        log.info("[MailService] Doğrulama kodu gönderildi: to={} sent={}", LogMask.email(to), sent);
         return sent;
     }
 
@@ -51,21 +56,26 @@ public class SmtpMailService implements MailService {
             Bu isteği sen yapmadıysan bu e-postayı yok say.
             """.formatted(token);
         boolean sent = deliver(to, "Passla — Şifre sıfırlama kodu", body);
-        log.info("[MailService] Şifre sıfırlama kodu: to={} token={} sent={}", to, token, sent);
+        log.info("[MailService] Şifre sıfırlama kodu gönderildi: to={} sent={}", LogMask.email(to), sent);
         return sent;
     }
 
     @Override
     public void sendGenericEmail(String to, String subject, String body) {
         deliver(to, subject, body);
-        log.info("[MailService] E-posta: to={} subject={}", to, subject);
+        log.info("[MailService] E-posta: to={} subject={}", LogMask.email(to), subject);
     }
 
     private boolean deliver(String to, String subject, String body) {
         JavaMailSender mailSender = mailSenderProvider.getIfAvailable();
         if (mailSender == null) {
-            log.info("[MailService] SMTP yapılandırılmadı — içerik loglandı: to={} subject={} body={}",
-                to, subject, body);
+            if (logMailContent) {
+                log.info("[MailService] SMTP yapılandırılmadı — içerik loglandı: to={} subject={} body={}",
+                    to, subject, body);
+            } else {
+                log.warn("[MailService] SMTP yapılandırılmadı, e-posta gönderilemedi: to={} subject={}",
+                    LogMask.email(to), subject);
+            }
             return false;
         }
 
@@ -80,7 +90,11 @@ public class SmtpMailService implements MailService {
             mailSender.send(message);
             return true;
         } catch (Exception ex) {
-            log.warn("[MailService] E-posta gönderilemedi ({}): {} — {}", to, ex.getMessage(), body);
+            log.warn("[MailService] E-posta gönderilemedi: to={} subject={} hata={}",
+                LogMask.email(to), subject, ex.getMessage());
+            if (logMailContent) {
+                log.info("[MailService] Gönderilemeyen içerik: {}", body);
+            }
             return false;
         }
     }

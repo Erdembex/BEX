@@ -21,19 +21,16 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final AllowedOrigins allowedOrigins;
+
+    public SecurityConfig(AllowedOrigins allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of(
-            "http://localhost:*",
-            "https://localhost:*",
-            "http://127.0.0.1:*",
-            "https://127.0.0.1:*",
-            "http://192.168.*.*:*",
-            "https://192.168.*.*:*",
-            "http://10.*.*.*:*",
-            "https://10.*.*.*:*"
-        ));
+        config.setAllowedOriginPatterns(allowedOrigins.patterns());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -56,7 +53,6 @@ public class SecurityConfig {
                     "/api/auth/register/business",
                     "/api/auth/register/individual",
                     "/api/auth/refresh",
-                    "/api/auth/logout",
                     "/api/auth/forgot-password",
                     "/api/auth/reset-password",
                     "/api/auth/verify-email",

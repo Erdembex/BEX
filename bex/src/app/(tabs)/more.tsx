@@ -5,6 +5,7 @@ import { router, Href } from 'expo-router';
 import { AppHeader } from '@/components/navigation/AppHeader';
 import { useOpenNotifications } from '@/hooks/useOpenNotifications';
 import { useNotifications } from '@/hooks/useNotifications';
+import { goUserHub } from '@/lib/userHubNavigation';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -21,6 +22,30 @@ const MORE_LINKS: MoreLink[] = [
     labelKey: 'moreScreen.settings',
     hintKey: 'moreScreen.settingsHint',
     icon: '⚙',
+  },
+  {
+    route: '/(tabs)/favorites' as Href,
+    labelKey: 'moreScreen.favorites',
+    hintKey: 'moreScreen.favoritesHint',
+    icon: '★',
+  },
+  {
+    route: '/leaderboard' as Href,
+    labelKey: 'moreScreen.leaderboard',
+    hintKey: 'moreScreen.leaderboardHint',
+    icon: '🏆',
+  },
+  {
+    route: '/map' as Href,
+    labelKey: 'moreScreen.map',
+    hintKey: 'moreScreen.mapHint',
+    icon: '🗺',
+  },
+  {
+    route: '/about' as Href,
+    labelKey: 'moreScreen.about',
+    hintKey: 'moreScreen.aboutHint',
+    icon: 'ℹ',
   },
   {
     route: '/(tabs)/complaints' as Href,
@@ -40,7 +65,7 @@ export default function MoreScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('moreScreen.title')} showMenu={false} showNotifications={false} onBack={() => router.back()} />
+      <AppHeader title={t('moreScreen.title')} showMenu={false} showNotifications={false} onBack={goUserHub} />
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
         <TouchableOpacity style={styles.noticeCard} activeOpacity={0.88} onPress={openNotifications}>
           <View style={styles.noticeLeft}>

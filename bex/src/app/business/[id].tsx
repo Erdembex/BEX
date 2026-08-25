@@ -11,6 +11,7 @@ import { TaskCard } from '@/components/tasks';
 import { ProfileFeedbackList } from '@/components/profile/ProfileFeedbackList';
 import { DangerBadge } from '@/components/profile/DangerBadge';
 import { Button } from '@/components/ui';
+import { BlockUserButton } from '@/components/user/BlockUserButton';
 import { fetchProfileFeedback, FeedbackDto } from '@/features/feedback/feedbackApi';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 
@@ -135,6 +136,17 @@ export default function BusinessDetailScreen() {
             })
           }
         />
+
+        {business.ownerUid ? (
+          <BlockUserButton
+            targetUserId={business.ownerUid}
+            displayName={business.name}
+            variant="outline"
+            onBlocked={() => {
+              if (router.canGoBack()) router.back();
+            }}
+          />
+        ) : null}
 
         <ProfileFeedbackList
           averageStars={feedbackAvg || business.averageRating || 0}

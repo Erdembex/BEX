@@ -3,6 +3,7 @@ import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpaci
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { tasksRepository, EnrichedTask } from '@/features/data';
 import { shouldUseListingsRest } from '@/features/listing/listingsApi';
@@ -11,10 +12,13 @@ import { SearchBar, CategoryFilter, ListingProjectCard, RewardFilterChips } from
 import { LocationFilter } from '@/components/common/LocationPicker';
 import { TaskListSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { useAuthStore } from '@/store/authStore';
-import { saveLocationFilter } from '@/lib/locationFilterStorage';
+import { loadLocationFilter, saveLocationFilter } from '@/lib/locationFilterStorage';
 import { resolveLocationFilter } from '@/lib/resolveLocationFilter';
 import { resolveRewardFilter, type RewardFilterPreset } from '@/lib/rewardFilterUtils';
+import { matchesEnrichedTaskSearch, resolveTaskSearchParams } from '@/lib/taskSearchUtils';
+import { useCategoryLabels } from '@/constants/taskLabels';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 import { useDifficultyLabels } from '@/constants/taskLabels';
@@ -27,6 +31,7 @@ export default function TasksScreen() {
   const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const difficultyLabels = useDifficultyLabels();
+  const categoryLabels = useCategoryLabels();
   const DIFF_LABELS: Record<string, string> = {
     all: t('tasksScreen.difficultyAll'),
     ...difficultyLabels,
@@ -91,17 +96,37 @@ export default function TasksScreen() {
     saveLocationFilter({ city, district });
   }, [city, district, filterReady]);
 
+  useFocusEffect(
+    useCallback(() => {
+      if (!filterReady) return;
+      let cancelled = false;
+      loadLocationFilter().then((saved) => {
+        if (cancelled || !saved) return;
+        setCity(saved.city);
+        setDistrict(saved.district);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, [filterReady])
+  );
+
+  const taskSearchParams = useMemo(
+    () => (rewardPreset ? {} : resolveTaskSearchParams(search)),
+    [search, rewardPreset]
+  );
+
   const filterTasks = useCallback(
     (list: EnrichedTask[]) =>
-      list.filter((t) => {
-        if (category && t.category !== category) return false;
-        if (difficulty && t.difficulty !== difficulty) return false;
-        if (!restListings && search && !t.title.toLowerCase().includes(search.toLowerCase())) {
+      list.filter((task) => {
+        if (category && task.category !== category) return false;
+        if (difficulty && task.difficulty !== difficulty) return false;
+        if (search.trim() && !matchesEnrichedTaskSearch(task, search, categoryLabels)) {
           return false;
         }
         return true;
       }),
-    [category, difficulty, search, restListings]
+    [category, difficulty, search, categoryLabels]
   );
 
   const loadInitial = useCallback(async () => {
@@ -110,8 +135,8 @@ export default function TasksScreen() {
     try {
       const rewardFilter = rewardPreset
         ? resolveRewardFilter(rewardPreset, '')
-        : search.trim()
-          ? { q: search.trim() }
+        : taskSearchParams.q
+          ? { q: taskSearchParams.q }
           : {};
       const { tasks: fetched, lastDoc: doc, nextCursor: cursor } = await tasksRepository.getActive(
         10,
@@ -120,6 +145,7 @@ export default function TasksScreen() {
           city: city ?? undefined,
           district: district ?? undefined,
           category,
+          skills: taskSearchParams.skills,
           q: rewardFilter.q,
           rewardType: rewardFilter.rewardType,
         }
@@ -134,7 +160,7 @@ export default function TasksScreen() {
     } finally {
       setLoading(false);
     }
-  }, [city, district, category, search, rewardPreset, restListings, t]);
+  }, [city, district, category, taskSearchParams, rewardPreset, t]);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
@@ -143,8 +169,8 @@ export default function TasksScreen() {
     const cursorArg = nextCursor ?? lastDoc ?? undefined;
     const rewardFilter = rewardPreset
       ? resolveRewardFilter(rewardPreset, '')
-      : search.trim()
-        ? { q: search.trim() }
+      : taskSearchParams.q
+        ? { q: taskSearchParams.q }
         : {};
     const { tasks: fetched, lastDoc: doc, nextCursor: cursor } = await tasksRepository.getActive(
       10,
@@ -153,6 +179,7 @@ export default function TasksScreen() {
         city: city ?? undefined,
         district: district ?? undefined,
         category,
+        skills: taskSearchParams.skills,
         q: rewardFilter.q,
         rewardType: rewardFilter.rewardType,
       }
@@ -202,7 +229,7 @@ export default function TasksScreen() {
               setSearch(v);
               if (v.trim()) setRewardPreset(null);
             }}
-            placeholder={t('rewardFilter.placeholder')}
+            placeholder={t('tasksScreen.searchPlaceholder')}
           />
           {restListings ? (
             <RewardFilterChips
@@ -218,6 +245,8 @@ export default function TasksScreen() {
             district={district}
             onCityChange={setCity}
             onDistrictChange={setDistrict}
+            showMapPicker
+            mapPickerReturnTo="/(tabs)/tasks"
           />
           <CategoryFilter selected={category} onSelect={setCategory} />
           {!restListings ? (
@@ -257,7 +286,7 @@ export default function TasksScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('tasksScreen.title')} />
+      <AppHeader title={t('tasksScreen.title')} {...userHubBackHeaderProps()} />
       <FlatList
         style={styles.listContainer}
         data={displayed}

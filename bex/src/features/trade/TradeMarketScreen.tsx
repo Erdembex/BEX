@@ -17,6 +17,7 @@ import { TradeNewSwapPanel } from './TradeNewSwapPanel';
 import { TradeHistoryPanel } from './TradeHistoryPanel';
 import { TradeSubmitOfferModal } from './TradeSubmitOfferModal';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { useTranslation } from '@/i18n';
 
 const Box = createBox<TradeTheme>();
@@ -294,7 +295,7 @@ export function TradeMarketScreen() {
   return (
     <ThemeProvider theme={tradeTheme}>
       <Screen style={{ flex: 1, backgroundColor: tradeTheme.colors.background }}>
-        <AppHeader title={t('tradeMarketScreen.headerTitle')} />
+        <AppHeader title={t('tradeMarketScreen.headerTitle')} {...userHubBackHeaderProps()} />
         <Box flex={1} backgroundColor="background">
           <Box paddingHorizontal="lg" paddingTop="sm" paddingBottom="md">
             <Text variant="body" marginTop="xs" style={{ color: tradeTheme.colors.tradeMuted }}>
