@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { AppHeader } from '@/components/navigation/AppHeader';
 import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Button } from '@/components/ui';

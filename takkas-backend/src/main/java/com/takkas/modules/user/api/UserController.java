@@ -99,6 +99,14 @@ public class UserController {
         return userService.searchBusinessProfiles(q, viewer.userId());
     }
 
+    /** Kullanıcı adı / ad-soyad ile bireysel profil arama — oturum açmış herkes */
+    @GetMapping("/individual/profiles/search")
+    @PreAuthorize("isAuthenticated()")
+    public List<IndividualSearchResult> searchIndividualProfilesPublic(@CurrentUser UserPrincipal viewer,
+                                                                       @RequestParam(required = false) String q) {
+        return userService.searchIndividualProfiles(q, viewer.userId());
+    }
+
     /** İşletme — kullanıcı adı ile aday arama (şikayet formu) */
     @GetMapping("/business/individuals/search")
     @PreAuthorize("hasRole('BUSINESS')")

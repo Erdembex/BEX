@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, TouchableOpacity, Text } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { usersRepository } from '@/features/data';
 import { CompletedTask, PortfolioItem } from '@/types';

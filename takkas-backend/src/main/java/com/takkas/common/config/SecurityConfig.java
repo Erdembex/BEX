@@ -71,6 +71,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/individual/profiles/*/public",
                     "/api/individual/profiles/by-username/*/public",
+                    "/api/individual/profiles/search",
                     "/api/users/*/public-profile",
                     "/api/business/profiles/*/public",
                     "/api/business/profiles/search",

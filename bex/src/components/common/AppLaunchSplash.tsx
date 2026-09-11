@@ -1,40 +1,45 @@
-import { Image, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { PasslaLogo } from '@/components/ui/PasslaLogo';
+import { useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, View } from 'react-native';
+import { BRAND_NAVY } from '@/theme/brand';
 
-const SPLASH_BG = '#F0EEE9';
+const MARK_WHITE = require('../../../assets/branding/passla-mark-white.png');
 
 interface AppLaunchSplashProps {
-  fontsLoaded: boolean;
+  fontsLoaded?: boolean;
 }
 
-/** Uygulama açılışında Passla logosu + yükleme göstergesi */
-export function AppLaunchSplash({ fontsLoaded }: AppLaunchSplashProps) {
+/** Uygulama açılışında lacivert zemin + ortada beyaz SS işareti */
+export function AppLaunchSplash(_props: AppLaunchSplashProps) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const scale = useRef(new Animated.Value(0.9)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        friction: 7,
+        tension: 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, scale]);
+
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#E8E4DC', SPLASH_BG, '#FAFAF8']}
-        style={StyleSheet.absoluteFillObject}
-      />
-
-      <View style={styles.heroFrame}>
-        <View style={styles.heroRingOuter} />
-        <View style={styles.heroRingInner} />
-        <View style={styles.logoCard}>
-          {fontsLoaded ? (
-            <PasslaLogo size="lg" centered showTagline />
-          ) : (
-            <Image
-              source={require('../../../assets/splash-icon.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-              accessibilityLabel="Passla"
-            />
-          )}
-        </View>
-      </View>
-
-      <ActivityIndicator size="small" color="#051F45" style={styles.spinner} />
+      <Animated.View style={[styles.markWrap, { opacity, transform: [{ scale }] }]}>
+        <Image
+          source={MARK_WHITE}
+          style={styles.mark}
+          resizeMode="contain"
+          accessibilityRole="image"
+          accessibilityLabel="Passla"
+        />
+      </Animated.View>
     </View>
   );
 }
@@ -42,49 +47,16 @@ export function AppLaunchSplash({ fontsLoaded }: AppLaunchSplashProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: SPLASH_BG,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 48,
-  },
-  heroFrame: {
-    width: '100%',
-    maxWidth: 360,
-    aspectRatio: 1.15,
+    backgroundColor: BRAND_NAVY,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroRingOuter: {
-    position: 'absolute',
-    width: '92%',
-    height: '88%',
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(5,31,69,0.08)',
-    backgroundColor: 'rgba(255,255,255,0.45)',
-  },
-  heroRingInner: {
-    position: 'absolute',
-    width: '78%',
-    height: '74%',
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(5,31,69,0.12)',
-    backgroundColor: 'rgba(255,255,255,0.72)',
-  },
-  logoCard: {
+  markWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 36,
-    paddingVertical: 40,
-    minWidth: 280,
   },
-  logoImage: {
-    width: 300,
-    height: 98,
-  },
-  spinner: {
-    marginTop: 40,
+  mark: {
+    width: 220,
+    height: 220,
   },
 });

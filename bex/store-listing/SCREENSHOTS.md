@@ -23,6 +23,17 @@ Mağaza yayını için minimum **2 telefon ekran görüntüsü** gerekir.
 2. `preview-phone` APK veya Expo Go
 3. Ekran görüntüsü al → `bex/store-listing/screenshots/` klasörüne kaydet (git'e eklenebilir)
 
+Canlı çekim yokken taslak üretmek için:
+
+```bash
+python bex/store-listing/screenshots/_generate.py
+```
+
+Gerçek cihaz çekimi geldiğinde aynı dosya adlarının üzerine yazın.
+
+Sponsor sunumu da aynı görüntüleri kullanır. Beklenen dosya adları, demo hesaplar ve
+çekim adımları: [`screenshots/README.md`](screenshots/README.md)
+
 ## Listing metinleri
 
 - TR: [`play-store-tr.txt`](play-store-tr.txt)

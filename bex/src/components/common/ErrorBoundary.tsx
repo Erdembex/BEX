@@ -1,7 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Button } from '@/components/ui';
-import { Colors, Typography, Spacing } from '@/theme';
+import { Typography, Spacing, useThemeColors } from '@/theme';
 import { t } from '@/i18n';
 
 interface Props {
@@ -12,7 +12,10 @@ interface State {
   hasError: boolean;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryInner extends Component<
+  Props & { colors: ReturnType<typeof useThemeColors> },
+  State
+> {
   state: State = { hasError: false };
 
   static getDerivedStateFromError(): State {
@@ -30,14 +33,14 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   render() {
+    const Colors = this.props.colors;
+
     if (this.state.hasError) {
       return (
-        <View style={styles.wrap}>
+        <View style={[styles.wrap, { backgroundColor: Colors.background }]}>
           <Text style={styles.emoji}>⚠️</Text>
-          <Text style={styles.title}>{t('errorBoundary.title')}</Text>
-          <Text style={styles.body}>
-            {t('errorBoundary.body')}
-          </Text>
+          <Text style={[styles.title, { color: Colors.textPrimary }]}>{t('errorBoundary.title')}</Text>
+          <Text style={[styles.body, { color: Colors.textSecondary }]}>{t('errorBoundary.body')}</Text>
           <Button title={t('errorBoundary.retry')} onPress={this.handleRetry} style={styles.btn} />
         </View>
       );
@@ -47,20 +50,23 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
+export function ErrorBoundary({ children }: Props) {
+  const colors = useThemeColors();
+  return <ErrorBoundaryInner colors={colors}>{children}</ErrorBoundaryInner>;
+}
+
 const styles = StyleSheet.create({
   wrap: {
     flex: 1,
-    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     padding: Spacing[6],
     gap: Spacing[3],
   },
   emoji: { fontSize: 40 },
-  title: { ...Typography.headingMedium, color: Colors.textPrimary, textAlign: 'center' },
+  title: { ...Typography.headingMedium, textAlign: 'center' },
   body: {
     ...Typography.bodyMedium,
-    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },

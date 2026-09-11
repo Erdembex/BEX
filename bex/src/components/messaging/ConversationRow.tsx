@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { ConversationPreview } from '@/features/messages/inboxService';
+import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { formatRelativeTime } from '@/lib/dateUtils';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
@@ -19,9 +20,7 @@ export function ConversationRow({ item, onPress }: ConversationRowProps) {
 
   return (
     <TouchableOpacity style={styles.row} activeOpacity={0.88} onPress={onPress}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{item.peerName.slice(0, 1).toUpperCase()}</Text>
-      </View>
+      <ProfileAvatar name={item.peerName} avatarUrl={item.peerAvatarUrl} size={52} />
 
       <View style={styles.body}>
         <View style={styles.topLine}>
@@ -64,21 +63,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Colors.border,
-  },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: Colors.primaryLight,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    ...Typography.labelLarge,
-    color: Colors.primary,
-    fontWeight: '800',
   },
   body: { flex: 1, gap: 2 },
   topLine: {

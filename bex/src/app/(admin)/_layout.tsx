@@ -1,8 +1,14 @@
-import { Stack, Redirect } from 'expo-router';
+import { Stack, Redirect, usePathname } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
+import { buildLoginRedirect } from '@/lib/protectedRoutes';
 
 export default function AdminLayout() {
-  const { bexUser } = useAuthStore();
+  const { bexUser, firebaseUser, isInitialized } = useAuthStore();
+  const pathname = usePathname();
+
+  if (isInitialized && !firebaseUser) {
+    return <Redirect href={buildLoginRedirect(pathname || '/(admin)/panel')} />;
+  }
 
   if (bexUser && bexUser.role !== 'admin') {
     return <Redirect href="/" />;

@@ -5,20 +5,35 @@ import { CompletedTask } from '@/types';
 import { formatShortDate } from '@/lib/dateUtils';
 import { COMPLETED_TASKS_PREVIEW_LIMIT } from '@/features/portfolio/profileLimits';
 import { AuthenticatedImage } from '@/components/common/AuthenticatedImage';
+import { ImageViewerModal } from '@/components/common/ImageViewerModal';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
-function TaskRow({ task }: { task: CompletedTask }) {
+function TaskRow({
+  task,
+  onPreviewImage,
+}: {
+  task: CompletedTask;
+  onPreviewImage?: (task: CompletedTask) => void;
+}) {
   const styles = useScreenStyles();
   const { t } = useTranslation();
+  const thumb = task.previewImageUrl ? (
+    <AuthenticatedImage uri={task.previewImageUrl} style={styles.thumb} />
+  ) : (
+    <View style={[styles.thumb, styles.thumbPlaceholder]}>
+      <Text style={styles.thumbEmoji}>✓</Text>
+    </View>
+  );
+
   return (
     <View style={styles.row}>
-      {task.previewImageUrl ? (
-        <AuthenticatedImage uri={task.previewImageUrl} style={styles.thumb} />
+      {task.previewImageUrl && onPreviewImage ? (
+        <TouchableOpacity activeOpacity={0.88} onPress={() => onPreviewImage(task)}>
+          {thumb}
+        </TouchableOpacity>
       ) : (
-        <View style={[styles.thumb, styles.thumbPlaceholder]}>
-          <Text style={styles.thumbEmoji}>✓</Text>
-        </View>
+        thumb
       )}
       <View style={styles.rowBody}>
         <Text style={styles.taskTitle} numberOfLines={2}>
@@ -45,7 +60,10 @@ export function CompletedTasksModal({
   onClose,
   tasks,
   totalCount,
-}: CompletedTasksModalProps) {
+  onPreviewImage,
+}: CompletedTasksModalProps & {
+  onPreviewImage?: (task: CompletedTask) => void;
+}) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
   const total = totalCount ?? tasks.length;
@@ -62,7 +80,13 @@ export function CompletedTasksModal({
         </View>
         <ScrollView contentContainerStyle={styles.modalScroll}>
           {tasks.length > 0 ? (
-            tasks.map((task) => <TaskRow key={task.applicationId} task={task} />)
+            tasks.map((task) => (
+              <TaskRow
+                key={task.applicationId}
+                task={task}
+                onPreviewImage={task.previewImageUrl ? onPreviewImage : undefined}
+              />
+            ))
           ) : (
             <Text style={styles.emptyText}>{t('completedTasksList.empty')}</Text>
           )}
@@ -87,6 +111,7 @@ export function CompletedTasksList({
 }: CompletedTasksListProps) {
   const styles = useScreenStyles();
   const [showAll, setShowAll] = useState(false);
+  const [previewTask, setPreviewTask] = useState<CompletedTask | null>(null);
   const total = totalCount ?? tasks.length;
   const preview = useMemo(() => tasks.slice(0, previewLimit), [tasks, previewLimit]);
   const hiddenCount = Math.max(0, total - preview.length);
@@ -111,7 +136,11 @@ export function CompletedTasksList({
         ) : null}
         <View style={styles.list}>
           {preview.map((task) => (
-            <TaskRow key={task.applicationId} task={task} />
+            <TaskRow
+              key={task.applicationId}
+              task={task}
+              onPreviewImage={task.previewImageUrl ? setPreviewTask : undefined}
+            />
           ))}
         </View>
         {hiddenCount > 0 ? (

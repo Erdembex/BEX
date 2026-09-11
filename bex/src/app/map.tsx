@@ -5,9 +5,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import * as Location from 'expo-location';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { Screen } from '@/components/common/Screen';
 import { LocationFilter } from '@/components/common/LocationPicker';
 import { DiscoverMapView } from '@/components/map/DiscoverMapView';
@@ -15,11 +14,13 @@ import { useAuthStore } from '@/store/authStore';
 import { resolveLocationFilter } from '@/lib/resolveLocationFilter';
 import { saveLocationFilter } from '@/lib/locationFilterStorage';
 import { formatFilterLocationLabel, isLocationAll } from '@/lib/locationFilterUtils';
-import { buildInitialMapRegion, type MapCoordinate, type MapRegion } from '@/lib/mapRegionUtils';
+import { buildInitialMapRegion, type MapRegion } from '@/lib/mapRegionUtils';
 import { loadMapBusinessPins } from '@/features/map/mapBusinessService';
 import type { MapBusinessPin } from '@/components/map/types';
 import { Typography, Spacing, createThemedStyles, useThemeColors, Radius } from '@/theme';
 import { BRAND_NAVY } from '@/theme/brand';
+import { MapScreenSkeleton } from '@/components/common/MapScreenSkeleton';
+import { AppHeader } from '@/components/navigation/AppHeader';
 import { useTranslation } from '@/i18n';
 
 export default function MapScreen() {
@@ -38,36 +39,6 @@ export default function MapScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const fetchUserGeo = useCallback(async (selectedCity: string) => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        return { location: null as MapCoordinate | null, city: null as string | null };
-      }
-
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      const location = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
-
-      let resolvedCity: string | null = selectedCity;
-      try {
-        const places = await Location.reverseGeocodeAsync(location);
-        const place = places[0];
-        resolvedCity = place?.city ?? place?.region ?? place?.subregion ?? selectedCity;
-      } catch {
-        resolvedCity = selectedCity;
-      }
-
-      return { location, city: resolvedCity };
-    } catch {
-      return { location: null as MapCoordinate | null, city: null as string | null };
-    }
-  }, []);
-
   const loadPins = useCallback(async () => {
     if (!city?.trim()) {
       setPins([]);
@@ -78,8 +49,7 @@ export default function MapScreen() {
 
     setLoading(true);
     setLoadError(null);
-    const geo = await fetchUserGeo(city);
-    setMapRegion(buildInitialMapRegion(city, geo.location, geo.city ?? city, district));
+    setMapRegion(buildInitialMapRegion(city, null, null, district));
 
     try {
       const loaded = await loadMapBusinessPins(city, district);
@@ -90,7 +60,7 @@ export default function MapScreen() {
     } finally {
       setLoading(false);
     }
-  }, [city, district, fetchUserGeo, t]);
+  }, [city, district, t]);
 
   useEffect(() => {
     if (!isInitialized) return;
@@ -133,17 +103,15 @@ export default function MapScreen() {
 
   return (
     <Screen style={styles.safe} edges={['top', 'left', 'right']}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>{t('common.back')}</Text>
-        </TouchableOpacity>
-        <View style={styles.headerText}>
-          <Text style={styles.title}>{t('map.title')}</Text>
-          {matchedCity ? (
-            <Text style={styles.subtitle}>{t('map.cityScope', { city: locationLabel })}</Text>
-          ) : null}
-        </View>
-      </View>
+      <AppHeader
+        title={t('map.title')}
+        showMenu={false}
+        showNotifications={false}
+        onBack={() => router.back()}
+      />
+      {matchedCity ? (
+        <Text style={styles.scopeSubtitle}>{t('map.cityScope', { city: locationLabel })}</Text>
+      ) : null}
 
       <View style={styles.filters}>
         <LocationFilter
@@ -162,9 +130,7 @@ export default function MapScreen() {
 
       <View style={styles.mapArea}>
         {loading ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color={Colors.primary} />
-          </View>
+          <MapScreenSkeleton />
         ) : !matchedCity ? (
           <View style={styles.center}>
             <Text style={styles.empty}>{t('map.selectCityHint')}</Text>
@@ -214,6 +180,13 @@ const useStyles = createThemedStyles((Colors) => ({
   headerText: { flex: 1, gap: 2 },
   title: { ...Typography.headingSmall, color: Colors.textPrimary, fontWeight: '800' },
   subtitle: { ...Typography.caption, color: Colors.textSecondary, fontWeight: '600' },
+  scopeSubtitle: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    paddingHorizontal: Spacing[5],
+    paddingBottom: Spacing[2],
+  },
   filters: {
     paddingHorizontal: Spacing[5],
     paddingBottom: Spacing[3],

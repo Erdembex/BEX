@@ -131,6 +131,42 @@ function mapError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
+export type IndividualSearchHit = {
+  profileId: string;
+  username: string;
+  fullName: string;
+  avatarUrl: string | null;
+  completedTaskCount: number;
+};
+
+type IndividualSearchDto = {
+  profileId?: string;
+  username?: string;
+  fullName?: string;
+  avatarUrl?: string | null;
+  completedTaskCount?: number;
+};
+
+function mapIndividualSearchHit(item: IndividualSearchDto): IndividualSearchHit {
+  return {
+    profileId: String(item.profileId ?? ''),
+    username: item.username?.trim() || '',
+    fullName: item.fullName?.trim() || 'Kullanıcı',
+    avatarUrl: item.avatarUrl?.trim() ? resolveMediaUrl(item.avatarUrl.trim()) : null,
+    completedTaskCount: item.completedTaskCount ?? 0,
+  };
+}
+
+/** Kullanıcı adı veya ad-soyad ile kısmi arama (2+ karakter) */
+export async function searchIndividualProfiles(query = ''): Promise<IndividualSearchHit[]> {
+  const trimmed = query.trim().replace(/^@/, '');
+  const { data } = await apiClient.get<IndividualSearchDto[]>('/api/individual/profiles/search', {
+    params: trimmed ? { q: trimmed } : undefined,
+  });
+  if (!Array.isArray(data)) return [];
+  return data.map(mapIndividualSearchHit);
+}
+
 /** profileId ile herkese açık profil */
 export async function fetchPublicProfileByProfileId(
   profileId: string

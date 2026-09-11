@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { BUSINESS_TAB_BAR_HEIGHT } from '@/components/business/BusinessTabBar';
+import { BusinessScreenHeader } from '@/components/business/BusinessScreenHeader';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useBusiness } from '@/features/business/useBusiness';
 import { tasksRepository } from '@/features/data';
 import { Task } from '@/types';
@@ -22,6 +24,7 @@ export default function BusinessTasksScreen() {
   const DIFFICULTY_LABELS = useDifficultyLabels();
   const { business, loading: bizLoading } = useBusiness();
   const { showToast } = useToast();
+  const tabBarPadding = useTabBarBottomPadding(BUSINESS_TAB_BAR_HEIGHT);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
@@ -136,10 +139,10 @@ export default function BusinessTasksScreen() {
   }
 
   return (
-    <Screen style={styles.safe}>
+    <TabScreen style={styles.safe}>
+      <BusinessScreenHeader title={t('businessTasksScreen.title')} />
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>{t('businessTasksScreen.title')}</Text>
           {!shouldUseDemoData() ? (
             <Text style={styles.limitHint}>
               {t('businessTasksScreen.limitHint', { count: activeCount })}
@@ -158,7 +161,7 @@ export default function BusinessTasksScreen() {
       <FlatList
         data={visibleTasks}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>📋</Text>
@@ -250,7 +253,7 @@ export default function BusinessTasksScreen() {
           </View>
         )}
       />
-    </Screen>
+    </TabScreen>
   );
 }
 

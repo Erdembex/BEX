@@ -4,6 +4,8 @@ import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { businessesRepository, tasksRepository, EnrichedTask } from '@/features/data';
 import { searchBusinessProfiles, BusinessSearchHit } from '@/features/business/businessProfileApi';
+import { searchIndividualProfiles, IndividualSearchHit } from '@/features/portfolio/publicProfileApi';
+import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { SearchBar } from '@/components/tasks/SearchBar';
 import { TaskCard } from '@/components/tasks';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
@@ -17,6 +19,7 @@ export default function SearchScreen() {
   const [query, setQuery] = useState(typeof initialQ === 'string' ? initialQ : '');
   const [tasks, setTasks] = useState<EnrichedTask[]>([]);
   const [businesses, setBusinesses] = useState<BusinessSearchHit[]>([]);
+  const [users, setUsers] = useState<IndividualSearchHit[]>([]);
   const [loading, setLoading] = useState(false);
 
   const runSearch = useCallback(async (term: string) => {
@@ -24,20 +27,24 @@ export default function SearchScreen() {
     if (trimmed.length < 2) {
       setTasks([]);
       setBusinesses([]);
+      setUsers([]);
       return;
     }
 
     setLoading(true);
     try {
-      const [taskHits, businessHits] = await Promise.all([
+      const [taskHits, businessHits, userHits] = await Promise.all([
         tasksRepository.search(trimmed, null, null),
         searchBusinessProfiles(trimmed),
+        searchIndividualProfiles(trimmed),
       ]);
       setTasks(taskHits.slice(0, 15));
       setBusinesses(businessHits.slice(0, 10));
+      setUsers(userHits.slice(0, 10));
     } catch {
       setTasks([]);
       setBusinesses([]);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -80,6 +87,39 @@ export default function SearchScreen() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           {query.trim().length < 2 ? (
             <Text style={styles.hint}>{t('searchScreen.minChars')}</Text>
+          ) : null}
+
+          {users.length > 0 ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('searchScreen.users')}</Text>
+              {users.map((user) => (
+                <TouchableOpacity
+                  key={user.profileId}
+                  style={styles.bizRow}
+                  activeOpacity={0.88}
+                  onPress={() => {
+                    if (user.username) {
+                      router.push(`/user/u/${user.username}` as Href);
+                    }
+                  }}
+                >
+                  <ProfileAvatar
+                    name={user.username ? `@${user.username}` : user.fullName}
+                    avatarUrl={user.avatarUrl}
+                    size={44}
+                  />
+                  <View style={styles.bizMeta}>
+                    <Text style={styles.bizName}>
+                      {user.username ? `@${user.username}` : user.fullName}
+                    </Text>
+                    <Text style={styles.bizSub}>
+                      {user.fullName && user.username ? user.fullName : t('searchScreen.userMeta', { count: user.completedTaskCount })}
+                    </Text>
+                  </View>
+                  <Text style={styles.chevron}>›</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           ) : null}
 
           {businesses.length > 0 ? (
@@ -127,7 +167,7 @@ export default function SearchScreen() {
             </View>
           ) : null}
 
-          {query.trim().length >= 2 && !loading && tasks.length === 0 && businesses.length === 0 ? (
+          {query.trim().length >= 2 && !loading && tasks.length === 0 && businesses.length === 0 && users.length === 0 ? (
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>{t('searchScreen.noResults')}</Text>
               <Text style={styles.emptyText}>{t('searchScreen.noResultsHint')}</Text>

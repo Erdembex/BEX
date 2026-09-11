@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import {
   tasksRepository,
   businessesRepository,
@@ -10,10 +10,12 @@ import {
   EnrichedTask,
 } from '@/features/data';
 import { useAuthStore } from '@/store/authStore';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { Application, Business } from '@/types';
 import { formatDeadline, getDifficultyColor, isTaskOpenForApplications } from '@/lib/taskUtils';
 import { TaskCard } from '@/components/tasks';
 import { ListingStarButton } from '@/components/tasks/ListingStarButton';
+import { AppHeader } from '@/components/navigation/AppHeader';
 import { TaskDetailSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { Button } from '@/components/ui';
 import { DangerBadge } from '@/components/profile/DangerBadge';
@@ -30,6 +32,7 @@ export default function TaskDetailScreen() {
   const DIFFICULTY_LABELS = useDifficultyLabels();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { firebaseUser } = useAuthStore();
+  const { requireAuth } = useRequireAuth();
   const [task, setTask] = useState<EnrichedTask | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [similar, setSimilar] = useState<EnrichedTask[]>([]);
@@ -64,6 +67,11 @@ export default function TaskDetailScreen() {
 
   const handlePrimaryAction = () => {
     if (!task) return;
+
+    if (!firebaseUser) {
+      requireAuth(() => router.push(`/task/apply/${task.id}` as Href), `/task/apply/${task.id}` as Href);
+      return;
+    }
 
     if (existingApp?.status === 'approved') {
       router.push(`/task/submit/${existingApp.id}` as Href);
@@ -106,12 +114,17 @@ export default function TaskDetailScreen() {
 
   if (!task) {
     return (
-      <View style={styles.loader}>
-        <Text style={styles.error}>{t('taskDetailScreen.notFound')}</Text>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backLink}>{t('taskDetailScreen.backLink')}</Text>
-        </TouchableOpacity>
-      </View>
+      <Screen style={styles.safe}>
+        <AppHeader
+          title={t('taskDetailScreen.notFound')}
+          showMenu={false}
+          showNotifications={false}
+          onBack={() => router.back()}
+        />
+        <View style={styles.loader}>
+          <Text style={styles.error}>{t('taskDetailScreen.notFound')}</Text>
+        </View>
+      </Screen>
     );
   }
 
@@ -119,14 +132,14 @@ export default function TaskDetailScreen() {
 
   return (
     <Screen style={styles.safe}>
+      <AppHeader
+        title={task.title}
+        showMenu={false}
+        showNotifications={false}
+        onBack={() => router.back()}
+        rightAccessory={<ListingStarButton listingId={task.id} size={26} />}
+      />
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.topRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-            <Text style={styles.backText}>{t('taskDetailScreen.back')}</Text>
-          </TouchableOpacity>
-          <ListingStarButton listingId={task.id} size={26} />
-        </View>
-
         {task.featured && (
           <View style={styles.featuredBadge}>
             <Text style={styles.featuredText}>{t('taskDetailScreen.featured')}</Text>
@@ -276,11 +289,11 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   locationText: { ...Typography.caption, color: Colors.textSecondary, fontWeight: '600' },
   rewardBox: {
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.accentLight,
     padding: Spacing[5],
     borderRadius: Radius.lg,
     borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
+    borderLeftColor: Colors.accent,
     gap: Spacing[2],
   },
   rewardLabel: { ...Typography.caption, color: Colors.textSecondary, fontWeight: '600' },

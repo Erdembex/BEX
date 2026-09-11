@@ -76,9 +76,9 @@ export function SafeScreen({ children, style, edges }: ScreenProps) {
 }
 
 /** ScrollView / FlatList contentContainerStyle için alt boşluk (tab bar + gesture bar). */
-export function useTabBarBottomPadding(extra = 24): number {
+export function useTabBarBottomPadding(extra = 24, barHeight = TAB_BAR_BASE_HEIGHT): number {
   const insets = useResolvedSafeAreaInsets();
-  return TAB_BAR_BASE_HEIGHT + insets.bottom + extra;
+  return barHeight + insets.bottom + extra;
 }
 
 export function useTabBarStyle(backgroundColor: string, borderColor: string) {

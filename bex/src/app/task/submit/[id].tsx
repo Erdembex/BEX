@@ -12,7 +12,7 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import * as ImagePicker from 'expo-image-picker';
 import { isCurrentApplicationOwner } from '@/features/application/applicationsApi';
 import { applicationsRepository, tasksRepository } from '@/features/data';

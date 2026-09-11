@@ -37,10 +37,18 @@ export function BusinessPicker({
   const { t } = useTranslation();
 
   const runSearch = useCallback(async (term: string) => {
+    const trimmed = term.trim();
+    if (trimmed.length < 2) {
+      setResults([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const hits = await searchBusinessProfiles(term);
+      const hits = await searchBusinessProfiles(trimmed);
       setResults(hits);
     } catch {
       setResults([]);
@@ -48,15 +56,11 @@ export function BusinessPicker({
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    runSearch('');
-  }, [runSearch]);
+  }, [t]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      runSearch(query);
+      void runSearch(query);
     }, 300);
     return () => clearTimeout(timer);
   }, [query, runSearch]);
@@ -94,12 +98,10 @@ export function BusinessPicker({
               nestedScrollEnabled
               keyboardShouldPersistTaps="handled"
             >
-              {results.length === 0 ? (
-                <Text style={styles.empty}>
-                  {query.trim().length >= 2
-                    ? t('businessPicker.noMatches')
-                    : t('businessPicker.pickRegistered')}
-                </Text>
+              {query.trim().length < 2 ? (
+                <Text style={styles.empty}>{t('usernameSearch.minChars', { count: 2 })}</Text>
+              ) : results.length === 0 ? (
+                <Text style={styles.empty}>{t('businessPicker.noMatches')}</Text>
               ) : (
                 results.map((item) => (
                   <TouchableOpacity

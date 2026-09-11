@@ -12,6 +12,7 @@ type LocationSelectorModalProps = {
   onSelect: (item: string) => void;
   onClose: () => void;
   searchPlaceholder?: string;
+  formatLabel?: (item: string) => string;
 };
 
 export function LocationSelectorModal({
@@ -22,6 +23,7 @@ export function LocationSelectorModal({
   onSelect,
   onClose,
   searchPlaceholder,
+  formatLabel,
 }: LocationSelectorModalProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
@@ -85,7 +87,9 @@ export function LocationSelectorModal({
                     setQuery('');
                   }}
                 >
-                  <Text style={[styles.rowText, active && styles.rowTextActive]}>{item}</Text>
+                  <Text style={[styles.rowText, active && styles.rowTextActive]}>
+                    {formatLabel ? formatLabel(item) : item}
+                  </Text>
                   {active ? <Text style={styles.check}>✓</Text> : null}
                 </TouchableOpacity>
               );

@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { useLocalSearchParams } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   fetchSwapOfferChatContext,

@@ -1,39 +1,64 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
+import Svg, { Path } from 'react-native-svg';
+import { BottomTabBarProps } from "expo-router/js-tabs";
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useThemeColors } from '@/theme';
 import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { useResolvedSafeAreaInsets } from '@/components/common/Screen';
+import { useTranslation } from '@/i18n';
 
-const VISIBLE_TABS = [
-  'panel',
-  'applications/index',
-  'messages',
-  'tasks',
-  'subscription',
-  'profile',
-] as const;
+/** Görünür tab bar yüksekliği (safe area hariç) */
+export const BUSINESS_TAB_BAR_HEIGHT = 68;
 
-const FAB_AFTER_INDEX = 3;
+const VISIBLE_TABS = ['applications/index', 'messages', 'tasks', 'profile'] as const;
+
+const FAB_SIZE = 58;
+const FAB_LEFT = 14;
+const BAR_LEFT = 72;
+
+function buildBarPath(width: number, height: number): string {
+  const startX = BAR_LEFT - 6;
+
+  // Üstten tam doldur — BAR_TOP boşluğu (beyaz/koyu mavi şerit) olmasın
+  return `
+    M 0 ${height}
+    L 0 12
+    Q 0 0 12 0
+    L ${startX} 0
+    L ${width - 12} 0
+    Q ${width} 0 ${width} 12
+    L ${width} ${height}
+    Z
+  `
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export function BusinessTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const Colors = useThemeColors();
   const insets = useResolvedSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const { t } = useTranslation();
+  const totalHeight = BUSINESS_TAB_BAR_HEIGHT + insets.bottom;
+  const barFill = Colors.background;
 
   const routes = VISIBLE_TABS.map((name) => state.routes.find((r) => r.name === name)).filter(
     (route): route is (typeof state.routes)[number] => route != null
   );
 
-  const leftRoutes = routes.slice(0, FAB_AFTER_INDEX);
-  const rightRoutes = routes.slice(FAB_AFTER_INDEX);
-
   const renderTab = (route: (typeof state.routes)[number]) => {
     const { options } = descriptors[route.key];
     const routeIndex = state.routes.findIndex((r) => r.key === route.key);
     const focused = state.index === routeIndex;
-    const color = focused ? Colors.secondary : Colors.textTertiary;
+    const color = focused ? BRAND_NAVY : Colors.textTertiary;
     const label = options.title ?? route.name;
 
     const onPress = () => {
@@ -50,7 +75,7 @@ export function BusinessTabBar({ state, descriptors, navigation }: BottomTabBarP
     const icon = options.tabBarIcon?.({
       focused,
       color,
-      size: 22,
+      size: 24,
     });
 
     return (
@@ -63,15 +88,15 @@ export function BusinessTabBar({ state, descriptors, navigation }: BottomTabBarP
         accessibilityState={focused ? { selected: true } : undefined}
         accessibilityLabel={typeof label === 'string' ? label : route.name}
       >
-        {icon}
-        <Text style={[styles.tabLabel, { color }]} numberOfLines={1}>
-          {label}
-        </Text>
-        {options.tabBarBadge != null ? (
-          <View style={[styles.badge, { backgroundColor: Colors.error }]}>
-            <Text style={styles.badgeText}>{String(options.tabBarBadge)}</Text>
-          </View>
-        ) : null}
+        <View style={styles.iconWrap}>
+          {icon}
+          {options.tabBarBadge != null ? (
+            <View style={[styles.badge, { backgroundColor: Colors.error }]}>
+              <Text style={styles.badgeText}>{String(options.tabBarBadge)}</Text>
+            </View>
+          ) : null}
+        </View>
+        {focused ? <View style={[styles.activeDot, { backgroundColor: BRAND_NAVY }]} /> : null}
       </TouchableOpacity>
     );
   };
@@ -79,89 +104,103 @@ export function BusinessTabBar({ state, descriptors, navigation }: BottomTabBarP
   return (
     <View
       style={[
-        styles.wrap,
-        {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.borderLight,
-          paddingBottom: Math.max(insets.bottom, Platform.OS === 'android' ? 8 : 0),
-        },
+        styles.root,
+        { height: totalHeight, paddingBottom: insets.bottom, backgroundColor: barFill },
       ]}
     >
-      <View style={styles.row}>
-        {leftRoutes.map(renderTab)}
-        <View style={styles.fabSlot} />
-        {rightRoutes.map(renderTab)}
-      </View>
+      <Svg width={width} height={totalHeight} style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Path
+          d={buildBarPath(width, totalHeight)}
+          fill={barFill}
+          stroke={Colors.borderLight}
+          strokeWidth={StyleSheet.hairlineWidth}
+        />
+      </Svg>
 
       <TouchableOpacity
-        style={[styles.fab, { backgroundColor: BRAND_NAVY }, styles.fabShadow]}
+        style={[
+          styles.fab,
+          styles.fabShadow,
+          {
+            backgroundColor: BRAND_NAVY,
+            left: FAB_LEFT,
+            borderColor: barFill,
+            borderWidth: 3,
+          },
+        ]}
         onPress={() => router.push('/(business)/create-task')}
         activeOpacity={0.9}
         accessibilityRole="button"
-        accessibilityLabel="Yeni ilan oluştur"
+        accessibilityLabel={t('businessTabBar.createTask')}
       >
-        <Ionicons name="add" size={30} color={BRAND_NAVY_TEXT} />
+        <Ionicons name="add" size={34} color={BRAND_NAVY_TEXT} />
       </TouchableOpacity>
+
+      <View style={[styles.tabsRow, { marginLeft: BAR_LEFT }]}>
+        {routes.map(renderTab)}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    borderTopWidth: 1,
+  root: {
     position: 'relative',
-    minHeight: 62,
   },
-  row: {
+  fab: {
+    position: 'absolute',
+    top: -6,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  fabShadow: {
+    shadowColor: BRAND_NAVY,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  tabsRow: {
+    flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingTop: 8,
-    paddingHorizontal: 4,
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingTop: 10,
+    zIndex: 1,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
-    minHeight: 48,
+    minHeight: 44,
+    gap: 4,
+  },
+  iconWrap: {
     position: 'relative',
-  },
-  tabLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-  },
-  fabSlot: {
-    width: 72,
-  },
-  fab: {
-    position: 'absolute',
-    top: -22,
-    alignSelf: 'center',
-    left: '50%',
-    marginLeft: -30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  fabShadow: {
-    shadowColor: '#051F45',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.28,
-    shadowRadius: 8,
-    elevation: 8,
+  activeDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
   },
   badge: {
     position: 'absolute',
-    top: 0,
-    right: 12,
+    top: -5,
+    right: -10,
     minWidth: 16,
     height: 16,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 4,
+    borderWidth: 1.5,
+    borderColor: '#fff',
   },
   badgeText: {
     color: '#fff',

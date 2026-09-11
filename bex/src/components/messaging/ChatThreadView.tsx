@@ -13,7 +13,7 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ApplicationMessage, UserRole } from '@/types';
 import { messagesRepository } from '@/features/messages';

@@ -2,10 +2,10 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { PasslaLogo } from '@/components/ui';
 import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
+import { BRAND_NAVY, BRAND_NAVY_TEXT, brandNavyAlpha } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
 type ValueCard = {
@@ -33,16 +33,11 @@ export default function AboutScreen() {
           <Text style={styles.backText}>{t('common.back')}</Text>
         </TouchableOpacity>
 
-        <LinearGradient
-          colors={[Colors.gradientBlue, Colors.gradientMid]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.hero}
-        >
-          <PasslaLogo size="sm" showTagline centered />
+        <View style={styles.hero}>
+          <PasslaLogo size="md" showTagline centered tone="onDark" />
           <Text style={styles.heroTitle}>{t('about.heroTitle')}</Text>
           <Text style={styles.heroSubtitle}>{t('about.heroSubtitle')}</Text>
-        </LinearGradient>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('about.whoWeAreTitle')}</Text>
@@ -71,7 +66,7 @@ export default function AboutScreen() {
           {VALUES.map((item) => (
             <View key={item.titleKey} style={styles.valueCard}>
               <View style={styles.valueIconWrap}>
-                <Ionicons name={item.icon} size={22} color={Colors.primary} />
+                <Ionicons name={item.icon} size={22} color={Colors.iconPrimary} />
               </View>
               <View style={styles.valueTextWrap}>
                 <Text style={styles.valueTitle}>{t(item.titleKey)}</Text>
@@ -99,15 +94,18 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
       padding: Spacing[6],
       alignItems: 'center',
       gap: Spacing[3],
+      backgroundColor: BRAND_NAVY,
+      borderWidth: 1,
+      borderColor: brandNavyAlpha(0.2),
     },
     heroTitle: {
       ...Typography.headingLarge,
-      color: Colors.textPrimary,
+      color: BRAND_NAVY_TEXT,
       textAlign: 'center',
     },
     heroSubtitle: {
       ...Typography.bodyMedium,
-      color: Colors.textSecondary,
+      color: 'rgba(240, 238, 233, 0.82)',
       textAlign: 'center',
     },
     section: {
@@ -133,13 +131,15 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
       width: 28,
       height: 28,
       borderRadius: 14,
-      backgroundColor: Colors.primaryLight,
+      backgroundColor: Colors.iconSurface,
+      borderWidth: 1,
+      borderColor: Colors.border,
       alignItems: 'center',
       justifyContent: 'center',
     },
     stepBadgeText: {
       ...Typography.labelMedium,
-      color: Colors.primary,
+      color: Colors.iconPrimary,
     },
     stepText: {
       ...Typography.bodyMedium,
@@ -160,7 +160,9 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
       width: 40,
       height: 40,
       borderRadius: Radius.md,
-      backgroundColor: Colors.primaryLight,
+      backgroundColor: Colors.iconSurface,
+      borderWidth: 1,
+      borderColor: Colors.border,
       alignItems: 'center',
       justifyContent: 'center',
     },

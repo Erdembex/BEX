@@ -1,9 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import {
-  DrawerContentScrollView,
-  DrawerContentComponentProps,
-} from '@react-navigation/drawer';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { router, Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/store/authStore';
@@ -11,7 +7,19 @@ import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
-interface AppDrawerContentProps extends DrawerContentComponentProps {
+type DrawerNavigation = {
+  navigate: (route: string) => void;
+  closeDrawer: () => void;
+};
+
+type DrawerState = {
+  routes: { name: string; key: string }[];
+  index: number;
+};
+
+interface AppDrawerContentProps {
+  state: DrawerState;
+  navigation: DrawerNavigation;
   unreadCount?: number;
 }
 
@@ -64,7 +72,7 @@ export function AppDrawerContent({ state, navigation, unreadCount = 0 }: AppDraw
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + Spacing[2] }]}>
-      <DrawerContentScrollView
+      <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
@@ -132,7 +140,7 @@ export function AppDrawerContent({ state, navigation, unreadCount = 0 }: AppDraw
             })}
           </View>
         ))}
-      </DrawerContentScrollView>
+      </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: insets.bottom + Spacing[3] }]}>
         <Text style={styles.footerText}>{t('appDrawer.footer')}</Text>

@@ -1,19 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  ImageStyle,
-  StyleProp,
-  View,
-  StyleSheet,
-} from 'react-native';
+import React, { useEffect } from 'react';
+import { ImageStyle, StyleProp, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { buildAuthenticatedImageSource } from '@/lib/authenticatedImage';
-import { useThemeColors } from '@/theme';
+import { AuthenticatedImage } from '@/components/common/AuthenticatedImage';
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
@@ -24,31 +17,12 @@ type ZoomableImageProps = {
 };
 
 export function ZoomableImage({ uri, style }: ZoomableImageProps) {
-  const Colors = useThemeColors();
-  const [source, setSource] = useState<{ uri: string; headers?: Record<string, string> } | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
-
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const savedTranslateX = useSharedValue(0);
   const savedTranslateY = useSharedValue(0);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setSource(null);
-    buildAuthenticatedImageSource(uri).then((next) => {
-      if (cancelled || !next || typeof next === 'number') return;
-      setSource(next as { uri: string; headers?: Record<string, string> });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [uri]);
 
   const resetTransform = () => {
     scale.value = 1;
@@ -123,37 +97,21 @@ export function ZoomableImage({ uri, style }: ZoomableImageProps) {
     ],
   }));
 
-  if (!source) {
-    return (
-      <View style={[style, styles.loadingWrap, { backgroundColor: Colors.borderLight }]}>
-        <ActivityIndicator size="large" color={Colors.textMuted} />
-      </View>
-    );
-  }
-
   return (
     <GestureDetector gesture={gesture}>
-      <View style={style}>
-        <Animated.Image
-          source={source}
-          style={[StyleSheet.absoluteFillObject, animatedStyle]}
-          resizeMode="contain"
-          onLoadStart={() => setLoading(true)}
-          onLoadEnd={() => setLoading(false)}
-        />
-        {loading ? (
-          <View style={[StyleSheet.absoluteFillObject, styles.loadingWrap]}>
-            <ActivityIndicator size="large" color={Colors.textMuted} />
-          </View>
-        ) : null}
-      </View>
+      <Animated.View style={[style, styles.frame, animatedStyle]}>
+        <AuthenticatedImage uri={uri} style={styles.image} resizeMode="contain" />
+      </Animated.View>
     </GestureDetector>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  frame: {
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
   },
 });

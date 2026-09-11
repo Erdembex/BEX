@@ -122,6 +122,17 @@ public class NotificationEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void on(MessageSentEvent e) {
+        try {
+            String senderName = userFacade.getDisplayNameForUserId(e.senderUserId());
+            notificationService.create(
+                factory.newMessage(
+                    e.recipientUserId(), e.conversationId(), senderName, e.messagePreview()));
+        } catch (Exception ex) { log.error("[NTF] NEW_MESSAGE: {}", ex.getMessage()); }
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(OfferSentEvent e) {
         try {
             String senderName = userFacade.getBusinessSummary(

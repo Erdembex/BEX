@@ -10,12 +10,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { BusinessScreenHeader } from '@/components/business/BusinessScreenHeader';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { useBusiness } from '@/features/business/useBusiness';
 import { applicationsRepository, tasksRepository } from '@/features/data';
-import { useMessagingInbox } from '@/hooks/useMessagingInbox';
 import { BusinessListingProjectCard } from '@/components/business';
 import { Typography, Spacing, Radius, useThemeColors, useThemeShadow } from '@/theme';
 import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
@@ -31,7 +31,6 @@ export default function BusinessDashboardScreen() {
   const { t } = useTranslation();
   const tabBarPadding = useTabBarBottomPadding(56);
   const styles = useMemo(() => createStyles(Colors, ThemeShadow), [Colors, ThemeShadow]);
-  const { totalUnread: messageUnread } = useMessagingInbox('business');
   const [activeTasks, setActiveTasks] = useState<Task[]>([]);
   const [stats, setStats] = useState({
     newApplications: 0,
@@ -88,6 +87,7 @@ export default function BusinessDashboardScreen() {
 
   return (
     <TabScreen style={styles.safe}>
+      <BusinessScreenHeader title={t('tabsBusiness.panel')} />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={
@@ -95,25 +95,6 @@ export default function BusinessDashboardScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.topBar}>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => router.push('/settings' as Href)}
-            hitSlop={8}
-          >
-            <Ionicons name="grid-outline" size={22} color={Colors.textPrimary} />
-          </TouchableOpacity>
-          <Text style={styles.topTitle}>{t('tabsBusiness.panel')}</Text>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => router.push('/(business)/notifications' as Href)}
-            hitSlop={8}
-          >
-            <Ionicons name="notifications-outline" size={22} color={Colors.textPrimary} />
-            {messageUnread > 0 ? <View style={styles.notifDot} /> : null}
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.greetingBlock}>
           <Text style={styles.greetingSmall}>{getGreeting(undefined, t, 'business')}</Text>
           <Text style={styles.greetingName}>

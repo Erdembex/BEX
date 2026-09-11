@@ -27,8 +27,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   setLoading: (loading) => set({ isLoading: loading }),
   setInitialized: (initialized) => set({ isInitialized: initialized }),
 
-  signOut: () =>
-    set({ firebaseUser: null, bexUser: null, isLoading: false }),
+  signOut: () => {
+    set({ firebaseUser: null, bexUser: null, isLoading: false });
+  },
 }));
 
 export type { AuthSession };

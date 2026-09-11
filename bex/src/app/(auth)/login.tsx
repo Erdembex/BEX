@@ -3,24 +3,27 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '@/components/common/Screen';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
-import { AUTH_HOME_ROUTE } from '@/lib/authRouting';
+import { resolvePostLoginRoute } from '@/lib/authRouting';
 import {
   loadSavedCredentials,
   saveCredentials,
   clearSavedCredentials,
 } from '@/lib/credentialStorage';
-import { Typography, Spacing, Radius } from '@/theme';
-import { Button, Input, PasslaLogo } from '@/components/ui';
+import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
+import { BRAND_NAVY } from '@/theme/brand';
+import { Button, Input } from '@/components/ui';
 import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
 import { AuthGlassCard } from '@/components/auth/AuthGlassCard';
 import { useTranslation } from '@/i18n';
@@ -30,13 +33,17 @@ const GLASS_MUTED = 'rgba(240, 238, 233, 0.72)';
 const GLASS_GOLD = '#E7C663';
 
 export default function LoginScreen() {
+  const Colors = useThemeColors();
+  const insets = useSafeAreaInsets();
   const { setBexUser, setFirebaseUser } = useAuthStore();
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string | string[] }>();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
     loadSavedCredentials().then((saved) => {
@@ -46,6 +53,19 @@ export default function LoginScreen() {
         setRememberMe(saved.remember);
       }
     });
+  }, []);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
   }, []);
 
   const handleLogin = async () => {
@@ -73,7 +93,7 @@ export default function LoginScreen() {
         await clearSavedCredentials();
       }
 
-      router.replace(AUTH_HOME_ROUTE);
+      router.replace(resolvePostLoginRoute(returnTo));
     } catch (err: unknown) {
       const authErr = err as { code?: string; message?: string };
       const code = authErr?.code ?? '';
@@ -95,27 +115,53 @@ export default function LoginScreen() {
   };
 
   return (
-    <Screen style={styles.safe}>
+    <Screen style={[styles.safe, { backgroundColor: Colors.background }]}>
       <AuthGlassBackground />
 
-      <KeyboardAvoidingView
-        style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+      {router.canGoBack() ? (
+        <TouchableOpacity
+          style={[styles.backBtn, { top: insets.top + Spacing[2] }]}
+          onPress={() => {
+            Keyboard.dismiss();
+            router.back();
+          }}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.back')}
         >
-          <View style={styles.logoWrap}>
-            <PasslaLogo size="md" centered tone="onDark" />
-          </View>
+          <Ionicons name="chevron-back" size={24} color={GLASS_TEXT} />
+        </TouchableOpacity>
+      ) : null}
 
-          <AuthGlassCard>
-            <View style={styles.header}>
-              <Text style={styles.title}>{t('auth.loginTitle')}</Text>
-              <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
-            </View>
+      <KeyboardAvoidingView
+        style={styles.root}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+      >
+        <Pressable
+          style={styles.dismissArea}
+          onPress={Keyboard.dismiss}
+          accessibilityRole="button"
+          accessibilityLabel={t('auth.dismissKeyboard')}
+        />
+
+        <View
+          style={[
+            styles.formDock,
+            {
+              paddingBottom: Math.max(insets.bottom, Spacing[3]),
+            },
+          ]}
+        >
+          <AuthGlassCard style={styles.formCard} compact={keyboardVisible}>
+            {!keyboardVisible ? (
+              <View style={styles.header}>
+                <Text style={styles.title}>{t('auth.loginTitle')}</Text>
+                <Text style={styles.subtitle} numberOfLines={2}>
+                  {t('auth.loginSubtitle')}
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.form}>
               {error ? (
@@ -126,23 +172,28 @@ export default function LoginScreen() {
 
               <Input
                 variant="glass"
+                compact={keyboardVisible}
                 placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoComplete="email"
                 textContentType="emailAddress"
+                returnKeyType="next"
                 rightIcon={<Ionicons name="mail-outline" size={20} color={GLASS_MUTED} />}
               />
 
               <Input
                 variant="glass"
+                compact={keyboardVisible}
                 placeholder="••••••••"
                 value={password}
                 onChangeText={setPassword}
                 isPassword
                 autoComplete="password"
                 textContentType="password"
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
               />
 
               <View style={styles.optionsRow}>
@@ -170,17 +221,20 @@ export default function LoginScreen() {
                 onPress={handleLogin}
                 loading={loading}
                 variant="gold"
+                size="md"
               />
             </View>
 
-            <View style={styles.registerRow}>
-              <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                <Text style={styles.registerLink}>{t('auth.register')}</Text>
-              </TouchableOpacity>
-            </View>
+            {!keyboardVisible ? (
+              <View style={styles.registerRow}>
+                <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
+                <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+                  <Text style={styles.registerLink}>{t('auth.register')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </AuthGlassCard>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </Screen>
   );
@@ -189,44 +243,52 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#010810',
   },
-  kav: {
+  root: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  backBtn: {
+    position: 'absolute',
+    left: Spacing[4],
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dismissArea: {
     flex: 1,
   },
-  scroll: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: Spacing[6],
-    paddingVertical: Spacing[8],
-    gap: Spacing[6],
+  formDock: {
+    paddingHorizontal: Spacing[4],
   },
-  logoWrap: {
-    alignItems: 'center',
+  formCard: {
+    alignSelf: 'stretch',
   },
   header: {
-    marginBottom: Spacing[6],
-    gap: Spacing[2],
+    marginBottom: Spacing[3],
+    gap: Spacing[1],
   },
   title: {
     ...Typography.headingLarge,
     color: GLASS_TEXT,
-    fontSize: 26,
+    fontSize: 24,
   },
   subtitle: {
     ...Typography.bodyMedium,
     color: GLASS_MUTED,
-    lineHeight: 22,
+    lineHeight: 20,
   },
   form: {
-    gap: Spacing[4],
+    gap: Spacing[2],
   },
   errorBanner: {
-    backgroundColor: 'rgba(201, 90, 98, 0.18)',
+    backgroundColor: 'rgba(201, 90, 98, 0.12)',
     borderRadius: Radius.md,
     padding: Spacing[3],
     borderWidth: 1,
-    borderColor: 'rgba(201, 90, 98, 0.45)',
+    borderColor: 'rgba(201, 90, 98, 0.35)',
   },
   errorBannerText: {
     ...Typography.bodySmall,
@@ -250,8 +312,8 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: Radius.sm,
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -260,7 +322,7 @@ const styles = StyleSheet.create({
     borderColor: GLASS_GOLD,
   },
   checkmark: {
-    color: '#031528',
+    color: BRAND_NAVY,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -276,8 +338,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing[6],
+    marginTop: Spacing[4],
     flexWrap: 'wrap',
+    gap: Spacing[1],
   },
   registerText: {
     ...Typography.bodyMedium,

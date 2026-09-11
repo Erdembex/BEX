@@ -39,6 +39,11 @@ app:
     email: ${ADMIN_EMAIL:admin@bex.dev}
     password: ${ADMIN_PASSWORD:E123456789y.}
     sync-password-on-startup: ${ADMIN_SYNC_PASSWORD:true}
+  demo:
+    # Sunum ve saha demosu icin ornek isletme/gorev/kupon verisi uretir.
+    # Production'da kapali kalmali.
+    seed-enabled: ${DEMO_SEED_ENABLED:false}
+    password: ${DEMO_PASSWORD:PasslaDemo1!}
   upload:
     dir: ${UPLOAD_DIR:uploads}
   storage:
@@ -69,6 +74,9 @@ iyzico:
   api-key: ${IYZICO_API_KEY:}
   secret-key: ${IYZICO_SECRET_KEY:}
   base-url: ${IYZICO_BASE_URL:https://sandbox-api.iyzipay.com}
+
+firebase:
+  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
 
 management:
   endpoints:

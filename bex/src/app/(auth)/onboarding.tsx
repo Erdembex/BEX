@@ -1,4 +1,4 @@
-import React, { useRef, useState, useMemo, useCallback } from 'react';
+import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   ViewToken,
   StyleSheet,
+  BackHandler,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
+import { BRAND_NAVY } from '@/theme/brand';
 import { Button, PasslaLogo } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 import { markOnboardingComplete } from '@/lib/onboardingStorage';
@@ -47,7 +49,7 @@ export default function OnboardingScreen() {
         title: t('auth.onboarding.slide1Title'),
         description: t('auth.onboarding.slide1Desc'),
         accentText: t('auth.onboarding.slide1Accent'),
-        gradient: [Colors.primary, '#0A3568'],
+        gradient: [Colors.primary, BRAND_NAVY],
       },
       {
         id: '2',
@@ -103,11 +105,43 @@ export default function OnboardingScreen() {
     void finishOnboarding('/(auth)/login');
   };
 
+  const goBack = useCallback(() => {
+    if (activeIndex <= 0) return;
+    const prevIndex = activeIndex - 1;
+    flatListRef.current?.scrollToOffset({
+      offset: width * prevIndex,
+      animated: true,
+    });
+    setActiveIndex(prevIndex);
+  }, [activeIndex]);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (activeIndex > 0) {
+        goBack();
+        return true;
+      }
+      return true;
+    });
+    return () => sub.remove();
+  }, [activeIndex, goBack]);
+
   return (
     <Screen style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.container}>
         <View style={styles.topBar}>
-          <PasslaLogo size="sm" />
+          {activeIndex > 0 ? (
+            <TouchableOpacity
+              onPress={goBack}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={styles.backBtn}
+            >
+              <Ionicons name="chevron-back" size={22} color={Colors.textSecondary} />
+              <Text style={styles.backText}>{t('common.back')}</Text>
+            </TouchableOpacity>
+          ) : (
+            <PasslaLogo size="sm" />
+          )}
           {!isLast ? (
             <TouchableOpacity onPress={skip} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.skipText}>{t('common.skip')}</Text>
@@ -218,6 +252,16 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   topBarSpacer: {
     width: 48,
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[1],
+    minWidth: 48,
+  },
+  backText: {
+    ...Typography.labelMedium,
+    color: Colors.textSecondary,
   },
   skipText: {
     ...Typography.labelMedium,

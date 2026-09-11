@@ -54,6 +54,7 @@ function enrichTasksWithApplicationCounts(tasks: Task[], businessId: string): Ta
 
 export type EnrichedTask = Task & {
   businessName: string;
+  businessLogoUrl?: string | null;
   businessVerified?: boolean;
   businessIsDangerous?: boolean;
   businessComplaintListed?: boolean;

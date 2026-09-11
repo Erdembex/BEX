@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Screen } from '@/components/common/Screen';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { useBusiness } from '@/features/business/useBusiness';
 import { couponsRepository } from '@/features/data';

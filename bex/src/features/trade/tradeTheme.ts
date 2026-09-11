@@ -11,8 +11,8 @@ import type { TextStyle, ViewStyle } from 'react-native';
 /** Takas & cüzdan — aktif uygulama temasına göre üretilir */
 export function getTradeTheme(palette: Record<ColorKey, string>) {
   const base = getTheme(palette);
-  /** Koyu modda primary altın ton — CTA ve vurgular */
-  const isDark = palette.textOnPrimary === '#031528';
+  /** Koyu mod — derin gece mavisi arka plan */
+  const isDark = palette.background === DarkColors.background;
 
   return createTheme({
     ...base,

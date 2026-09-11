@@ -1,6 +1,7 @@
 package com.takkas.modules.messaging.service;
 
-import com.takkas.common.exception.BusinessRuleException;
+import com.takkas.common.event.DomainEventPublisher;
+import com.takkas.common.event.MessageSentEvent;
 import com.takkas.modules.messaging.api.dto.MessageResponse;
 import com.takkas.modules.messaging.domain.Conversation;
 import com.takkas.modules.messaging.domain.Message;
@@ -28,6 +29,7 @@ public class MessageService {
     private final SimpMessagingTemplate messagingTemplate;
     private final ListingRepository listingRepository;
     private final UserBlockService userBlockService;
+    private final DomainEventPublisher eventPublisher;
 
     @Transactional
     public MessageResponse send(UUID conversationId, UUID senderId, String content, String mediaUrl) {
@@ -136,7 +138,29 @@ public class MessageService {
 
         MessageResponse response = MessageMapper.toResponse(saved, listingRepository);
         messagingTemplate.convertAndSend("/topic/conversation/" + conv.getId(), response);
+
+        eventPublisher.publish(new MessageSentEvent(
+            conv.getId(),
+            senderId,
+            recipientId,
+            buildMessagePreview(saved)));
+
         return response;
+    }
+
+    private String buildMessagePreview(Message message) {
+        if (message.getMessageType() == MessageType.IMAGE) {
+            String caption = message.getContent();
+            if (caption != null && !caption.isBlank()) {
+                return caption.length() > 120 ? caption.substring(0, 117) + "..." : caption;
+            }
+            return "📷 Fotoğraf gönderdi";
+        }
+        String content = message.getContent();
+        if (content == null || content.isBlank()) {
+            return "Yeni mesaj";
+        }
+        return content.length() > 120 ? content.substring(0, 117) + "..." : content;
     }
 
     private String normalizeMediaUrl(String mediaUrl) {

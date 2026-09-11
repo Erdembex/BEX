@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, StyleSheet, View, Text } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { router, Href } from 'expo-router';
 import { getCityMapBounds } from '@/lib/cityMapRegion';
 import { clampMapRegion, type MapRegion } from '@/lib/mapRegionUtils';
 import { Typography, Radius, Spacing, useThemeColors } from '@/theme';
+import { BRAND_NAVY } from '@/theme/brand';
+import { hasForegroundLocationPermission } from '@/hooks/useDeviceLocation';
 import type { MapBusinessPin } from './types';
 
 type Props = {
@@ -19,6 +21,19 @@ export function DiscoverMapView({ city, focusDistrict, initialRegion, pins }: Pr
   const mapRef = useRef<MapView>(null);
   const bounds = useMemo(() => getCityMapBounds(city), [city]);
   const lockDistrictView = Boolean(focusDistrict?.trim());
+  const [locationGranted, setLocationGranted] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    void hasForegroundLocationPermission().then((granted) => {
+      if (!cancelled) setLocationGranted(granted);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const showUserLocation = Platform.OS === 'ios' ? locationGranted : false;
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -92,8 +107,8 @@ export function DiscoverMapView({ city, focusDistrict, initialRegion, pins }: Pr
         provider={mapProvider}
         initialRegion={initialRegion}
         onRegionChangeComplete={onRegionChangeComplete}
-        showsUserLocation
-        showsMyLocationButton
+        showsUserLocation={showUserLocation}
+        showsMyLocationButton={showUserLocation}
         showsCompass
         showsScale
         rotateEnabled={false}
@@ -107,7 +122,7 @@ export function DiscoverMapView({ city, focusDistrict, initialRegion, pins }: Pr
             coordinate={{ latitude: pin.latitude, longitude: pin.longitude }}
             title={pin.name}
             description={pin.address}
-            pinColor={pin.verified ? '#D4B86A' : '#051F45'}
+            pinColor={pin.verified ? '#D4B86A' : BRAND_NAVY}
             onCalloutPress={() => {
               const href = (pin.listingId ?? pin.id) as string;
               if (pin.listingId) {

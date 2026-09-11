@@ -1,13 +1,20 @@
+import { BRAND_GOLD, BRAND_GOLD_AMBER, BRAND_GOLD_MID, BRAND_NAVY } from './brand';
+
 export const Colors = {
   // Passla koyu mod — derin gece mavisi, altın etkileşim, krem metin
-  primary: '#E7C663',
-  primaryLight: 'rgba(231, 198, 99, 0.14)',
-  primaryDark: '#C39638',
+  primary: BRAND_GOLD_MID,
+  primaryLight: 'rgba(196, 160, 84, 0.14)',
+  primaryDark: BRAND_GOLD_AMBER,
 
   secondary: '#8FAFD4',
-  accent: '#D4B86A',
+  accent: BRAND_GOLD,
   accentLight: 'rgba(212, 184, 106, 0.16)',
   accentDark: '#B89A4A',
+
+  iconPrimary: BRAND_GOLD_MID,
+  iconSecondary: '#8FAFD4',
+  iconMuted: '#6A849E',
+  iconSurface: 'rgba(231, 198, 99, 0.12)',
 
   moneyGreen: '#6BBF8A',
   moneyGreenDark: '#4A9968',
@@ -33,7 +40,7 @@ export const Colors = {
 
   border: '#0A1826',
   borderLight: '#061018',
-  borderFocus: '#E7C663',
+  borderFocus: BRAND_GOLD_MID,
   borderGold: 'rgba(212, 184, 106, 0.38)',
 
   success: '#6BBF8A',
@@ -59,5 +66,8 @@ export const Colors = {
   gradientGold: '#D4B86A',
   gradientMid: '#010810',
 } as const;
+
+/** Marka laciverti — buton, logo, açık mod metin (arka plan değil). */
+export { BRAND_NAVY };
 
 export type ColorKey = keyof typeof Colors;

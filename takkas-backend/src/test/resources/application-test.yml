@@ -26,6 +26,8 @@ app:
     enabled: false
   listings:
     auto-approve-on-create: true
+  demo:
+    seed-enabled: false
 
 stripe:
   secret-key: sk_test_placeholder

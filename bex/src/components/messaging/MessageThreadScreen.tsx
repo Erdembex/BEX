@@ -2,12 +2,13 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { applicationsRepository, businessesRepository, tasksRepository, usersRepository } from '@/features/data';
 import { canUseApplicationMessages } from '@/features/messages';
 import { useMessagingInbox, MessagingAudience } from '@/hooks/useMessagingInbox';
 import { ChatThreadView } from '@/components/messaging/ChatThreadView';
+import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
@@ -29,6 +30,9 @@ export function MessageThreadScreen({
   const priorUnread = inboxRow?.unreadCount ?? 0;
   const [peerLabel, setPeerLabel] = useState(
     inboxRow?.peerName ?? t('messageThreadScreen.defaultChat')
+  );
+  const [peerAvatarUrl, setPeerAvatarUrl] = useState<string | null>(
+    inboxRow?.peerAvatarUrl ?? null
   );
   const [peerProfileHref, setPeerProfileHref] = useState<Href | null>(null);
   const [taskTitle, setTaskTitle] = useState(t('messageThreadScreen.defaultTask'));
@@ -53,11 +57,16 @@ export function MessageThreadScreen({
         setTaskTitle(task?.title ?? t('messageThreadScreen.defaultTask'));
 
         if (bexUser.role === 'business') {
+          const stats = await usersRepository.getPublicProfileStats(app.userId);
           const label =
             app.applicantName?.trim() ||
             inboxRow?.peerName ||
+            stats?.displayName?.replace(/^@/, '') ||
             (await usersRepository.getDisplayName(app.userId));
           setPeerLabel(label);
+          setPeerAvatarUrl(
+            app.applicantAvatarUrl ?? stats?.avatarUrl ?? inboxRow?.peerAvatarUrl ?? null
+          );
           setPeerProfileHref({
             pathname: '/user/[id]',
             params: {
@@ -72,10 +81,11 @@ export function MessageThreadScreen({
               inboxRow?.peerName ??
               t('messageThreadScreen.defaultBusiness')
           );
+          setPeerAvatarUrl(business?.logoUrl?.trim() || inboxRow?.peerAvatarUrl || null);
           setPeerProfileHref(`/business/${app.businessId}` as Href);
         }
       })();
-    }, [applicationId, firebaseUser, bexUser, inboxRow?.peerName, t])
+    }, [applicationId, firebaseUser, bexUser, inboxRow?.peerName, inboxRow?.peerAvatarUrl, t])
   );
 
   const openPeerProfile = useCallback(() => {
@@ -131,6 +141,7 @@ export function MessageThreadScreen({
           accessibilityRole="button"
           accessibilityLabel={t('messageThreadScreen.viewProfile')}
         >
+          <ProfileAvatar name={peerLabel} avatarUrl={peerAvatarUrl} size={36} />
           <Text style={styles.headerTitle} numberOfLines={1}>
             {peerLabel}
           </Text>
@@ -183,7 +194,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     justifyContent: 'center',
   },
   backText: { fontSize: 22, color: Colors.primary, fontWeight: '700' },
-  headerMeta: { flex: 1, alignItems: 'center', paddingVertical: Spacing[1] },
+  headerMeta: { flex: 1, alignItems: 'center', paddingVertical: Spacing[1], gap: Spacing[1] },
   headerTitle: { ...Typography.labelLarge, color: Colors.textPrimary, fontWeight: '700' },
   headerSubtitle: { ...Typography.caption, color: Colors.primary, marginTop: 2 },
   headerTask: { ...Typography.caption, color: Colors.textSecondary, marginTop: 2 },

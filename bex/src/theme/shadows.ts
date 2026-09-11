@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { BRAND_NAVY } from './brand';
 import { useIsDarkMode } from './useThemeColors';
 
 const darkShadows = {
@@ -41,35 +42,35 @@ const darkShadows = {
 
 const lightShadows = {
   sm: {
-    shadowColor: '#051F45',
+    shadowColor: BRAND_NAVY,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 3,
     elevation: 1,
   },
   md: {
-    shadowColor: '#051F45',
+    shadowColor: BRAND_NAVY,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
   },
   lg: {
-    shadowColor: '#051F45',
+    shadowColor: BRAND_NAVY,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 14,
     elevation: 3,
   },
   primary: {
-    shadowColor: '#051F45',
+    shadowColor: BRAND_NAVY,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
     elevation: 3,
   },
   card: {
-    shadowColor: '#051F45',
+    shadowColor: BRAND_NAVY,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.07,
     shadowRadius: 8,

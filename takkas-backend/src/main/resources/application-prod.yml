@@ -25,6 +25,9 @@ app:
   admin:
     seed-enabled: ${ADMIN_SEED_ENABLED:false}
     sync-password-on-startup: false
+  demo:
+    # Production'da demo verisi asla uretilmez.
+    seed-enabled: false
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://passla.com.tr,https://www.passla.com.tr}
   listings:
@@ -35,12 +38,17 @@ app:
     expose-phone-code: false
     expose-email-verification-code: false
     log-mail-content: false
+  expo:
+    access-token: ${EXPO_ACCESS_TOKEN:}
 
 springdoc:
   api-docs:
     enabled: false
   swagger-ui:
     enabled: false
+
+firebase:
+  service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
 
 logging:
   level:

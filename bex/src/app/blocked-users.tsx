@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { Screen } from '@/components/common/Screen';
 import { Button } from '@/components/ui';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';

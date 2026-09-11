@@ -53,7 +53,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-export function getApiErrorMessage(error: unknown, fallback = 'İstek başarısız.'): string {
+export function getApiErrorMessage(error: unknown, fallback = 'İstek tamamlanamadı. Lütfen tekrar dene.'): string {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError<{
       message?: string;
@@ -69,14 +69,19 @@ export function getApiErrorMessage(error: unknown, fallback = 'İstek başarıs�
         if (parts.length) return parts.join(' ');
       }
       if (data.code === 'INTERNAL_ERROR') {
-        return data.message || 'Sunucu hatası. Backend yeniden başlatılıp tekrar denensin.';
+        return data.message || 'Sunucu hatası. Biraz bekleyip tekrar dene; sorun sürerse destek ile iletişime geç.';
       }
       if (data.message) return data.message;
       if (data.error) return data.error;
     }
-    if (axiosError.code === 'ECONNABORTED') return 'Sunucu yanıt vermedi. Backend çalışıyor mu?';
+    if (axiosError.code === 'ECONNABORTED') {
+      return 'Sunucu yanıt vermedi. İnternet bağlantını kontrol edip tekrar dene.';
+    }
     if (!axiosError.response) {
-      return 'Sunucuya bağlanılamadı. Aynı WiFi ve backend (8080) açık mı kontrol et.';
+      return 'Sunucuya bağlanılamadı. İnternet bağlantını kontrol edip tekrar dene.';
+    }
+    if (axiosError.response.status === 401) {
+      return 'Oturumun sona erdi. Lütfen tekrar giriş yap.';
     }
     if (axiosError.message) return axiosError.message;
   }

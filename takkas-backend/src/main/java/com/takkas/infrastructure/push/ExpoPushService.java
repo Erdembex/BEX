@@ -41,14 +41,15 @@ public class ExpoPushService {
         List<Map<String, Object>> messages = new ArrayList<>();
         for (String token : tokens) {
             if (!isExpoToken(token)) continue;
-            messages.add(Map.of(
-                "to", token,
-                "title", title,
-                "body", body,
-                "data", data != null ? data : Map.of(),
-                "sound", "default",
-                "priority", "high"
-            ));
+            Map<String, Object> message = new java.util.HashMap<>();
+            message.put("to", token);
+            message.put("title", title);
+            message.put("body", body);
+            message.put("data", data != null ? data : Map.of());
+            message.put("sound", "default");
+            message.put("priority", "high");
+            message.put("channelId", "default");
+            messages.add(message);
         }
 
         if (messages.isEmpty()) return;

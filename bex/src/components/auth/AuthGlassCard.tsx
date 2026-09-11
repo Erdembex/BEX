@@ -6,33 +6,38 @@ import { Radius, Spacing } from '@/theme';
 type AuthGlassCardProps = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
+  compact?: boolean;
 };
 
-const GLASS_BORDER = 'rgba(255, 255, 255, 0.16)';
-const GLASS_FILL = 'rgba(255, 255, 255, 0.07)';
-const GLASS_FILL_ANDROID = 'rgba(5, 31, 69, 0.72)';
+const GLASS_BORDER = 'rgba(255, 255, 255, 0.42)';
+/** Blur üstü hafif lacivert — graffiti arkadan okunmayı engellemesin */
+const FROST_OVERLAY = 'rgba(5, 31, 69, 0.52)';
 
-/** Buzlu cam auth kartı — login / register */
-export function AuthGlassCard({ children, style }: AuthGlassCardProps) {
+/** Buzlu cam auth kartı — blur + yarı saydam katman; yazılar net okunur. */
+export function AuthGlassCard({ children, style, compact = false }: AuthGlassCardProps) {
   const inner = (
-    <View style={[styles.inner, Platform.OS === 'android' && styles.innerAndroid]}>
-      {children}
-    </View>
+    <View style={[styles.inner, compact && styles.innerCompact]}>{children}</View>
   );
-
-  if (Platform.OS === 'web') {
-    return (
-      <View style={[styles.card, styles.webFallback, style]}>
-        {inner}
-      </View>
-    );
-  }
 
   return (
     <View style={[styles.card, style]}>
-      <BlurView intensity={Platform.OS === 'ios' ? 48 : 32} tint="dark" style={styles.blur}>
-        {inner}
-      </BlurView>
+      {Platform.OS === 'web' ? (
+        <View style={[StyleSheet.absoluteFillObject, styles.frostWeb]} pointerEvents="none" />
+      ) : (
+        <>
+          <BlurView
+            intensity={Platform.OS === 'ios' ? 55 : 64}
+            tint="dark"
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+            {...(Platform.OS === 'android'
+              ? { experimentalBlurMethod: 'dimezisBlurView' as const, blurReductionFactor: 3 }
+              : {})}
+          />
+          <View style={styles.frostOverlay} pointerEvents="none" />
+        </>
+      )}
+      {inner}
     </View>
   );
 }
@@ -43,19 +48,23 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: GLASS_BORDER,
-    backgroundColor: Platform.OS === 'android' ? GLASS_FILL_ANDROID : 'transparent',
+    backgroundColor: FROST_OVERLAY,
+    position: 'relative',
   },
-  webFallback: {
-    backgroundColor: GLASS_FILL_ANDROID,
+  frostOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: FROST_OVERLAY,
   },
-  blur: {
-    flex: 1,
+  frostWeb: {
+    backgroundColor: 'rgba(5, 31, 69, 0.78)',
   },
   inner: {
     padding: Spacing[7],
-    backgroundColor: GLASS_FILL,
+    backgroundColor: 'transparent',
+    zIndex: 1,
   },
-  innerAndroid: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  innerCompact: {
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[3],
   },
 });

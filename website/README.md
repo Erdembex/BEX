@@ -11,6 +11,8 @@ Mağaza yayını için **gizlilik politikası**, **kullanım koşulları**, **he
 | `kullanim-kosullari.html` | `https://passla.com.tr/kullanim-kosullari.html` |
 | `hesap-silme.html` | `https://passla.com.tr/hesap-silme.html` |
 | `destek.html` | `https://passla.com.tr/destek.html` |
+| `sponsor.html` | `https://passla.com.tr/sponsor.html` |
+| `Passla-Tek-Sayfa.pdf` | `https://passla.com.tr/Passla-Tek-Sayfa.pdf` |
 
 Mağaza formlarına girilecek URL'ler:
 
@@ -20,9 +22,10 @@ Mağaza formlarına girilecek URL'ler:
 | Play Console → Veri güvenliği → hesap silme URL'si | `https://passla.com.tr/hesap-silme.html` |
 | App Store Connect → EULA / Kullanım koşulları | `https://passla.com.tr/kullanim-kosullari.html` |
 
-> **Yayın öncesi:** `gizlilik.html` ve `kullanim-kosullari.html` içindeki köşeli
-> parantezli alanlar (şirket unvanı, adres, VKN/MERSİS, yetkili mahkeme ili)
-> ticaret sicil bilgileriyle doldurulmalıdır.
+> **Veri sorumlusu / hizmet sağlayıcı:** Şirket kuruluşu tamamlanana kadar
+> `gizlilik.html` ve `kullanim-kosullari.html` gerçek kişi girişimci bilgisiyle
+> dolduruludur (Erdem Yılmaz, Sultanbeyli / İstanbul, destek@passla.com.tr).
+> Ticaret sicili (unvan, VKN, MERSİS) tescil edilince aynı sayfalar güncellenir.
 
 ## Cloudflare + Oracle (önerilen)
 

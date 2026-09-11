@@ -35,6 +35,7 @@ const useStyles = createThemedStyles((Colors) => ({
   icon: {
     fontSize: 16,
     alignSelf: 'center',
+    color: Colors.iconMuted,
   },
   input: {
     flex: 1,

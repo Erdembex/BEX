@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { router, useLocalSearchParams, Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import { tasksRepository, EnrichedTask } from '@/features/data';
 import { shouldUseListingsRest } from '@/features/listing/listingsApi';
@@ -12,7 +13,6 @@ import { SearchBar, CategoryFilter, ListingProjectCard, RewardFilterChips } from
 import { LocationFilter } from '@/components/common/LocationPicker';
 import { TaskListSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
-import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { useAuthStore } from '@/store/authStore';
 import { loadLocationFilter, saveLocationFilter } from '@/lib/locationFilterStorage';
 import { resolveLocationFilter } from '@/lib/resolveLocationFilter';
@@ -28,7 +28,7 @@ const DIFFICULTIES: (TaskDifficulty | null)[] = [null, 'easy', 'medium', 'hard']
 export default function TasksScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding();
+  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const difficultyLabels = useDifficultyLabels();
   const categoryLabels = useCategoryLabels();
@@ -216,7 +216,7 @@ export default function TasksScreen() {
               onPress={() => router.push('/leaderboard' as Href)}
               style={styles.toolBtn}
             >
-              <Ionicons name="trophy-outline" size={18} color={Colors.primary} />
+              <Ionicons name="trophy-outline" size={18} color={Colors.iconPrimary} />
               <Text style={styles.toolBtnText}>{t('leaderboard.title')}</Text>
             </TouchableOpacity>
           </View>
@@ -286,7 +286,7 @@ export default function TasksScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('tasksScreen.title')} {...userHubBackHeaderProps()} />
+      <AppHeader title={t('tasksScreen.title')} showMenu showNotifications />
       <FlatList
         style={styles.listContainer}
         data={displayed}
@@ -345,15 +345,15 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderRadius: Radius.full,
     backgroundColor: Colors.primaryLight,
     borderWidth: 1,
-    borderColor: Colors.borderGold,
+    borderColor: Colors.border,
   },
-  toolBtnText: { ...Typography.caption, color: Colors.primary, fontWeight: '600' },
+  toolBtnText: { ...Typography.caption, color: Colors.iconPrimary, fontWeight: '600' },
   toolBtnActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
   toolBtnTextActive: {
-    color: Colors.textOnGold,
+    color: Colors.textOnPrimary,
   },
   filters: { paddingHorizontal: Spacing[5], gap: Spacing[3], paddingBottom: Spacing[3] },
   diffRow: { flexDirection: 'row', gap: Spacing[2] },

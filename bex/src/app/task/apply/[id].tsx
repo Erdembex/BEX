@@ -6,6 +6,7 @@ import { tasksRepository, applicationsRepository, EnrichedTask } from '@/feature
 import { hasRestAuthSession } from '@/lib/auth/sessionClaims';
 import { isBackendId } from '@/lib/api/backendId';
 import { usersRepository } from '@/features/data/usersRepository';
+import { Redirect } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/components/common/Toast';
 import { UserPortfolioGallery } from '@/components/profile/UserPortfolioGallery';
@@ -83,6 +84,17 @@ export default function ApplyScreen() {
       setLoading(false);
     }
   };
+
+  if (!firebaseUser) {
+    return (
+      <Redirect
+        href={{
+          pathname: '/(auth)/login',
+          params: { returnTo: `/task/apply/${id ?? ''}` },
+        }}
+      />
+    );
+  }
 
   return (
     <Screen style={styles.safe}>

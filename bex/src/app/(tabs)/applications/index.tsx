@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { applicationsRepository, tasksRepository } from '@/features/data';
 import { demoStore } from '@/lib/demoStore';
@@ -14,7 +15,6 @@ import { getApplicationQuickAction, getApplicationTarget } from '@/lib/applicati
 import { formatRelativeTime } from '@/lib/dateUtils';
 import { TaskListSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
-import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 
 function useStatusColors(): Record<ApplicationStatus, string> {
@@ -38,7 +38,7 @@ export default function MyApplicationsScreen() {
   const Colors = useThemeColors();
   const statusColors = useStatusColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding();
+  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const APPLICATION_STATUS_LABELS = useApplicationStatusLabels();
   const { firebaseUser } = useAuthStore();
@@ -88,7 +88,7 @@ export default function MyApplicationsScreen() {
   if (loading) {
     return (
       <TabScreen style={styles.safe}>
-        <AppHeader title={t('applicationsScreen.title')} {...userHubBackHeaderProps()} />
+        <AppHeader title={t('applicationsScreen.title')} showMenu showNotifications />
         <TaskListSkeleton count={3} />
       </TabScreen>
     );
@@ -96,7 +96,7 @@ export default function MyApplicationsScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('applicationsScreen.title')} {...userHubBackHeaderProps()} />
+      <AppHeader title={t('applicationsScreen.title')} showMenu showNotifications />
       <FlatList
         data={applications}
         keyExtractor={(item) => item.id}

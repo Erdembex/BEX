@@ -37,6 +37,10 @@ app:
   base-url: http://localhost:8080
   admin:
     seed-enabled: true
+  demo:
+    # Yerel geliştirmede sunum/demo hesapları otomatik üretilir.
+    seed-enabled: ${DEMO_SEED_ENABLED:true}
+    password: ${DEMO_PASSWORD:PasslaDemo1!}
   dev:
     expose-password-reset-token: true
     expose-phone-code: true

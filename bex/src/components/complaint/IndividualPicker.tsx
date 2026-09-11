@@ -7,13 +7,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { Input } from '@/components/ui';
-import {
-  searchIndividualProfiles,
-  type IndividualSearchHit,
-} from '@/features/business/businessProfileApi';
+import { searchIndividualProfiles, type IndividualSearchHit } from '@/features/portfolio/publicProfileApi';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
+import { USERNAME_SEARCH_MIN_CHARS } from '@/hooks/useUsernameSearch';
 
 interface IndividualPickerProps {
   selectedId: string;
@@ -36,11 +34,21 @@ export function IndividualPicker({
   const [error, setError] = useState<string | null>(null);
   const { t } = useTranslation();
 
+  const trimmed = query.trim().replace(/^@/, '');
+
   const runSearch = useCallback(async (term: string) => {
+    const normalized = term.trim().replace(/^@/, '');
+    if (normalized.length < USERNAME_SEARCH_MIN_CHARS) {
+      setResults([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
-      const hits = await searchIndividualProfiles(term);
+      const hits = await searchIndividualProfiles(normalized);
       setResults(hits);
     } catch {
       setResults([]);
@@ -48,14 +56,12 @@ export function IndividualPicker({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
-    runSearch('');
-  }, [runSearch]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => runSearch(query), 300);
+    const timer = setTimeout(() => {
+      void runSearch(query);
+    }, 300);
     return () => clearTimeout(timer);
   }, [query, runSearch]);
 
@@ -88,12 +94,10 @@ export function IndividualPicker({
             <ActivityIndicator color={Colors.primary} style={{ marginVertical: Spacing[3] }} />
           ) : (
             <ScrollView style={styles.resultsScroll} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-              {results.length === 0 ? (
-                <Text style={styles.empty}>
-                  {query.trim().length >= 2
-                    ? t('individualPicker.noMatches')
-                    : t('individualPicker.pickRegistered')}
-                </Text>
+              {trimmed.length < USERNAME_SEARCH_MIN_CHARS ? (
+                <Text style={styles.empty}>{t('usernameSearch.minChars', { count: USERNAME_SEARCH_MIN_CHARS })}</Text>
+              ) : results.length === 0 ? (
+                <Text style={styles.empty}>{t('individualPicker.noMatches')}</Text>
               ) : (
                 results.map((item) => (
                   <TouchableOpacity
@@ -111,6 +115,11 @@ export function IndividualPicker({
                         <Text style={styles.resultName}>
                           {item.username ? `@${item.username}` : item.fullName}
                         </Text>
+                        {item.fullName && item.username ? (
+                          <Text style={styles.resultSubName} numberOfLines={1}>
+                            {item.fullName}
+                          </Text>
+                        ) : null}
                         <Text style={styles.resultMeta}>
                           {t('individualPicker.completedTaskCount', { count: item.completedTaskCount })}
                         </Text>
@@ -155,5 +164,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   rowInner: { flexDirection: 'row', alignItems: 'center', gap: Spacing[3] },
   rowText: { flex: 1, gap: 2 },
   resultName: { ...Typography.labelMedium, color: Colors.textPrimary },
+  resultSubName: { ...Typography.caption, color: Colors.textSecondary },
   resultMeta: { ...Typography.caption, color: Colors.textMuted },
 }));

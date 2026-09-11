@@ -14,8 +14,10 @@ import {
   LOCATION_ALL,
   formatFilterLocationLabel,
   isLocationAll,
+  getLocationAllLabel,
+  formatLocationOptionLabel,
 } from '@/lib/locationFilterUtils';
-import { resolveLocationFromDevice } from '@/hooks/useDeviceLocation';
+import { resolveLocationFromDevice, getDeviceLocationErrorMessage } from '@/hooks/useDeviceLocation';
 import { LocationSelectorModal } from '@/components/common/LocationSelectorModal';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
@@ -42,19 +44,21 @@ function SelectField({
   placeholder,
   onPress,
   disabled,
+  highlight,
 }: {
   label: string;
   value: string | null;
   placeholder: string;
   onPress: () => void;
   disabled?: boolean;
+  highlight?: boolean;
 }) {
   const styles = useScreenStyles();
   return (
     <View style={styles.fieldWrap}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <TouchableOpacity
-        style={[styles.field, disabled && styles.fieldDisabled]}
+        style={[styles.field, disabled && styles.fieldDisabled, highlight && styles.fieldHighlight]}
         onPress={onPress}
         disabled={disabled}
         activeOpacity={0.8}
@@ -86,6 +90,7 @@ function LocationFields({
   const [districtModal, setDistrictModal] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsHint, setGpsHint] = useState('');
+  const [districtManualRequired, setDistrictManualRequired] = useState(false);
   const { t } = useTranslation();
 
   const districts = city && !isLocationAll(city) ? getDistrictsForCity(city) : [];
@@ -99,19 +104,30 @@ function LocationFields({
   const handleGps = async () => {
     setGpsLoading(true);
     setGpsHint('');
+    setDistrictManualRequired(false);
     try {
       const result = await resolveLocationFromDevice();
       onCityChange(result.city);
-      onDistrictChange(showAllOption ? LOCATION_ALL : result.district);
-      setGpsHint(
-        showAllOption
-          ? t('locationPicker.gpsDetectedAll', { city: result.city })
-          : result.district
-            ? t('locationPicker.gpsDetectedFull', { location: formatLocationLabel(result.city, result.district) })
-            : t('locationPicker.gpsDetectedCityOnly', { city: result.city })
-      );
+      if (showAllOption) {
+        onDistrictChange(LOCATION_ALL);
+        setGpsHint(t('locationPicker.gpsDetectedAll', { city: result.city }));
+      } else if (result.district) {
+        onDistrictChange(result.district);
+        setGpsHint(
+          t('locationPicker.gpsDetectedFull', {
+            location: formatLocationLabel(result.city, result.district),
+          })
+        );
+      } else {
+        onDistrictChange(null);
+        setDistrictManualRequired(true);
+        setGpsHint(
+          t('locationPicker.gpsDistrictManualRequired', { city: result.city })
+        );
+        setDistrictModal(true);
+      }
     } catch (err: unknown) {
-      setGpsHint(err instanceof Error ? err.message : t('locationPicker.gpsFailed'));
+      setGpsHint(getDeviceLocationErrorMessage(err));
     } finally {
       setGpsLoading(false);
     }
@@ -121,8 +137,13 @@ function LocationFields({
     ? formatFilterLocationLabel(city, district)
     : formatLocationLabel(city, district);
 
-  const districtValue =
-    showAllOption && city && isLocationAll(city) ? LOCATION_ALL : district;
+  const cityDisplay = city ? formatLocationOptionLabel(city) : null;
+  const districtDisplay =
+    showAllOption && city && isLocationAll(city)
+      ? getLocationAllLabel()
+      : district
+        ? formatLocationOptionLabel(district)
+        : null;
   const districtDisabled = !city || (showAllOption && isLocationAll(city));
 
   return (
@@ -154,25 +175,31 @@ function LocationFields({
 
       <SelectField
         label={required ? t('locationPicker.cityLabelRequired') : t('locationPicker.cityLabel')}
-        value={city}
+        value={cityDisplay}
         placeholder={t('locationPicker.cityPlaceholder')}
         onPress={() => setCityModal(true)}
       />
 
       <SelectField
         label={required ? t('locationPicker.districtLabelRequired') : t('locationPicker.districtLabel')}
-        value={districtValue}
+        value={districtDisplay}
         placeholder={
-          !city
-            ? t('locationPicker.districtFirstSelectCity')
-            : isLocationAll(city)
-              ? LOCATION_ALL
-              : showAllOption
-                ? t('locationPicker.districtOrAll')
-                : t('locationPicker.districtPlaceholder')
+          districtManualRequired && !district
+            ? t('locationPicker.districtManualPlaceholder')
+            : !city
+              ? t('locationPicker.districtFirstSelectCity')
+              : isLocationAll(city)
+                ? getLocationAllLabel()
+                : showAllOption
+                  ? t('locationPicker.districtOrAll')
+                  : t('locationPicker.districtPlaceholder')
         }
-        onPress={() => setDistrictModal(true)}
+        onPress={() => {
+          setDistrictManualRequired(false);
+          setDistrictModal(true);
+        }}
         disabled={districtDisabled}
+        highlight={districtManualRequired && !district}
       />
 
       {summary && !allowClear ? (
@@ -183,7 +210,11 @@ function LocationFields({
         <Text style={styles.filterSummary}>{t('locationPicker.filter', { summary })}</Text>
       ) : null}
 
-      {gpsHint ? <Text style={styles.gpsHint}>{gpsHint}</Text> : null}
+      {gpsHint ? (
+        <Text style={[styles.gpsHint, districtManualRequired && styles.gpsHintWarning]}>
+          {gpsHint}
+        </Text>
+      ) : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <LocationSelectorModal
@@ -193,6 +224,7 @@ function LocationFields({
         selected={city}
         searchPlaceholder={t('locationPicker.selectCitySearchPlaceholder')}
         onClose={() => setCityModal(false)}
+        formatLabel={formatLocationOptionLabel}
         onSelect={(item) => {
           onCityChange(item);
           if (showAllOption && isLocationAll(item)) {
@@ -210,11 +242,13 @@ function LocationFields({
         visible={districtModal}
         title={city && !isLocationAll(city) ? t('locationPicker.selectDistrictTitle', { city }) : t('locationPicker.selectDistrictTitleGeneric')}
         items={districtItems}
-        selected={districtValue}
+        selected={district}
         searchPlaceholder={t('locationPicker.selectDistrictSearchPlaceholder')}
+        formatLabel={formatLocationOptionLabel}
         onClose={() => setDistrictModal(false)}
         onSelect={(item) => {
           onDistrictChange(item);
+          setDistrictManualRequired(false);
           setDistrictModal(false);
         }}
       />
@@ -343,6 +377,10 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     minHeight: 48,
   },
   fieldDisabled: { opacity: 0.5 },
+  fieldHighlight: {
+    borderColor: Colors.warning,
+    backgroundColor: Colors.warningLight,
+  },
   fieldValue: {
     ...Typography.bodyMedium,
     color: Colors.textPrimary,
@@ -368,6 +406,10 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   gpsHint: {
     ...Typography.caption,
     color: Colors.info,
+  },
+  gpsHintWarning: {
+    color: Colors.warning,
+    fontWeight: '600',
   },
   error: {
     ...Typography.caption,

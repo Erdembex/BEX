@@ -3,7 +3,7 @@ import { View, Text, FlatList, RefreshControl } from 'react-native';
 import { confirmDialog } from '@/lib/confirmDialog';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { Button, Input } from '@/components/ui';
 import { useToast } from '@/components/common/Toast';
 import {

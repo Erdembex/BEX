@@ -7,6 +7,12 @@ export const readableTextInputStyle: TextStyle = {
   ...(Platform.OS === 'android' ? { includeFontPadding: false } : {}),
 };
 
+/** Web TextInput — tarayıcı outline'ını kapatır */
+export const webTextInputStyle: TextStyle | undefined =
+  Platform.OS === 'web'
+    ? ({ outlineStyle: 'none', cursor: 'text' } as unknown as TextStyle)
+    : undefined;
+
 export const textInputPaddingVertical = Platform.select({
   android: 12,
   ios: 14,

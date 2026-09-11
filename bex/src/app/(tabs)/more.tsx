@@ -4,7 +4,7 @@ import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { AppHeader } from '@/components/navigation/AppHeader';
 import { useOpenNotifications } from '@/hooks/useOpenNotifications';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationUnreadCount } from '@/hooks/useNotifications';
 import { goUserHub } from '@/lib/userHubNavigation';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
@@ -61,7 +61,7 @@ export default function MoreScreen() {
   const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
   const openNotifications = useOpenNotifications();
-  const { unreadCount } = useNotifications();
+  const { unreadCount } = useNotificationUnreadCount();
 
   return (
     <TabScreen style={styles.safe}>
@@ -112,14 +112,14 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     padding: Spacing[4],
     borderWidth: 1,
     borderColor: Colors.border,
   },
   noticeLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing[3], flex: 1 },
-  noticeIcon: { fontSize: 22, color: Colors.primary, fontWeight: '700' },
+  noticeIcon: { fontSize: 22, color: Colors.iconPrimary, fontWeight: '700' },
   noticeTitle: { ...Typography.labelLarge, color: Colors.textPrimary, fontWeight: '700' },
   noticeHint: { ...Typography.caption, color: Colors.textSecondary, marginTop: 2 },
   badge: {
@@ -150,7 +150,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  linkIcon: { width: 28, textAlign: 'center', fontSize: 18, color: Colors.primary },
+  linkIcon: { width: 28, textAlign: 'center', fontSize: 18, color: Colors.iconPrimary },
   linkBody: { flex: 1, gap: 2 },
   linkTitle: { ...Typography.labelLarge, color: Colors.textPrimary },
   linkHint: { ...Typography.caption, color: Colors.textSecondary },

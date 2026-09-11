@@ -44,4 +44,12 @@ public class UserFacade {
             .map(BusinessProfile::getId)
             .orElseThrow(() -> new ResourceNotFoundException("İşletme profili bulunamadı."));
     }
+
+    /** Push bildirimi ve sohbet listesi için görünen ad. */
+    public String getDisplayNameForUserId(UUID userId) {
+        return businessRepo.findByUserId(userId)
+            .map(BusinessProfile::getBusinessName)
+            .or(() -> individualRepo.findByUserId(userId).map(IndividualProfile::getFullName))
+            .orElse("Kullanıcı");
+    }
 }

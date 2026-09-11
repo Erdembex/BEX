@@ -1,7 +1,8 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
-import { useFocusEffect } from '@react-navigation/native';
+import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { couponsRepository, businessesRepository } from '@/features/data';
 import { fetchRestCoupons, hasRestAuthSession } from '@/features/coupon/couponsApi';
@@ -14,14 +15,13 @@ import { router, Href } from 'expo-router';
 import { CouponCard, CouponQrModal } from '@/components/wallet';
 import { WalletSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
-import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Button } from '@/components/ui';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 
 export default function WalletScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding();
+  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const COUPON_STATUS_LABELS = useCouponStatusLabels();
   const { firebaseUser } = useAuthStore();
@@ -95,7 +95,7 @@ export default function WalletScreen() {
   if (loading) {
     return (
       <TabScreen style={styles.safe}>
-        <AppHeader title={t('walletScreen.title')} {...userHubBackHeaderProps()} />
+        <AppHeader title={t('walletScreen.title')} showMenu showNotifications />
         <WalletSkeleton />
       </TabScreen>
     );
@@ -103,7 +103,7 @@ export default function WalletScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('walletScreen.title')} {...userHubBackHeaderProps()} />
+      <AppHeader title={t('walletScreen.title')} showMenu showNotifications />
       <ScrollView
         contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}
         refreshControl={

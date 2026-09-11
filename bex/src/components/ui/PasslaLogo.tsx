@@ -1,22 +1,30 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, type ImageStyle } from 'react-native';
+import { View, Text, Image, StyleSheet, Platform, type ImageStyle } from 'react-native';
 import { useTranslation } from '@/i18n';
-import { Typography, useThemeColors } from '@/theme';
+import { Typography, useThemeColors, useIsDarkMode } from '@/theme';
+import { BRAND_GOLD_MID, BRAND_NAVY } from '@/theme/brand';
 
-const WORDMARK_WHITE = require('../../../assets/branding/passla-wordmark-white.png');
-const WORDMARK_NAVY = require('../../../assets/branding/passla-wordmark-navy.png');
+const MARK_WHITE = require('../../../assets/branding/passla-mark-white.png');
+const MARK_NAVY = require('../../../assets/branding/passla-mark-navy.png');
 
 interface PasslaLogoProps {
   size?: 'xs' | 'sm' | 'md' | 'lg';
   showTagline?: boolean;
   centered?: boolean;
+  /** Header: PASSLA yazısı · mark: SS işareti */
+  variant?: 'wordmark' | 'mark';
   /** Koyu arka plan üzerinde (auth ekranları) açık renk kullan */
   tone?: 'auto' | 'onDark';
 }
 
-/** Wordmark aspect ~1024:335 */
-const WORDMARK_WIDTH = { xs: 132, sm: 168, md: 220, lg: 280 } as const;
-const WORDMARK_RATIO = 335 / 1024;
+const WORDMARK_FONT = {
+  xs: 15,
+  sm: 18,
+  md: 22,
+  lg: 28,
+} as const;
+
+const MARK_SIZE = { xs: 40, sm: 52, md: 68, lg: 88 } as const;
 
 const ON_DARK_TAGLINE = 'rgba(240, 238, 233, 0.72)';
 
@@ -24,26 +32,55 @@ export function PasslaLogo({
   size = 'md',
   showTagline = false,
   centered = false,
+  variant = 'wordmark',
   tone = 'auto',
 }: PasslaLogoProps) {
   const { t } = useTranslation();
   const Colors = useThemeColors();
-  const useWhite = tone === 'onDark';
-  const taglineColor = useWhite ? ON_DARK_TAGLINE : Colors.textMuted;
-  const width = WORDMARK_WIDTH[size];
-  const height = Math.round(width * WORDMARK_RATIO);
+  const isDark = useIsDarkMode();
+  const useLightWordmark = tone === 'onDark' || (tone === 'auto' && isDark);
+  const taglineColor = useLightWordmark ? ON_DARK_TAGLINE : Colors.textMuted;
+  const wordmarkColor = useLightWordmark ? BRAND_GOLD_MID : BRAND_NAVY;
+
+  if (variant === 'wordmark') {
+    return (
+      <View style={[styles.container, centered && styles.containerCentered]}>
+        <Text
+          style={[
+            styles.wordmark,
+            {
+              color: wordmarkColor,
+              fontSize: WORDMARK_FONT[size],
+            },
+          ]}
+          accessibilityRole="header"
+          accessibilityLabel="PASSLA"
+        >
+          PASSLA
+        </Text>
+        {showTagline ? (
+          <Text style={[styles.tagline, centered && styles.taglineCentered, { color: taglineColor }]}>
+            {t('passlaLogo.tagline')}
+          </Text>
+        ) : null}
+      </View>
+    );
+  }
 
   const imageStyle: ImageStyle = {
-    width,
-    height,
+    width: MARK_SIZE[size],
+    height: MARK_SIZE[size],
   };
+
+  const source = useLightWordmark ? MARK_WHITE : MARK_NAVY;
 
   return (
     <View style={[styles.container, centered && styles.containerCentered]}>
       <Image
-        source={useWhite ? WORDMARK_WHITE : WORDMARK_NAVY}
+        source={source}
         style={imageStyle}
         resizeMode="contain"
+        {...(Platform.OS === 'android' ? { resizeMethod: 'scale' as const } : {})}
         accessibilityRole="image"
         accessibilityLabel="Passla"
       />
@@ -66,6 +103,11 @@ const styles = StyleSheet.create({
   },
   containerCentered: {
     alignItems: 'center',
+  },
+  wordmark: {
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
   },
   tagline: {
     ...Typography.bodySmall,

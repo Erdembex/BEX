@@ -21,6 +21,7 @@ import { uploadLocalFiles } from '../../lib/storageUpload';
 import { resolveMediaUrl } from '../../lib/mediaUrl';
 import { fetchMyPublicProfile } from '../portfolio/publicProfileApi';
 import { notificationService } from '../notifications/notificationService';
+import { prefetchAuthLoginWall } from '@/lib/prefetchAuthLoginWall';
 
 export type { AuthSession } from './authTypes';
 
@@ -49,7 +50,7 @@ export function getAuthErrorMessage(code: string): string {
     'invalid-gender': 'Cinsiyet seçmelisin.',
     'invalid-age': 'Kayıt için en az 13 yaşında olmalısın.',
   };
-  return map[code] ?? `Bilinmeyen hata (${code})`;
+  return map[code] ?? 'Bir sorun oluştu. Lütfen tekrar dene; devam ederse destek ile iletişime geç.';
 }
 
 function mapUserTypeToRole(userType: string | undefined, email?: string | null): UserRole {
@@ -280,6 +281,7 @@ export const authService = {
     }
     await clearTokens();
     notificationService.resetSession();
+    await prefetchAuthLoginWall();
   },
 
   async resetPassword(email: string): Promise<{ devResetToken?: string }> {

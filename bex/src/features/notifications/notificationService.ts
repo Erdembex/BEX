@@ -9,15 +9,19 @@ import { setDevProfile } from '@/lib/devProfileStore';
 let initializedForUser: string | null = null;
 let lastPushToken: string | null = null;
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+export const PUSH_CHANNEL_ID = 'default';
+
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 function resolveExpoProjectId(): string | undefined {
   return (
@@ -27,72 +31,104 @@ function resolveExpoProjectId(): string | undefined {
   );
 }
 
-export const notificationService = {
-  async initialize(userId: string): Promise<void> {
-    if (initializedForUser === userId) return;
+/** Android kilit ekranı + banner için yüksek öncelikli kanal. */
+export async function ensureAndroidNotificationChannels(): Promise<void> {
+  if (Platform.OS !== 'android') return;
 
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'Passla Bildirimleri',
-        importance: Notifications.AndroidImportance.DEFAULT,
-      });
+  await Notifications.setNotificationChannelAsync(PUSH_CHANNEL_ID, {
+    name: 'Passla Bildirimleri',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#D4B86A',
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    sound: 'default',
+    enableVibrate: true,
+    showBadge: true,
+  });
+}
+
+/** Sistem izin diyaloğunu açar (iOS alert/sound/badge). */
+export async function requestNotificationPermissions(): Promise<boolean> {
+  await ensureAndroidNotificationChannels();
+
+  const existing = await Notifications.getPermissionsAsync();
+  if (existing.status === 'granted') {
+    return true;
+  }
+
+  const result = await Notifications.requestPermissionsAsync({
+    ios: {
+      allowAlert: true,
+      allowBadge: true,
+      allowSound: true,
+    },
+  });
+
+  return result.status === 'granted';
+}
+
+async function registerPushTokenWithBackend(userId: string): Promise<string | null> {
+  await ensureAndroidNotificationChannels();
+
+  const { status } = await Notifications.getPermissionsAsync();
+  if (status !== 'granted') {
+    if (__DEV__) {
+      console.warn('[push] Bildirim izni verilmedi — token kaydedilmedi.');
     }
+    return null;
+  }
 
-    const { status: existing } = await Notifications.getPermissionsAsync();
-    let finalStatus = existing;
-    if (existing !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-
-    initializedForUser = userId;
-
-    if (finalStatus !== 'granted') {
+  try {
+    const projectId = resolveExpoProjectId();
+    if (!projectId) {
       if (__DEV__) {
-        console.warn('[push] Bildirim izni verilmedi.');
+        console.warn(
+          '[push] EAS project id yok. app.json extra.eas.projectId veya EXPO_PUBLIC_EAS_PROJECT_ID gerekli.'
+        );
       }
+      return null;
+    }
+
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
+    lastPushToken = token;
+
+    if (__DEV__) {
+      console.log('[push] Expo push token:', token);
+    }
+
+    if (shouldUseDemoData()) {
+      await setDevProfile(userId, { expoPushToken: token });
+      return token;
+    }
+
+    if (await usesRestBackend()) {
+      await apiClient.post('/api/device/fcm-token', {
+        token,
+        platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
+      });
+      if (__DEV__) {
+        console.log("[push] Token backend'e kaydedildi.");
+      }
+    }
+
+    return token;
+  } catch (err) {
+    if (__DEV__) {
+      console.warn('[push] Token alınamadı:', err);
+    }
+    return null;
+  }
+}
+
+export const notificationService = {
+  async initialize(userId: string, options?: { refresh?: boolean }): Promise<void> {
+    if (!options?.refresh && initializedForUser === userId && lastPushToken) {
       return;
     }
 
-    try {
-      const projectId = resolveExpoProjectId();
-      if (!projectId) {
-        if (__DEV__) {
-          console.warn(
-            '[push] EXPO_PUBLIC_EAS_PROJECT_ID tanımlı değil. Push token alınamadı — `npx eas init` çalıştır ve .env.local dosyasına project id ekle.'
-          );
-        }
-        return;
-      }
-
-      const token = (
-        await Notifications.getExpoPushTokenAsync({ projectId })
-      ).data;
-
-      lastPushToken = token;
-
-      if (__DEV__) {
-        console.log('[push] Expo push token:', token);
-      }
-
-      if (shouldUseDemoData()) {
-        await setDevProfile(userId, { expoPushToken: token });
-        return;
-      }
-
-      if (await usesRestBackend()) {
-        await apiClient.post('/api/device/fcm-token', {
-          token,
-          platform: Platform.OS === 'ios' ? 'IOS' : 'ANDROID',
-        });
-        if (__DEV__) {
-          console.log('[push] Token backend\'e kaydedildi.');
-        }
-      }
-    } catch (err) {
-      if (__DEV__) {
-        console.warn('[push] Token alınamadı:', err);
-      }
+    const token = await registerPushTokenWithBackend(userId);
+    if (token) {
+      initializedForUser = userId;
     }
   },
 
@@ -109,7 +145,7 @@ export const notificationService = {
           },
         });
         if (__DEV__) {
-          console.log('[push] Token backend\'den silindi.');
+          console.log("[push] Token backend'den silindi.");
         }
       }
     } catch (err) {
@@ -118,6 +154,7 @@ export const notificationService = {
       }
     } finally {
       lastPushToken = null;
+      initializedForUser = null;
     }
   },
 
@@ -126,10 +163,20 @@ export const notificationService = {
     lastPushToken = null;
   },
 
+  requestNotificationPermissions,
+  ensureAndroidNotificationChannels,
+
   async presentLocal(title: string, body: string, data?: Record<string, string>) {
     try {
+      await ensureAndroidNotificationChannels();
       await Notifications.scheduleNotificationAsync({
-        content: { title, body, data },
+        content: {
+          title,
+          body,
+          data,
+          sound: 'default',
+          ...(Platform.OS === 'android' ? { channelId: PUSH_CHANNEL_ID } : {}),
+        },
         trigger: null,
       });
     } catch {

@@ -7,20 +7,21 @@ import { authService } from '@/features/auth/authService';
 import { hasCompletedOnboarding } from '@/lib/onboardingStorage';
 import { createThemedStyles, useThemeColors } from '@/theme';
 
-type GuestRoute = 'loading' | 'onboarding' | 'login';
+type AuthRoute = 'loading' | 'onboarding' | 'login';
 
 export default function Index() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const { firebaseUser, bexUser, isInitialized, setBexUser, signOut } = useAuthStore();
-  const [guestRoute, setGuestRoute] = useState<GuestRoute>('loading');
+  const { firebaseUser, bexUser, isInitialized, setBexUser, signOut } =
+    useAuthStore();
+  const [authRoute, setAuthRoute] = useState<AuthRoute>('loading');
 
   useEffect(() => {
     if (!isInitialized || firebaseUser) return;
 
     let cancelled = false;
     void hasCompletedOnboarding().then((done) => {
-      if (!cancelled) setGuestRoute(done ? 'login' : 'onboarding');
+      if (!cancelled) setAuthRoute(done ? 'login' : 'onboarding');
     });
 
     return () => {
@@ -67,7 +68,7 @@ export default function Index() {
   }
 
   if (!firebaseUser) {
-    if (guestRoute === 'loading') {
+    if (authRoute === 'loading') {
       return (
         <Screen style={styles.center}>
           <ActivityIndicator size="large" color={Colors.primary} />
@@ -75,7 +76,7 @@ export default function Index() {
       );
     }
     return (
-      <Redirect href={guestRoute === 'login' ? '/(auth)/login' : '/(auth)/onboarding'} />
+      <Redirect href={authRoute === 'login' ? '/(auth)/login' : '/(auth)/onboarding'} />
     );
   }
 
@@ -93,7 +94,7 @@ export default function Index() {
   }
 
   if (bexUser.role === 'business') {
-    return <Redirect href="/(business)/panel" />;
+    return <Redirect href="/(business)/applications/index" />;
   }
 
   if (bexUser.role === 'admin') {

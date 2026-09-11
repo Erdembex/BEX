@@ -6,6 +6,7 @@ import { usesDemoStore } from '@/lib/restBackend';
 import { EnrichedTask } from '@/features/data/businessesRepository';
 import { CreateTask, Task, TaskCategory, TaskDifficulty } from '@/types';
 import { formatLocationLabel } from '@/constants/turkeyLocations';
+import { resolveMediaUrl } from '@/lib/mediaUrl';
 
 type ListingCardDto = {
   id: string;
@@ -186,6 +187,7 @@ function mapCardToTask(dto: ListingCardDto, businessId = ''): EnrichedTask {
     approvedByAdmin: isListingPublished(dto.status),
     featured: false,
     businessName: dto.businessName?.trim() || 'İşletme',
+    businessLogoUrl: resolveMediaUrl(dto.businessLogoUrl?.trim() ?? ''),
     businessVerified: dto.businessVerified ?? false,
     businessIsDangerous: dto.businessIsDangerous ?? false,
     businessComplaintListed: dto.businessComplaintListed ?? false,
@@ -222,6 +224,7 @@ function mapResponseToTask(dto: ListingResponseDto): EnrichedTask {
     approvedByAdmin: isListingPublished(dto.status),
     featured: false,
     businessName: dto.businessName?.trim() || 'İşletme',
+    businessLogoUrl: resolveMediaUrl(dto.businessLogoUrl?.trim() ?? ''),
     businessVerified: dto.businessVerified ?? false,
     businessAverageRating: dto.businessAverageRating ?? undefined,
     businessFeedbackCount: dto.businessFeedbackCount ?? undefined,

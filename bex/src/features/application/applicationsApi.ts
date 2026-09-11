@@ -7,7 +7,7 @@ import {
   hasRestAuthSession,
 } from '@/lib/auth/sessionClaims';
 import { fetchBusinessListings, fetchListingDetail } from '@/features/listing/listingsApi';
-import { normalizeUploadPath } from '@/lib/mediaUrl';
+import { normalizeUploadPath, resolveMediaUrl } from '@/lib/mediaUrl';
 import { Application, ApplicationStatus, CreateApplication } from '@/types';
 
 type BackendApplicationStatus =
@@ -171,6 +171,7 @@ async function mapDetailToApplication(
     status: mapBackendStatus(dto.status),
     coverLetter: dto.coverLetter?.trim() ?? '',
     applicantName: dto.fullName?.trim() || undefined,
+    applicantAvatarUrl: dto.avatarUrl?.trim() ? resolveMediaUrl(dto.avatarUrl.trim()) : null,
     ...mapDetailFields(dto),
     createdAt: toTimestamp(dto.appliedAt),
     feedbackSubmitted: dto.feedbackSubmittedByMe ?? false,
@@ -299,6 +300,7 @@ export async function fetchApplicantsByListing(listingId: string): Promise<Appli
     status: mapBackendStatus(row.status),
     coverLetter: row.coverLetterExcerpt?.trim() ?? '',
     applicantName: row.fullName?.trim() || undefined,
+    applicantAvatarUrl: row.avatarUrl?.trim() ? resolveMediaUrl(row.avatarUrl.trim()) : null,
     submissionText: '',
     submissionFiles: [],
     createdAt: toTimestamp(row.appliedAt),

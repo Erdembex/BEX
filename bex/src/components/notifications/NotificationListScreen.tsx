@@ -2,10 +2,10 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, SectionList, TouchableOpacity, RefreshControl } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { notificationsRepository, openNotificationTarget } from '@/features/notifications';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationUnreadCount } from '@/hooks/useNotifications';
 import { BexNotification } from '@/types';
 import { Button } from '@/components/ui';
 import { AppHeader } from '@/components/navigation/AppHeader';
@@ -67,7 +67,7 @@ export function NotificationListScreen({ showBack = false }: NotificationListScr
   const styles = useScreenStyles();
   const { t } = useTranslation();
   const { firebaseUser, bexUser } = useAuthStore();
-  const { refreshUnread, unreadCount } = useNotifications();
+  const { refreshUnread, unreadCount } = useNotificationUnreadCount();
   const [items, setItems] = useState<BexNotification[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 

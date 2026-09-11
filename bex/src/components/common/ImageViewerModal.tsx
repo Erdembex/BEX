@@ -11,10 +11,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ZoomableImage } from '@/components/common/ZoomableImage';
-import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
+import { Typography, Spacing, Radius } from '@/theme';
+import { BRAND_GOLD_MID, BRAND_NAVY } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const IMAGE_WIDTH = SCREEN_WIDTH - Spacing[8];
+const IMAGE_HEIGHT = Math.min(SCREEN_HEIGHT * 0.72, SCREEN_WIDTH);
 
 type ImageViewerModalProps = {
   visible: boolean;
@@ -25,7 +28,6 @@ type ImageViewerModalProps = {
 };
 
 export function ImageViewerModal({ visible, uri, onClose, zoomHint, caption }: ImageViewerModalProps) {
-  const Colors = useThemeColors();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const hint = zoomHint ?? t('imageViewerModal.zoomHint');
@@ -38,7 +40,7 @@ export function ImageViewerModal({ visible, uri, onClose, zoomHint, caption }: I
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={[styles.backdrop, { backgroundColor: Colors.overlay ?? 'rgba(0,0,0,0.92)' }]}>
+      <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t('imageViewerModal.close')} />
 
         <TouchableOpacity
@@ -48,10 +50,10 @@ export function ImageViewerModal({ visible, uri, onClose, zoomHint, caption }: I
           accessibilityRole="button"
           accessibilityLabel={t('imageViewerModal.close')}
         >
-          <Ionicons name="close" size={22} color={Colors.textPrimary} />
+          <Ionicons name="close" size={28} color={BRAND_NAVY} />
         </TouchableOpacity>
 
-        <View style={styles.content} pointerEvents="box-none">
+        <View style={[styles.content, { paddingTop: insets.top + Spacing[12], paddingBottom: insets.bottom + Spacing[6] }]}>
           {uri ? (
             <ZoomableImage
               uri={uri}
@@ -69,46 +71,49 @@ export function ImageViewerModal({ visible, uri, onClose, zoomHint, caption }: I
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
+    backgroundColor: 'rgba(1, 8, 16, 0.94)',
     justifyContent: 'center',
   },
   closeBtn: {
     position: 'absolute',
-    zIndex: 10,
-    width: 44,
-    height: 44,
+    zIndex: 20,
+    width: 48,
+    height: 48,
     borderRadius: Radius.full,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: BRAND_GOLD_MID,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 8,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[16],
+    gap: Spacing[3],
   },
   image: {
-    width: SCREEN_WIDTH - Spacing[8],
-    height: Math.min(SCREEN_HEIGHT * 0.72, SCREEN_WIDTH),
+    width: IMAGE_WIDTH,
+    height: IMAGE_HEIGHT,
     borderRadius: Radius.lg,
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
   hint: {
     ...Typography.caption,
-    color: 'rgba(255,255,255,0.75)',
+    color: 'rgba(255,255,255,0.78)',
     textAlign: 'center',
-    marginTop: Spacing[4],
   },
   caption: {
     ...Typography.labelLarge,
     color: '#FFFFFF',
     textAlign: 'center',
-    marginTop: Spacing[3],
     paddingHorizontal: Spacing[4],
+    fontWeight: '700',
   },
 });

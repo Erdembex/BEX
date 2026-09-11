@@ -1,0 +1,12 @@
+Passla 1.0.2 — Internal test
+
+Yenilikler:
+- Login ekranında "Şimdilik Atla" ile misafir mod (görevleri incele)
+- Onboarding geri tuşu ve güncellenmiş tanıtım metinleri
+- Karanlık/aydınlık mod, offline banner, 404 sayfası
+- Bildirim izni açıklaması, ayarlarda önbellek temizleme
+
+Test notu:
+1. Login → "Şimdilik Atla" → Hub → Görevler
+2. Başvuru / mesaj / cüzdan için kayıt gerekir
+3. API: https://api.passla.com.tr

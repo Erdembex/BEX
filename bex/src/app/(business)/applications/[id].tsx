@@ -2,7 +2,7 @@ import React, { useCallback, useRef, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Screen, useResolvedSafeAreaInsets } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import {
   applicationsRepository,

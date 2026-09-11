@@ -1,13 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import { FlatList, TouchableOpacity, ListRenderItem, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
-import { Screen } from '@/components/common/Screen';
-import { useFocusEffect } from '@react-navigation/native';
+import { Screen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useLocalSearchParams } from 'expo-router';
 import { createBox, ThemeProvider } from '@shopify/restyle';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/common/Toast';
 import { useAuthStore } from '@/store/authStore';
+import { useRequireAuth } from '@/hooks/useRequireAuth';
 import { tradeRepository } from './tradeRepository';
 import { tradeTheme, TradeTheme, useTradeTheme } from './tradeTheme';
 import { Spacing, useThemeColors } from '@/theme';
@@ -17,7 +19,6 @@ import { TradeNewSwapPanel } from './TradeNewSwapPanel';
 import { TradeHistoryPanel } from './TradeHistoryPanel';
 import { TradeSubmitOfferModal } from './TradeSubmitOfferModal';
 import { AppHeader } from '@/components/navigation/AppHeader';
-import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { useTranslation } from '@/i18n';
 
 const Box = createBox<TradeTheme>();
@@ -202,8 +203,10 @@ function TradeTabSwitch({
 export function TradeMarketScreen() {
   const tradeTheme = useTradeTheme();
   const Colors = useThemeColors();
+  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const { firebaseUser } = useAuthStore();
+  const { requireAuth } = useRequireAuth();
   const { showToast } = useToast();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<TradeTab>('market');
@@ -215,14 +218,6 @@ export function TradeMarketScreen() {
   const [selectedListing, setSelectedListing] = useState<TradeListing | null>(null);
 
   const load = useCallback(async () => {
-    if (!firebaseUser) {
-      setListings([]);
-      setMyOffers([]);
-      setLoadError(null);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoadError(null);
 
@@ -235,6 +230,11 @@ export function TradeMarketScreen() {
         setListings([]);
         setLoadError(message);
         showToast(message);
+      }
+
+      if (!firebaseUser) {
+        setMyOffers([]);
+        return;
       }
 
       try {
@@ -288,14 +288,20 @@ export function TradeMarketScreen() {
     <TradeListingCard
       item={item}
       currentUserId={firebaseUser?.uid}
-      onOfferPress={setSelectedListing}
+      onOfferPress={(listing) => {
+        if (!firebaseUser) {
+          requireAuth(() => setSelectedListing(listing));
+          return;
+        }
+        setSelectedListing(listing);
+      }}
     />
   );
 
   return (
     <ThemeProvider theme={tradeTheme}>
       <Screen style={{ flex: 1, backgroundColor: tradeTheme.colors.background }}>
-        <AppHeader title={t('tradeMarketScreen.headerTitle')} {...userHubBackHeaderProps()} />
+        <AppHeader title={t('tradeMarketScreen.headerTitle')} showMenu showNotifications />
         <Box flex={1} backgroundColor="background">
           <Box paddingHorizontal="lg" paddingTop="sm" paddingBottom="md">
             <Text variant="body" marginTop="xs" style={{ color: tradeTheme.colors.tradeMuted }}>
@@ -390,7 +396,7 @@ export function TradeMarketScreen() {
               }
               contentContainerStyle={{
                 paddingHorizontal: tradeTheme.spacing.lg,
-                paddingBottom: tradeTheme.spacing['2xl'],
+                paddingBottom: tabBarPadding,
                 flexGrow: listings.length === 0 ? 1 : undefined,
               }}
               showsVerticalScrollIndicator={false}

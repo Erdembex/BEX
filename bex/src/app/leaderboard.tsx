@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { Ionicons } from '@expo/vector-icons';
 import { fetchTopEarners, fetchTopGivers, LeaderboardEntry } from '@/features/leaderboard/leaderboardApi';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
@@ -122,12 +122,12 @@ export default function LeaderboardScreen() {
                   ) : null}
                 </View>
                 <View style={styles.countWrap}>
-                  <Ionicons name="gift-outline" size={16} color={Colors.primary} />
+                  <Ionicons name="gift-outline" size={16} color={Colors.iconPrimary} />
                   <Text style={styles.count}>
                     {t('leaderboard.rewardCount', { count: item.rewardCount })}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                <Ionicons name="chevron-forward" size={18} color={Colors.iconMuted} />
               </TouchableOpacity>
             ))
           )}

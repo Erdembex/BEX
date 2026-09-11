@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { businessesRepository, tasksRepository, EnrichedTask } from '@/features/data';
 import { Business } from '@/types';
 import { useBusinessCategoryLabels } from '@/constants/businessLabels';

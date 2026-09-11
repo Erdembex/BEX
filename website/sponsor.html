@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pilot Programı — Passla</title>
+  <meta name="description" content="Passla pilot işletme programı: nakit ödemeden görev karşılığı dijital iş, 3 ay ücretsiz Standart paket." />
+  <style>
+    :root {
+      --bg: #0E0618;
+      --navy: #051F45;
+      --accent: #F5B301;
+      --gold: #D4B86A;
+      --text: #f3f0f7;
+      --muted: #a89bb8;
+      --card: #1a1028;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    h1 { font-size: 1.9rem; margin-bottom: 0.35rem; color: var(--accent); }
+    .tagline { color: var(--text); font-size: 1.05rem; margin-bottom: 1.5rem; }
+    h2 { font-size: 1.15rem; margin: 1.75rem 0 0.75rem; color: var(--accent); }
+    p, li { margin-bottom: 0.65rem; color: var(--muted); }
+    ul { padding-left: 1.25rem; margin-bottom: 1rem; }
+    a { color: var(--accent); }
+    nav { margin-bottom: 2rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    nav a { color: var(--accent); text-decoration: none; }
+    .hero {
+      background: linear-gradient(160deg, var(--navy), #1a1028);
+      border: 1px solid rgba(212,184,106,0.35);
+      border-radius: 14px;
+      padding: 1.4rem 1.3rem;
+      margin-bottom: 1.5rem;
+    }
+    .hero p { color: #d8d0e4; margin-bottom: 0; }
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1.25rem 0 0.25rem; }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 0.65rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 650;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+    .btn.primary { background: var(--accent); color: var(--navy); }
+    .btn:hover { filter: brightness(1.08); }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin: 1rem 0; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(245,179,1,0.28);
+      border-radius: 12px;
+      padding: 1.1rem 1.15rem;
+    }
+    .card h3 { color: var(--text); font-size: 1rem; margin-bottom: 0.5rem; }
+    .note {
+      font-size: 0.9rem;
+      border-left: 3px solid var(--gold);
+      padding: 0.65rem 0.9rem;
+      background: rgba(212,184,106,0.08);
+      border-radius: 0 8px 8px 0;
+      color: var(--muted);
+    }
+    footer { margin-top: 3rem; font-size: 0.875rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav>
+      <a href="/">← Ana sayfa</a>
+      <a href="/gizlilik.html">Gizlilik</a>
+      <a href="/kullanim-kosullari.html">Koşullar</a>
+      <a href="/destek.html">Destek</a>
+    </nav>
+
+    <h1>Passla Pilot Programı</h1>
+    <p class="tagline">Nakit ödemeden görev karşılığı ürün ve hizmet. İşletmeye 3 ay ücretsiz.</p>
+
+    <div class="hero">
+      <p>
+        Yerel işletmeler web sitesi, sosyal medya, tasarım gibi işleri ajansa
+        15.000–30.000 TL ödeyemediği için erteliyor. Passla’da işletme kendi
+        hizmetini ödül olarak tanımlıyor; kullanıcı görevi tamamlıyor, dijital
+        kupon QR ile tek kullanımda doğrulanıyor. Para transferi yok.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="mailto:destek@passla.com.tr?subject=Passla%20pilot%20basvurusu">Pilot için yazın</a>
+        <a class="btn" href="Passla-Tek-Sayfa.pdf">Tek sayfa özet (PDF)</a>
+        <a class="btn" href="https://expo.dev/accounts/erdem1803/projects/bex/builds/af2063be-bfdb-4f6b-ada6-260f88c82c1f">Android test uygulaması</a>
+      </div>
+    </div>
+
+    <h2>Nasıl çalışır</h2>
+    <ul>
+      <li><strong>İşletme görev açar</strong> — ihtiyacını ve vereceği ödülü kendisi tanımlar.</li>
+      <li><strong>Kullanıcı başvurur</strong> — sohbette şartlar netleşir, resmi teklif gider.</li>
+      <li><strong>İş teslim edilir</strong> — işletme onaylar; onaylanmazsa kupon üretilmez.</li>
+      <li><strong>Kupon QR ile okutulur</strong> — tek kullanım, ekran görüntüsü işe yaramaz.</li>
+    </ul>
+
+    <h2>Size verdiğimiz / sizden istediğimiz</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>3 ay ücretsiz Standart paket</h3>
+        <p>Normal fiyatı 897 TL. İlk 10 görevde öne çıkarma, görev metnini birlikte yazma, kurucuya doğrudan erişim.</p>
+      </div>
+      <div class="card">
+        <h3>Karşılığında</h3>
+        <p>Haftada bir görev açmak, ayda bir kısa geri bildirim, onayladığınız ödülü uygulamadan okutarak vermek.</p>
+      </div>
+    </div>
+
+    <p class="note">
+      Nakit ödeme yok. Sözleşme bağlayıcı değil; istediğiniz an çıkabilirsiniz.
+      Ödülü ve başvuruyu siz seçersiniz. Mağazada henüz yayında değiliz —
+      çalışan prototip ve pilot aşamasındayız.
+    </p>
+
+    <h2>Örnek</h2>
+    <p>
+      Spor salonu web sitesi yaptırmak istiyor, ajans 25.000 TL istiyor.
+      Passla’da 3 aylık üyelik + haftalık smoothie karşılığında bir öğrenci
+      siteyi teslim ediyor. Salon nakit çıkarmıyor; öğrenci gerçek hizmet kazanıyor.
+    </p>
+
+    <h2>Abonelik (pilot sonrası)</h2>
+    <ul>
+      <li>Ücretsiz — 0 TL, 2 aktif ilan</li>
+      <li>Standart — 299 TL/ay</li>
+      <li>Pro — 699 TL/ay</li>
+    </ul>
+    <p>Pilot bitince ücretli plana geçmek zorunlu değil; otomatik ücret alınmaz.</p>
+
+    <h2>Başvuru</h2>
+    <p>
+      İstanbul, özellikle Sultanbeyli ve kampüs çevresi. Kafe, spor salonu,
+      kuaför, güzellik merkezi ve küçük perakende için uygundur.
+    </p>
+    <p>
+      E-posta: <a href="mailto:destek@passla.com.tr">destek@passla.com.tr</a><br />
+      Konu satırına “pilot” yazmanız yeter. Uygun bir gün için 10 dakikalık
+      görüşme ayarlarız; telefonda canlı gösteririz.
+    </p>
+
+    <footer>
+      <p>&copy; 2026 Passla · Erdem Yılmaz</p>
+      <p><a href="/">passla.com.tr</a></p>
+    </footer>
+  </div>
+</body>
+</html>

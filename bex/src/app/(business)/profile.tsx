@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { BUSINESS_TAB_BAR_HEIGHT } from '@/components/business/BusinessTabBar';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import Constants from 'expo-constants';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/features/auth/authService';
@@ -11,7 +12,7 @@ import { useBusiness } from '@/features/business/useBusiness';
 import { LocationPicker } from '@/components/common/LocationPicker';
 import { isAuthEmulatorActive } from '@/lib/firebase';
 import { AccountSettings } from '@/components/profile/AccountSettings';
-import { AppHeader } from '@/components/navigation/AppHeader';
+import { BusinessScreenHeader } from '@/components/business/BusinessScreenHeader';
 import { Button, Input } from '@/components/ui';
 import {
   useBusinessCategoryLabels,
@@ -76,17 +77,24 @@ export default function BusinessProfileScreen() {
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
   const verificationStatus = business?.verificationStatus ?? 'none';
 
+  const tabBarPadding = useTabBarBottomPadding(BUSINESS_TAB_BAR_HEIGHT);
+
   return (
-    <Screen style={styles.safe}>
-      <AppHeader title={t('businessProfileScreen.headerTitle')} />
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <TabScreen style={styles.safe}>
+      <BusinessScreenHeader title={t('businessProfileScreen.headerTitle')} />
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
+        <AccountSettings
+          bexUser={bexUser}
+          onUserUpdated={setBexUser}
+          showAdminLink={bexUser?.role === 'admin'}
+        />
+
         {loading && !business ? (
-          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: Spacing[8] }} />
+          <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: Spacing[4] }} />
         ) : (
           <>
             <View style={styles.businessCard}>
               <Text style={styles.businessCardTitle}>{t('businessProfileScreen.businessInfoTitle')}</Text>
-              <Text style={styles.businessName}>{business?.name ?? bexUser?.displayName ?? t('businessProfileScreen.defaultBusinessName')}</Text>
               {business?.category ? (
                 <Text style={styles.businessMeta}>
                   {BUSINESS_CATEGORY_LABELS[business.category]}
@@ -118,6 +126,28 @@ export default function BusinessProfileScreen() {
               ) : null}
             </View>
 
+            <View style={styles.quickLinks}>
+              {verificationStatus !== 'verified' ? (
+                <Button
+                  title={t('businessProfileScreen.kycButton')}
+                  variant="secondary"
+                  onPress={() => router.push('/(business)/verification' as Href)}
+                />
+              ) : null}
+              {!bexUser?.phoneVerified ? (
+                <Button
+                  title={t('businessProfileScreen.verifyPhoneButton')}
+                  variant="outline"
+                  onPress={() => router.push('/(auth)/phone-verification' as Href)}
+                />
+              ) : null}
+              <Button
+                title={t('businessProfileScreen.couponsButton')}
+                variant="outline"
+                onPress={() => router.push('/(business)/coupons' as Href)}
+              />
+            </View>
+
             <View style={styles.locationCard}>
               <Text style={styles.businessCardTitle}>{t('businessProfileScreen.locationTitle')}</Text>
               <Text style={styles.locationHint}>
@@ -147,36 +177,8 @@ export default function BusinessProfileScreen() {
                 <Text style={styles.locationMessage}>{locationMessage}</Text>
               ) : null}
             </View>
-
-            <View style={styles.quickLinks}>
-              {verificationStatus !== 'verified' ? (
-                <Button
-                  title={t('businessProfileScreen.kycButton')}
-                  variant="secondary"
-                  onPress={() => router.push('/(business)/verification' as Href)}
-                />
-              ) : null}
-              {!bexUser?.phoneVerified ? (
-                <Button
-                  title={t('businessProfileScreen.verifyPhoneButton')}
-                  variant="outline"
-                  onPress={() => router.push('/(auth)/phone-verification' as Href)}
-                />
-              ) : null}
-              <Button
-                title={t('businessProfileScreen.couponsButton')}
-                variant="outline"
-                onPress={() => router.push('/(business)/coupons' as Href)}
-              />
-            </View>
           </>
         )}
-
-        <AccountSettings
-          bexUser={bexUser}
-          onUserUpdated={setBexUser}
-          showAdminLink={bexUser?.role === 'admin'}
-        />
 
         <Button
           title={t('profileScreen.settings')}
@@ -195,7 +197,7 @@ export default function BusinessProfileScreen() {
         <Button title={t('businessProfileScreen.logout')} variant="outline" onPress={handleLogout} />
 
         <View style={styles.meta}>
-          <Text style={styles.metaText}>Passla v{appVersion}</Text>
+          <Text style={styles.metaText}>PASSLA v{appVersion}</Text>
           {__DEV__ && (
             <Text style={styles.metaText}>
               {isAuthEmulatorActive() ? t('businessProfileScreen.emulatorDemo') : t('businessProfileScreen.liveBackend')}
@@ -203,7 +205,7 @@ export default function BusinessProfileScreen() {
           )}
         </View>
       </ScrollView>
-    </Screen>
+    </TabScreen>
   );
 }
 
@@ -230,10 +232,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
-  },
-  businessName: {
-    ...Typography.headingMedium,
-    color: Colors.textPrimary,
   },
   businessMeta: {
     ...Typography.bodySmall,

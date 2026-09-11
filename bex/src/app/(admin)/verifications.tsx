@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { adminRepository } from '@/features/admin';
 import { Business } from '@/types';
 import { BUSINESS_CATEGORY_LABELS, VERIFICATION_STATUS_LABELS } from '@/constants/businessLabels';

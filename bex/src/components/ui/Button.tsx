@@ -95,7 +95,7 @@ export function Button({
             : Typography.labelLarge),
           fontWeight: '700',
           color: isGold
-            ? '#031528'
+            ? BRAND_NAVY
             : isNavy || variant === 'danger'
               ? variant === 'danger'
                 ? Colors.textOnPrimary
@@ -107,7 +107,7 @@ export function Button({
   );
 
   const loaderColor = isGold
-    ? '#031528'
+    ? BRAND_NAVY
     : isNavy || variant === 'danger'
       ? BRAND_NAVY_TEXT
       : Colors.primary;

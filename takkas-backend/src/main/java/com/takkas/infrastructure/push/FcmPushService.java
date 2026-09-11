@@ -56,9 +56,21 @@ public class FcmPushService {
             .setNotification(Notification.builder().setTitle(title).setBody(body).build())
             .putAllData(data)
             .setAndroidConfig(AndroidConfig.builder()
-                .setPriority(AndroidConfig.Priority.HIGH).build())
+                .setPriority(AndroidConfig.Priority.HIGH)
+                .setNotification(AndroidNotification.builder()
+                    .setChannelId("default")
+                    .setSound("default")
+                    .setDefaultVibrateTimings(true)
+                    .setVisibility(AndroidNotification.Visibility.PUBLIC)
+                    .build())
+                .build())
             .setApnsConfig(ApnsConfig.builder()
-                .setAps(Aps.builder().setSound("default").setBadge(1).build()).build())
+                .setAps(Aps.builder()
+                    .setSound("default")
+                    .setBadge(1)
+                    .setAlert(ApsAlert.builder().setTitle(title).setBody(body).build())
+                    .build())
+                .build())
             .build();
         FirebaseMessaging.getInstance().send(message);
         log.debug("[FcmPushService] Push gönderildi: token={}...", token.substring(0, 10));

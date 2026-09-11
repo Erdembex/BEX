@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { Timestamp } from 'firebase/firestore';
 import { useAuthStore } from '@/store/authStore';
@@ -46,8 +47,18 @@ function buildNotificationFromPushData(
 export function useNotificationNavigation(onReceived?: () => void) {
   const { firebaseUser, bexUser } = useAuthStore();
 
+  const handleNotificationResponse = useCallback(
+    (response: Notifications.NotificationResponse) => {
+      if (!firebaseUser) return;
+      const data = (response.notification.request.content.data ?? {}) as Record<string, unknown>;
+      const item = buildNotificationFromPushData(data, firebaseUser.uid);
+      void openNotificationTarget(item, bexUser?.role);
+    },
+    [firebaseUser, bexUser?.role]
+  );
+
   useEffect(() => {
-    if (!firebaseUser) return;
+    if (Platform.OS === 'web' || !firebaseUser) return;
 
     const receivedSub = Notifications.addNotificationReceivedListener((notification) => {
       onReceived?.();
@@ -60,16 +71,18 @@ export function useNotificationNavigation(onReceived?: () => void) {
     });
 
     const responseSub = Notifications.addNotificationResponseReceivedListener((response) => {
-      void (async () => {
-        const data = (response.notification.request.content.data ?? {}) as Record<string, unknown>;
-        const item = buildNotificationFromPushData(data, firebaseUser.uid);
-        await openNotificationTarget(item, bexUser?.role);
-      })();
+      void handleNotificationResponse(response);
+    });
+
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response) {
+        void handleNotificationResponse(response);
+      }
     });
 
     return () => {
       receivedSub.remove();
       responseSub.remove();
     };
-  }, [firebaseUser, bexUser?.role, onReceived]);
+  }, [firebaseUser, handleNotificationResponse, onReceived]);
 }

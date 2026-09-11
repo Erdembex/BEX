@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { router, Href } from 'expo-router';
 import { useMessagingInbox, MessagingAudience } from '@/hooks/useMessagingInbox';
 import { useMessagingInboxStore } from '@/store/messagingInboxStore';
@@ -10,6 +11,7 @@ import { notifyMessagingInboxRead } from '@/store/messagingInboxStore';
 import { triggerNotificationRefresh } from '@/store/notificationRefreshBridge';
 import { ConversationRow } from '@/components/messaging/ConversationRow';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { MessagesInboxSkeleton } from '@/components/messaging/MessagesInboxSkeleton';
 import { Button } from '@/components/ui';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
@@ -18,6 +20,7 @@ type MessagesInboxViewProps = {
   audience: MessagingAudience;
   chatRoute: (applicationId: string) => Href;
   showMenu?: boolean;
+  onMenuPress?: () => void;
   onBack?: () => void;
 };
 
@@ -25,11 +28,12 @@ export function MessagesInboxView({
   audience,
   chatRoute,
   showMenu = audience === 'user',
+  onMenuPress,
   onBack,
 }: MessagesInboxViewProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding();
+  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
 
   const LOCKED_COPY: Record<
@@ -74,6 +78,7 @@ export function MessagesInboxView({
         <AppHeader
           title={t('messagesInboxView.headerTitle')}
           showMenu={showMenu && !onBack}
+          onMenuPress={onMenuPress}
           onBack={onBack}
         />
       ) : (
@@ -83,9 +88,7 @@ export function MessagesInboxView({
       )}
 
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator color={Colors.primary} size="large" />
-        </View>
+        <MessagesInboxSkeleton />
       ) : !isUnlocked ? (
         <View style={styles.lockedWrap}>
           <View style={styles.lockedCard}>

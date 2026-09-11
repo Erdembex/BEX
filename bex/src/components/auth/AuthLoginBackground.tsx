@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Image, StyleSheet, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BRAND_GOLD, BRAND_GOLD_VIVID } from '@/theme/brand';
+import { BRAND_GOLD, BRAND_GOLD_VIVID, BRAND_NAVY } from '@/theme/brand';
 
 const AUTH_TEA_GLASS = require('../../../assets/branding/auth-tea-glass.png');
 
@@ -14,7 +14,7 @@ export function AuthLoginBackground() {
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
       <LinearGradient
-        colors={['#051F45', '#061528', '#030C16', '#010810']}
+        colors={[BRAND_NAVY, BRAND_NAVY, BRAND_NAVY, BRAND_NAVY]}
         locations={[0, 0.35, 0.7, 1]}
         start={{ x: 0.1, y: 0 }}
         end={{ x: 0.9, y: 1 }}

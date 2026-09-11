@@ -112,9 +112,7 @@ public class UserService {
     public List<IndividualSearchResult> searchIndividualProfiles(String query, UUID viewerUserId) {
         String term = query != null ? query.trim().replace("@", "") : "";
         var blockedIds = userBlockService.blockedByViewerUserIds(viewerUserId);
-        List<IndividualProfile> profiles = term.length() >= 2
-            ? individualRepo.findTop20ByUsernameContainingIgnoreCaseOrderByUsernameAsc(term)
-            : individualRepo.findTop20ByOrderByUsernameAsc();
+        List<IndividualProfile> profiles = findIndividualsMatching(term);
         return profiles.stream()
             .filter(p -> !blockedIds.contains(p.getUser().getId()))
             .map(p -> {
@@ -126,6 +124,26 @@ public class UserService {
                 p.getAvatarUrl(),
                 (int) trust.completedTaskCount());
         }).toList();
+    }
+
+    private List<IndividualProfile> findIndividualsMatching(String term) {
+        if (term.length() >= 2) {
+            LinkedHashMap<UUID, IndividualProfile> merged = new LinkedHashMap<>();
+            for (IndividualProfile profile :
+                individualRepo.findTop20ByUsernameContainingIgnoreCaseOrderByUsernameAsc(term)) {
+                merged.putIfAbsent(profile.getId(), profile);
+            }
+            for (IndividualProfile profile :
+                individualRepo.findTop20ByFullNameContainingIgnoreCaseOrderByFullNameAsc(term)) {
+                if (merged.size() >= 20) break;
+                merged.putIfAbsent(profile.getId(), profile);
+            }
+            return new ArrayList<>(merged.values());
+        }
+        if (term.length() == 1) {
+            return individualRepo.findTop20ByUsernameContainingIgnoreCaseOrderByUsernameAsc(term);
+        }
+        return individualRepo.findTop20ByOrderByUsernameAsc();
     }
 
     public List<BusinessSearchResult> searchBusinessProfiles(String query, UUID viewerUserId) {

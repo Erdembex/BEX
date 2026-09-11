@@ -9,6 +9,7 @@ export type ConversationPreview = {
   applicationId: string;
   conversationId?: string;
   peerName: string;
+  peerAvatarUrl?: string | null;
   taskTitle: string;
   lastMessage?: string;
   lastMessageAt?: Timestamp;
@@ -16,9 +17,14 @@ export type ConversationPreview = {
   status: ApplicationStatus;
 };
 
+type PeerInfo = {
+  name: string;
+  avatarUrl?: string | null;
+};
+
 async function buildPreviews(
   eligible: Application[],
-  resolvePeerName: (app: Application) => Promise<string>
+  resolvePeer: (app: Application) => Promise<PeerInfo>
 ): Promise<ConversationPreview[]> {
   const unreadMap = new Map<string, number>();
   const conversationIdMap = new Map<string, string>();
@@ -37,8 +43,8 @@ async function buildPreviews(
 
   const previews = await Promise.all(
     eligible.map(async (app) => {
-      const [peerName, task, messages] = await Promise.all([
-        resolvePeerName(app),
+      const [peer, task, messages] = await Promise.all([
+        resolvePeer(app),
         tasksRepository.getById(app.taskId),
         messagesRepository.getByApplication(app.id).catch(() => []),
       ]);
@@ -47,7 +53,8 @@ async function buildPreviews(
       return {
         applicationId: app.id,
         conversationId: conversationIdMap.get(app.id),
-        peerName,
+        peerName: peer.name,
+        peerAvatarUrl: peer.avatarUrl ?? null,
         taskTitle: task?.title ?? 'Görev',
         lastMessage: last?.text,
         lastMessageAt: last?.createdAt,
@@ -82,7 +89,10 @@ export async function loadMessagingInbox(userId: string): Promise<{
 
   const conversations = await buildPreviews(eligible, async (app) => {
     const business = await businessesRepository.getById(app.businessId);
-    return business?.name ?? 'İşletme';
+    return {
+      name: business?.name ?? 'İşletme',
+      avatarUrl: business?.logoUrl?.trim() || null,
+    };
   });
 
   const totalUnread = conversations.reduce((sum, row) => sum + row.unreadCount, 0);
@@ -102,9 +112,17 @@ export async function loadBusinessMessagingInbox(businessId: string): Promise<{
     return { conversations: [], isUnlocked: false, totalUnread: 0 };
   }
 
-  const conversations = await buildPreviews(eligible, async (app) =>
-    usersRepository.getDisplayName(app.userId)
-  );
+  const conversations = await buildPreviews(eligible, async (app) => {
+    const stats = await usersRepository.getPublicProfileStats(app.userId);
+    const name =
+      app.applicantName?.trim() ||
+      stats?.displayName?.replace(/^@/, '') ||
+      (await usersRepository.getDisplayName(app.userId));
+    return {
+      name,
+      avatarUrl: app.applicantAvatarUrl ?? stats?.avatarUrl ?? null,
+    };
+  });
 
   const totalUnread = conversations.reduce((sum, row) => sum + row.unreadCount, 0);
   return { conversations, isUnlocked: true, totalUnread };

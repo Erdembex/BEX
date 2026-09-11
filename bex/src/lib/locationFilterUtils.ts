@@ -1,10 +1,15 @@
 import { matchCity, matchDistrict, formatLocationLabel } from '@/constants/turkeyLocations';
+import { t } from '@/i18n';
 
-/** Konum filtresinde “tümü” seçeneği */
+/** Konum filtresinde “tümü” seçeneği — depolama anahtarı */
 export const LOCATION_ALL = 'Hepsi';
 
 export function isLocationAll(value: string | null | undefined): boolean {
   return value === LOCATION_ALL;
+}
+
+export function getLocationAllLabel(): string {
+  return t('locationPicker.allOption');
 }
 
 export function toApiCityFilter(city: string | null | undefined): string | undefined {
@@ -30,10 +35,10 @@ export function formatFilterLocationLabel(
   district: string | null | undefined
 ): string {
   if (isLocationAll(city) || (!city && !district)) {
-    return 'Tüm Türkiye';
+    return t('locationPicker.allTurkey');
   }
   if (city && (isLocationAll(district) || !district)) {
-    return `${city} · Tüm ilçeler`;
+    return t('locationPicker.allDistrictsInCity', { city });
   }
   return formatLocationLabel(city, district);
 }
@@ -43,4 +48,9 @@ export function hasActiveLocationFilter(
   district: string | null | undefined
 ): boolean {
   return !!(toApiCityFilter(city) || toApiDistrictFilter(city, district));
+}
+
+/** Liste/modal gösterimi — depolama değerini yerelleştirir */
+export function formatLocationOptionLabel(value: string): string {
+  return isLocationAll(value) ? getLocationAllLabel() : value;
 }

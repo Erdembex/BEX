@@ -1,18 +1,24 @@
 import type { ColorKey } from './colors';
+import { BRAND_NAVY, brandNavyAlpha } from './brand';
 
 /**
  * Açık mod — Passla marka paleti
  * Krem zemin · Safir metin/CTA · Altın vurgu yüzeyleri · Buz mavi bilgi
  */
 export const LightColors: Record<ColorKey, string> = {
-  primary: '#051F45',
-  primaryLight: '#F3EBD0',
-  primaryDark: '#031528',
+  primary: BRAND_NAVY,
+  primaryLight: brandNavyAlpha(0.08),
+  primaryDark: BRAND_NAVY,
 
   secondary: '#2E5A8A',
   accent: '#D4B86A',
   accentLight: 'rgba(212, 184, 106, 0.16)',
   accentDark: '#8A7024',
+
+  iconPrimary: BRAND_NAVY,
+  iconSecondary: '#2E5A8A',
+  iconMuted: '#7A8490',
+  iconSurface: '#F3EBD0',
 
   moneyGreen: '#2D6B4A',
   moneyGreenDark: '#1F4D35',
@@ -27,18 +33,18 @@ export const LightColors: Record<ColorKey, string> = {
   surfaceSecondary: '#FAF8F5',
   card: '#FFFFFF',
 
-  text: '#031528',
-  textPrimary: '#031528',
+  text: BRAND_NAVY,
+  textPrimary: BRAND_NAVY,
   textMuted: '#5A6572',
   textSecondary: '#2A4568',
   textTertiary: '#7A8490',
   textInverse: '#F0EEE9',
   textOnPrimary: '#F0EEE9',
-  textOnGold: '#031528',
+  textOnGold: BRAND_NAVY,
 
   border: '#DDD8CF',
   borderLight: '#EBE6DE',
-  borderFocus: '#051F45',
+  borderFocus: BRAND_NAVY,
   borderGold: 'rgba(212, 184, 106, 0.38)',
 
   success: '#2D6B4A',
@@ -54,13 +60,13 @@ export const LightColors: Record<ColorKey, string> = {
   difficultyMedium: '#8A7024',
   difficultyHard: '#B53A45',
 
-  overlay: 'rgba(3, 21, 40, 0.5)',
+  overlay: brandNavyAlpha(0.5),
   overlayLight: 'rgba(212, 184, 106, 0.30)',
 
   transparent: 'transparent',
   white: '#FFFFFF',
 
-  gradientBlue: '#F3EBD0',
+  gradientBlue: '#E4EBF4',
   gradientGold: '#D4B86A',
   gradientMid: '#F0EEE9',
 };

@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, Linking, Alert, TouchableOpacity } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import {
   cancelSubscriptionAtPeriodEnd,
   createSubscriptionCheckout,
@@ -356,6 +356,13 @@ export default function BusinessSubscriptionScreen() {
         <Text style={styles.footerNote}>
           {t('subscriptionScreen.footerNote')}
         </Text>
+
+        <View style={styles.autoRenewCard}>
+          <Text style={styles.autoRenewTitle}>{t('subscriptionScreen.autoRenewTitle')}</Text>
+          <Text style={styles.autoRenewText}>{t('subscriptionScreen.autoRenewBody')}</Text>
+          <Text style={styles.autoRenewText}>{t('subscriptionScreen.autoRenewCancel')}</Text>
+          <Text style={styles.autoRenewText}>{t('subscriptionScreen.autoRenewManage')}</Text>
+        </View>
       </ScrollView>
     </TabScreen>
   );
@@ -481,5 +488,24 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     textAlign: 'center',
     lineHeight: 17,
     marginTop: Spacing[2],
+  },
+  autoRenewCard: {
+    marginTop: Spacing[4],
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing[4],
+    gap: Spacing[2],
+  },
+  autoRenewTitle: {
+    ...Typography.labelLarge,
+    color: Colors.textPrimary,
+    fontWeight: '700',
+  },
+  autoRenewText: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
 }));

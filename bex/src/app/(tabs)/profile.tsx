@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { router, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import Constants from 'expo-constants';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/features/auth/authService';
@@ -11,7 +12,6 @@ import { isAuthEmulatorActive } from '@/lib/firebase';
 import { AccountSettings } from '@/components/profile/AccountSettings';
 import { PublicProfileSections } from '@/components/profile/PublicProfileSections';
 import { AppHeader } from '@/components/navigation/AppHeader';
-import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Button } from '@/components/ui';
 import { CompletedTask, PortfolioItem } from '@/types';
 import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
@@ -20,7 +20,7 @@ import { useTranslation } from '@/i18n';
 export default function ProfileScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding();
+  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const { bexUser, firebaseUser, setBexUser, signOut } = useAuthStore();
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
@@ -78,7 +78,7 @@ export default function ProfileScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('profileScreen.title')} {...userHubBackHeaderProps()} />
+      <AppHeader title={t('profileScreen.title')} showMenu showNotifications />
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
         <AccountSettings
           bexUser={bexUser}

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '../../theme';
-import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
+import { readableTextInputStyle, textInputPaddingVertical, webTextInputStyle } from '@/lib/textInputStyle';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -19,6 +19,7 @@ interface InputProps extends TextInputProps {
   rightIcon?: React.ReactNode;
   onRightIconPress?: () => void;
   containerStyle?: ViewStyle;
+  compact?: boolean;
   isPassword?: boolean;
   variant?: 'default' | 'glass';
 }
@@ -99,15 +100,24 @@ const useStyles = createThemedStyles((Colors) => ({
     color: 'rgba(240, 238, 233, 0.88)',
   },
   containerGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-    borderColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: 'rgba(0, 0, 0, 0.28)',
+    borderColor: 'rgba(255, 255, 255, 0.38)',
   },
   containerGlassFocused: {
-    borderColor: 'rgba(231, 198, 99, 0.65)',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderColor: 'rgba(231, 198, 99, 0.85)',
+    backgroundColor: 'rgba(0, 0, 0, 0.42)',
+  },
+  containerCompact: {
+    minHeight: 44,
+    paddingHorizontal: Spacing[3],
+  },
+  inputCompact: {
+    fontSize: 15,
+    paddingVertical: 8,
   },
   inputGlass: {
-    color: '#F0EEE9',
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
 }));
 
@@ -120,6 +130,7 @@ export function Input({
   onRightIconPress,
   containerStyle,
   isPassword = false,
+  compact = false,
   variant = 'default',
   style: inputStyle,
   ...props
@@ -145,6 +156,7 @@ export function Input({
           styles.container,
           props.multiline && styles.containerMultiline,
           isGlass && styles.containerGlass,
+          compact && styles.containerCompact,
           isFocused && (isGlass ? styles.containerGlassFocused : styles.containerFocused),
           hasError && styles.containerError,
         ]}
@@ -155,8 +167,10 @@ export function Input({
           style={[
             styles.input,
             isGlass && styles.inputGlass,
+            compact && styles.inputCompact,
             props.multiline && styles.inputMultiline,
             leftIcon ? styles.inputWithLeft : null,
+            webTextInputStyle,
             inputStyle,
           ]}
           placeholderTextColor={placeholderColor}

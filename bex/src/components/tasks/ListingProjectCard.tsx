@@ -91,7 +91,7 @@ export function ListingProjectCard({
       bg: Colors.card,
       title: Colors.textPrimary,
       muted: Colors.textSecondary,
-      accent: Colors.secondary,
+      accent: Colors.iconPrimary,
       track: Colors.borderLight,
       fill: Colors.primary,
       border: Colors.borderLight,

@@ -1,5 +1,6 @@
 import { Linking, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { apiClient } from '@/lib/api/axiosInstance';
 import { getAccessToken } from '@/lib/auth/tokenStorage';
 import { refreshAccessToken } from '@/lib/auth/authTokenRefresh';
@@ -72,14 +73,19 @@ export async function openProtectedMediaUrl(url: string): Promise<void> {
     return;
   }
 
-  const localUri = `${FileSystem.cacheDirectory}passla-doc-${Date.now()}.${ext}`;
+  const pathBase = path.split('/').pop()?.replace(/\.[^.]+$/, '') || 'passla-doc';
+  const localUri = `${FileSystem.cacheDirectory}${pathBase}-${Date.now()}.${ext}`;
   await FileSystem.writeAsStringAsync(localUri, arrayBufferToBase64(data), {
     encoding: FileSystem.EncodingType.Base64,
   });
 
-  const canOpen = await Linking.canOpenURL(localUri);
-  if (!canOpen) {
-    throw new Error('Dosya açılamadı.');
+  if (!(await Sharing.isAvailableAsync())) {
+    throw new Error('Bu cihazda dosya açma desteklenmiyor.');
   }
-  await Linking.openURL(localUri);
+
+  await Sharing.shareAsync(localUri, {
+    mimeType: contentType,
+    dialogTitle: ext === 'pdf' ? 'CV' : 'Dosya',
+    UTI: ext === 'pdf' ? 'com.adobe.pdf' : undefined,
+  });
 }

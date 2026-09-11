@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { File } from 'expo-file-system';
 import { Platform } from 'react-native';
 import { getApiErrorMessage } from '@/lib/api';
 import { API_BASE_URL } from '@/lib/api/config';
@@ -32,11 +33,9 @@ async function appendUploadFile(formData: FormData, field: string, file: LocalUp
     return;
   }
 
-  formData.append(field, {
-    uri: file.uri,
-    name: file.name,
-    type: file.mimeType,
-  } as unknown as Blob);
+  // SDK 56+ expo/fetch: { uri, name, type } desteklenmiyor — expo-file-system File kullan
+  const uploadFile = new File(file.uri);
+  formData.append(field, uploadFile as unknown as Blob);
 }
 
 /** RN/Expo: axios multipart bazen boş gider; fetch ile yükle. */

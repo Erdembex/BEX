@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router, Href } from 'expo-router';
-import { useNotifications } from '@/hooks/useNotifications';
+import { useNotificationUnreadCount } from '@/hooks/useNotifications';
 import { useOpenNotifications } from '@/hooks/useOpenNotifications';
 import { PasslaLogo } from '@/components/ui/PasslaLogo';
-import { Typography, Spacing, createThemedStyles } from '@/theme';
+import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
 interface AppHeaderProps {
@@ -13,6 +14,8 @@ interface AppHeaderProps {
   showMenu?: boolean;
   showNotifications?: boolean;
   onBack?: () => void;
+  onMenuPress?: () => void;
+  rightAccessory?: React.ReactNode;
 }
 
 const useStyles = createThemedStyles((Colors) => ({
@@ -25,8 +28,7 @@ const useStyles = createThemedStyles((Colors) => ({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing[5],
-    paddingTop: Spacing[1],
-    paddingBottom: Spacing[2],
+    paddingVertical: Spacing[2],
     gap: Spacing[3],
     minHeight: 52,
   },
@@ -39,13 +41,9 @@ const useStyles = createThemedStyles((Colors) => ({
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
+    overflow: 'hidden',
   },
   iconPlaceholder: { width: 40 },
-  bellIcon: {
-    fontSize: 18,
-    color: Colors.primary,
-    fontWeight: '700',
-  },
   badge: {
     position: 'absolute',
     top: -4,
@@ -75,13 +73,11 @@ const useStyles = createThemedStyles((Colors) => ({
   menuIcon: { gap: 4, width: 18 },
   bar: {
     height: 2,
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.iconPrimary,
     borderRadius: 1,
   },
-  backIcon: {
-    fontSize: 20,
-    color: Colors.primary,
-    fontWeight: '700',
+  backIconAndroid: {
+    marginLeft: -2,
   },
   title: {
     ...Typography.headingMedium,
@@ -96,9 +92,12 @@ export function AppHeader({
   showMenu = true,
   showNotifications = true,
   onBack,
+  onMenuPress,
+  rightAccessory,
 }: AppHeaderProps) {
   const styles = useStyles();
-  const { unreadCount } = useNotifications();
+  const Colors = useThemeColors();
+  const { unreadCount } = useNotificationUnreadCount();
   const openNotifications = useOpenNotifications();
   const { t } = useTranslation();
 
@@ -106,12 +105,23 @@ export function AppHeader({
     <View style={styles.container}>
       <View style={styles.headerRow}>
         {onBack ? (
-          <TouchableOpacity onPress={onBack} style={styles.iconBtn}>
-            <Text style={styles.backIcon}>←</Text>
+          <TouchableOpacity
+            onPress={onBack}
+            style={styles.iconBtn}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.back')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={22}
+              color={Colors.iconPrimary}
+              style={Platform.OS === 'android' ? styles.backIconAndroid : undefined}
+            />
           </TouchableOpacity>
         ) : showMenu ? (
           <TouchableOpacity
-            onPress={() => router.push('/(tabs)/more' as Href)}
+            onPress={onMenuPress ?? (() => router.push('/(tabs)/more' as Href))}
             style={styles.iconBtn}
             accessibilityRole="button"
             accessibilityLabel={t('header.openMenu')}
@@ -133,7 +143,9 @@ export function AppHeader({
         ) : (
           <View style={styles.titleSpacer} />
         )}
-        {showNotifications && !onBack ? (
+        {onBack ? (
+          rightAccessory ?? <View style={styles.iconPlaceholder} />
+        ) : showNotifications ? (
           <TouchableOpacity
             style={styles.iconBtn}
             onPress={openNotifications}
@@ -141,7 +153,7 @@ export function AppHeader({
             accessibilityLabel={t('header.notifications')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text style={styles.bellIcon}>◉</Text>
+            <Ionicons name="notifications-outline" size={22} color={Colors.iconPrimary} />
             {unreadCount > 0 ? (
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
@@ -154,7 +166,7 @@ export function AppHeader({
       </View>
       {showBrand ? (
         <View style={styles.brandOverlay} pointerEvents="none">
-          <PasslaLogo size="xs" centered />
+          <PasslaLogo size="xs" centered variant="wordmark" />
         </View>
       ) : null}
     </View>

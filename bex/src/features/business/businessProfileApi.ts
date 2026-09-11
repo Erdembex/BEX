@@ -9,6 +9,13 @@ import {
   fetchBusinessWithVerification,
   mapBackendVerificationStatus,
 } from '@/features/business/businessVerificationApi';
+import {
+  searchIndividualProfiles,
+  type IndividualSearchHit,
+} from '@/features/portfolio/publicProfileApi';
+
+export type { IndividualSearchHit };
+export { searchIndividualProfiles };
 
 type BusinessPublicProfileDto = {
   profileId?: string;
@@ -150,35 +157,4 @@ export async function searchBusinessProfiles(query = ''): Promise<BusinessSearch
       verified: item.verified ?? false,
     };
   });
-}
-
-export type IndividualSearchHit = {
-  profileId: string;
-  username: string;
-  fullName: string;
-  avatarUrl: string | null;
-  completedTaskCount: number;
-};
-
-type IndividualSearchDto = {
-  profileId?: string;
-  username?: string;
-  fullName?: string;
-  avatarUrl?: string | null;
-  completedTaskCount?: number;
-};
-
-/** İşletme şikayet formu — kullanıcı adı araması */
-export async function searchIndividualProfiles(query = ''): Promise<IndividualSearchHit[]> {
-  const { data } = await apiClient.get<IndividualSearchDto[]>('/api/business/individuals/search', {
-    params: query.trim() ? { q: query.trim() } : undefined,
-  });
-  if (!Array.isArray(data)) return [];
-  return data.map((item) => ({
-    profileId: String(item.profileId ?? ''),
-    username: item.username?.trim() || '',
-    fullName: item.fullName?.trim() || 'Kullanıcı',
-    avatarUrl: item.avatarUrl?.trim() ? resolveMediaUrl(item.avatarUrl.trim()) : null,
-    completedTaskCount: item.completedTaskCount ?? 0,
-  }));
 }

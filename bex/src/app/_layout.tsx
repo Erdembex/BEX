@@ -19,9 +19,14 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { ToastProvider } from '@/components/common/Toast';
 import { useNotifications } from '@/hooks/useNotifications';
 import { PendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
+import { NotificationPermissionPrompt } from '@/components/notifications/NotificationPermissionPrompt';
+import { AuthRouteGuard } from '@/components/auth/AuthRouteGuard';
 import { useAppFonts } from '@/hooks/useAppFonts';
 import { AppLaunchSplash } from '@/components/common/AppLaunchSplash';
 import { useSavedListingsStore } from '@/store/savedListingsStore';
+import { prefetchAuthLoginWall } from '@/lib/prefetchAuthLoginWall';
+import { maybeRequestStoreReview } from '@/lib/storeReview';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* Expo Go veya tekrar çağrıda sessizce yoksay */
@@ -45,6 +50,7 @@ export default function RootLayout() {
     initAppCheck();
     hydrateTheme();
     hydrateLocale();
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
   }, [hydrateTheme, hydrateLocale]);
 
   useEffect(() => {
@@ -87,6 +93,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (appReady) {
       SplashScreen.hideAsync().catch(() => {});
+      void prefetchAuthLoginWall();
+      void maybeRequestStoreReview();
     }
   }, [appReady]);
 
@@ -104,6 +112,8 @@ export default function RootLayout() {
               <OfflineBanner />
               <BackendStatusBanner />
               <PendingFeedbackGate />
+              <NotificationPermissionPrompt />
+              <AuthRouteGuard />
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(auth)" />
@@ -135,8 +145,8 @@ export default function RootLayout() {
   );
 }
 
-function createStyles(_Colors: ReturnType<typeof useThemeColors>) {
+function createStyles(Colors: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
-    root: { flex: 1 },
+    root: { flex: 1, backgroundColor: Colors.background },
   });
 }

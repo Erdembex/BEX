@@ -172,6 +172,8 @@ export interface Application {
   feedbackSubmitted?: boolean;
   /** İşletme tarafında başvuran adı (REST detay yanıtından) */
   applicantName?: string;
+  /** İşletme tarafında başvuran profil fotoğrafı (REST yanıtından) */
+  applicantAvatarUrl?: string | null;
 }
 
 export type CreateApplication = Pick<

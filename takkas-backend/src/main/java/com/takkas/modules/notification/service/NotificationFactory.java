@@ -59,9 +59,10 @@ public class NotificationFactory {
             "KYC reddedildi", businessName + " evrak incelemesi olumsuz. Yeni evrak yükleyebilirsin.");
     }
 
-    public Notification newMessage(UUID recipientUserId, UUID conversationId, String senderName) {
+    public Notification newMessage(UUID recipientUserId, UUID conversationId,
+                                     String senderName, String preview) {
         return build(recipientUserId, NotificationType.NEW_MESSAGE, conversationId, "CONVERSATION",
-            "Yeni Mesaj", senderName + " sana mesaj gönderdi.");
+            "Yeni Mesaj — " + senderName, preview);
     }
 
     public Notification offerReceived(UUID recipientUserId, UUID conversationId, String senderName) {

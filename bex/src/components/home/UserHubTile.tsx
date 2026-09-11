@@ -1,24 +1,39 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Image } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { Typography, Radius, Spacing, useThemeColors } from '@/theme';
+import { Typography, Radius, Spacing, useThemeColors, useIsDarkMode, useThemeShadow } from '@/theme';
+import { BRAND_GOLD_LIGHT } from '@/theme/brand';
+import { HubIconKey, HUB_ICONS } from '@/components/home/hubIcons';
 
 type Props = {
   label: string;
   hint: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  tint: string;
+  hubIcon: HubIconKey;
   onPress: () => void;
   badge?: string | number;
 };
 
-export function UserHubTile({ label, hint, icon, tint, onPress, badge }: Props) {
+export function UserHubTile({ label, hint, hubIcon, onPress, badge }: Props) {
   const Colors = useThemeColors();
+  const Shadow = useThemeShadow();
+  const isDark = useIsDarkMode();
+
   const content = (
     <>
-      <View style={[styles.iconWrap, { backgroundColor: Colors.accentLight }]}>
-        <Ionicons name={icon} size={22} color={tint} />
+      <View
+        style={[
+          styles.iconWrap,
+          isDark
+            ? { backgroundColor: Colors.iconSurface }
+            : {
+                backgroundColor: BRAND_GOLD_LIGHT,
+                borderWidth: 1.5,
+                borderColor: Colors.borderGold,
+                ...Shadow.sm,
+              },
+        ]}
+      >
+        <Image source={HUB_ICONS[hubIcon]} style={styles.iconImage} resizeMode="contain" />
       </View>
       <Text style={[styles.label, { color: Colors.textPrimary }]} numberOfLines={1}>
         {label}
@@ -28,22 +43,29 @@ export function UserHubTile({ label, hint, icon, tint, onPress, badge }: Props) 
       </Text>
       {badge != null && Number(badge) > 0 ? (
         <View style={[styles.badge, { backgroundColor: Colors.error }]}>
-          <Text style={styles.badgeText}>{badge}</Text>
+          <Text style={[styles.badgeText, { color: Colors.textOnPrimary }]}>{badge}</Text>
         </View>
       ) : null}
     </>
   );
 
+  const glassBorder = isDark ? Colors.border : Colors.border;
+  const glassFill = isDark ? Colors.card : Colors.surface;
+
+  const cardStyle = [
+    styles.glass,
+    { borderColor: glassBorder },
+    !isDark && { backgroundColor: glassFill, ...Shadow.card },
+  ];
+
   return (
     <TouchableOpacity activeOpacity={0.88} onPress={onPress} style={styles.outer}>
-      {Platform.OS === 'ios' ? (
-        <BlurView intensity={36} tint="light" style={styles.glass}>
+      {Platform.OS === 'ios' && isDark ? (
+        <BlurView intensity={52} tint="dark" style={cardStyle}>
           {content}
         </BlurView>
       ) : (
-        <View style={[styles.glass, styles.glassAndroid, { borderColor: Colors.borderGold }]}>
-          {content}
-        </View>
+        <View style={[...cardStyle, styles.glassSolid]}>{content}</View>
       )}
     </TouchableOpacity>
   );
@@ -60,10 +82,9 @@ const styles = StyleSheet.create({
     gap: Spacing[1],
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
   },
-  glassAndroid: {
-    backgroundColor: 'rgba(255,255,255,0.72)',
+  glassSolid: {
+    opacity: 1,
   },
   iconWrap: {
     width: 40,
@@ -71,6 +92,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconImage: {
+    width: 28,
+    height: 28,
   },
   label: {
     ...Typography.labelMedium,
@@ -94,7 +119,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...Typography.caption,
-    color: '#fff',
     fontWeight: '800',
     fontSize: 11,
   },

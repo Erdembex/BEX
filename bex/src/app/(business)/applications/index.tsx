@@ -1,8 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import { Screen, TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { BUSINESS_TAB_BAR_HEIGHT } from '@/components/business/BusinessTabBar';
+import { BusinessScreenHeader } from '@/components/business/BusinessScreenHeader';
 import { router, useLocalSearchParams, Href } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "expo-router/react-navigation";
 import { useBusiness } from '@/features/business/useBusiness';
 import { applicationsRepository, tasksRepository, usersRepository } from '@/features/data';
 import { Application, ApplicationStatus } from '@/types';
@@ -16,6 +18,7 @@ export default function BusinessApplicationsScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
   const { t } = useTranslation();
+  const tabBarPadding = useTabBarBottomPadding(BUSINESS_TAB_BAR_HEIGHT);
   const FILTERS: { key: FilterKey; label: string; statuses?: ApplicationStatus[] }[] = [
     { key: 'all', label: t('businessApplicationsScreen.filterAll') },
     { key: 'pending', label: t('businessApplicationsScreen.filterPending'), statuses: ['pending'] },
@@ -111,9 +114,9 @@ export default function BusinessApplicationsScreen() {
   }
 
   return (
-    <Screen style={styles.safe}>
+    <TabScreen style={styles.safe}>
+      <BusinessScreenHeader title={t('businessApplicationsScreen.title')} />
       <View style={styles.header}>
-        <Text style={styles.title}>{t('businessApplicationsScreen.title')}</Text>
         <Text style={styles.subtitle}>
           {t('businessApplicationsScreen.subtitle', { shown: filtered.length, total: applications.length })}
         </Text>
@@ -150,7 +153,7 @@ export default function BusinessApplicationsScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
         }
@@ -197,7 +200,7 @@ export default function BusinessApplicationsScreen() {
           />
         )}
       />
-    </Screen>
+    </TabScreen>
   );
 }
 
