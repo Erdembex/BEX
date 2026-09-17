@@ -8,10 +8,11 @@ from collections import deque
 import numpy as np
 from PIL import Image
 
-SRC = (
-    r"C:\Users\ERDEM\.cursor\projects\c-Users-ERDEM-Desktop-BEX-CURSOR\assets"
-    r"\c__Users_ERDEM_AppData_Roaming_Cursor_User_workspaceStorage_9c4253bba673058a76103fb5eaf58e08"
-    r"_images_WhatsApp_Image_2026-09-02_at_18.50.13-4582b432-dca7-4cea-91f8-c120bdf81829.jpg"
+SRC = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)),
+    "assets",
+    "branding",
+    "passla-logo-source.png",
 )
 OUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "branding")
 NAVY = np.array([5, 31, 69], dtype=np.float32)

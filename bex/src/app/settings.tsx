@@ -11,7 +11,6 @@ import { authService } from '@/features/auth/authService';
 import { isAuthEmulatorActive } from '@/lib/firebase';
 import { API_BASE_URL } from '@/lib/api/config';
 import { useBackendHealth } from '@/hooks/useBackendHealth';
-import { AccountSettings } from '@/components/profile/AccountSettings';
 import { AppHeader } from '@/components/navigation/AppHeader';
 import { exportAccountDataToFile } from '@/features/account/exportAccountData';
 import { PRIVACY_URL, TERMS_URL, openLegalPage } from '@/lib/legalLinks';
@@ -21,7 +20,7 @@ import { Typography, Spacing, useThemeColors, useIsDarkMode } from '@/theme';
 import { useTranslation } from '@/i18n';
 
 export default function SettingsScreen() {
-  const { bexUser, firebaseUser, setBexUser, signOut } = useAuthStore();
+  const { firebaseUser, signOut } = useAuthStore();
   const { reachable } = useBackendHealth();
   const Colors = useThemeColors();
   const isDark = useIsDarkMode();
@@ -39,14 +38,7 @@ export default function SettingsScreen() {
   useFocusEffect(
     useCallback(() => {
       void getAppCacheSizeLabel().then(setCacheSize);
-      if (!firebaseUser) return;
-      authService
-        .getUserDocument(firebaseUser.uid, {
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-        })
-        .then(setBexUser);
-    }, [firebaseUser, setBexUser])
+    }, [])
   );
 
   const handleClearCache = async () => {
@@ -163,14 +155,6 @@ export default function SettingsScreen() {
           />
           <Text style={styles.rowHint}>{t('settings.clearCacheHint')}</Text>
         </View>
-
-        {firebaseUser ? (
-          <AccountSettings
-            bexUser={bexUser}
-            onUserUpdated={setBexUser}
-            showAdminLink={bexUser?.role === 'admin'}
-          />
-        ) : null}
 
         {firebaseUser ? (
         <View style={styles.section}>

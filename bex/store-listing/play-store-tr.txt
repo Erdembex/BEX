@@ -2,22 +2,25 @@
 
 ## Kısa açıklama (max 80 karakter)
 
-Görev yap, ödül kazan. Yakındaki işletme görevlerini tamamla, kupon kazan.
+Görevi sen yap, hizmeti işletme sunsun. Beceri takası — nakit yok.
 
 ## Uzun açıklama
 
-Passla ile çevrendeki işletmelerden görev al, becerilerini kullan ve ödül kazan!
+Görevi sen yap, hizmeti işletme sunsun.
 
-**Ne yapabilirsin?**
-• Yakınındaki görevleri keşfet
-• Görevleri tamamla ve kupon kazan
-• İşletmelerle mesajlaş, teklif gönder
-• Takas ve beceri paylaşımı yap
-• Profiline ön yazı ve CV ekle
-• QR kod ile kuponlarını kullan
+Passla'da para transferi yok — beceri takası var. Kuaför, kafe, spor salonu ve daha fazlası; tasarım, içerik veya sosyal medya gibi görevler karşılığında sana kendi hizmetini sunar. Sen teslim et, onlar kupon versin. QR kodu göster, mekânda kullan.
+
+**Nasıl çalışır?**
+• Yakınındaki işletme görevlerini keşfet
+• Becerine uygun göreve başvur, işletmeyle mesajlaş
+• Teslimini yükle; onay sonrası dijital kupon cüzdanına düşer
+• İşletmeye git, QR kodu göster, hizmetini al
+
+**İşletme misin?**
+Görev aç, yetenek bul, başvuruları yönet, QR ile kupon doğrula. Reklam bütçesi değil; kendi hizmetin karşılığında gerçek teslim.
 
 **Kimler için?**
-Öğrenciler, freelancer'lar ve ek gelir arayan herkes için. İşletmeler görev oluşturur, sen tamamlarsın.
+Öğrenciler, freelancer'lar, içerik üreticileri — ve çevresindeki işletmelerle beceri karşılığı bağ kurmak isteyen herkes.
 
 **Gizliliğin**
 Konum yalnızca yakındaki görevleri göstermek için, uygulama açıkken kullanılır.

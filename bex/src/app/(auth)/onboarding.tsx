@@ -2,6 +2,7 @@ import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react'
 import {
   View,
   Text,
+  Image,
   FlatList,
   Dimensions,
   TouchableOpacity,
@@ -9,33 +10,34 @@ import {
   StyleSheet,
   BackHandler,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
-import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
-import { BRAND_NAVY } from '@/theme/brand';
-import { Button, PasslaLogo } from '@/components/ui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Typography, Spacing, Radius } from '@/theme';
+import { BRAND_NAVY, BRAND_GOLD_MID, BRAND_GOLD_VIVID, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 import { markOnboardingComplete } from '@/lib/onboardingStorage';
 
 const { width } = Dimensions.get('window');
+const ART_HEIGHT = 280;
+const MARK = require('../../../assets/branding/passla-mark-white.png');
+const SLIDE_1 = require('../../../assets/branding/onboarding/slide-1.png');
+const SLIDE_2 = require('../../../assets/branding/onboarding/slide-2.png');
+const SLIDE_3 = require('../../../assets/branding/onboarding/slide-3.png');
 
-type SlideIcon = keyof typeof Ionicons.glyphMap;
+const TEXT = BRAND_NAVY_TEXT;
+const MUTED = 'rgba(240, 238, 233, 0.68)';
 
 type Slide = {
   id: string;
-  icon: SlideIcon;
-  step: string;
+  image: number;
   title: string;
   description: string;
-  accentText: string;
-  gradient: [string, string];
 };
 
 export default function OnboardingScreen() {
-  const Colors = useThemeColors();
-  const styles = useScreenStyles();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList<Slide>>(null);
@@ -44,33 +46,24 @@ export default function OnboardingScreen() {
     () => [
       {
         id: '1',
-        icon: 'sparkles',
-        step: '01',
+        image: SLIDE_1,
         title: t('auth.onboarding.slide1Title'),
         description: t('auth.onboarding.slide1Desc'),
-        accentText: t('auth.onboarding.slide1Accent'),
-        gradient: [Colors.primary, BRAND_NAVY],
       },
       {
         id: '2',
-        icon: 'checkmark-done-circle',
-        step: '02',
+        image: SLIDE_2,
         title: t('auth.onboarding.slide2Title'),
         description: t('auth.onboarding.slide2Desc'),
-        accentText: t('auth.onboarding.slide2Accent'),
-        gradient: ['#007386', Colors.primary],
       },
       {
         id: '3',
-        icon: 'qr-code',
-        step: '03',
+        image: SLIDE_3,
         title: t('auth.onboarding.slide3Title'),
         description: t('auth.onboarding.slide3Desc'),
-        accentText: t('auth.onboarding.slide3Accent'),
-        gradient: ['#2A559E', Colors.primary],
       },
     ],
-    [t, Colors.primary]
+    [t]
   );
 
   const isLast = activeIndex === slides.length - 1;
@@ -127,27 +120,22 @@ export default function OnboardingScreen() {
   }, [activeIndex, goBack]);
 
   return (
-    <Screen style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
-      <View style={styles.container}>
-        <View style={styles.topBar}>
-          {activeIndex > 0 ? (
-            <TouchableOpacity
-              onPress={goBack}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              style={styles.backBtn}
-            >
-              <Ionicons name="chevron-back" size={22} color={Colors.textSecondary} />
-              <Text style={styles.backText}>{t('common.back')}</Text>
-            </TouchableOpacity>
-          ) : (
-            <PasslaLogo size="sm" />
-          )}
+    <Screen style={styles.safe} edges={['left', 'right']}>
+      <View style={[styles.container, { paddingTop: insets.top + Spacing[2] }]}>
+        <View style={styles.header}>
+          <View style={styles.brandRow}>
+            <Image source={MARK} style={styles.mark} resizeMode="contain" accessibilityLabel="Passla" />
+            <View>
+              <Text style={styles.brandName}>PASSLA</Text>
+              <Text style={styles.brandSlogan}>{t('auth.onboarding.slogan')}</Text>
+            </View>
+          </View>
           {!isLast ? (
             <TouchableOpacity onPress={skip} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Text style={styles.skipText}>{t('common.skip')}</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.topBarSpacer} />
+            <View style={styles.skipPlaceholder} />
           )}
         </View>
 
@@ -175,58 +163,46 @@ export default function OnboardingScreen() {
           viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
           renderItem={({ item }) => (
             <View style={[styles.slide, { width }]}>
-              <LinearGradient
-                colors={item.gradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.heroCard}
-              >
-                <View style={styles.heroGlow} />
-                <Text style={styles.stepLabel}>{item.step}</Text>
-                <View style={styles.iconRing}>
-                  <Ionicons name={item.icon} size={44} color="#FFF8E1" />
-                </View>
-              </LinearGradient>
-
-              <View style={styles.textContainer}>
+              <View style={[styles.artWrap, { height: ART_HEIGHT }]}>
+                <Image
+                  source={item.image}
+                  style={styles.art}
+                  resizeMode="cover"
+                  fadeDuration={0}
+                />
+              </View>
+              <View style={styles.textBlock}>
                 <Text style={styles.title}>{item.title}</Text>
                 <Text style={styles.description}>{item.description}</Text>
-                <View style={styles.accentCard}>
-                  <Ionicons name="information-circle-outline" size={18} color={Colors.primary} />
-                  <Text style={styles.accentText}>{item.accentText}</Text>
-                </View>
               </View>
             </View>
           )}
         />
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing[4]) }]}>
           <View style={styles.dots}>
             {slides.map((slide, i) => (
               <View
                 key={slide.id}
-                style={[
-                  styles.dot,
-                  i === activeIndex ? styles.dotActive : styles.dotInactive,
-                ]}
+                style={[styles.dot, i === activeIndex ? styles.dotActive : styles.dotInactive]}
               />
             ))}
           </View>
 
-          <View style={styles.buttons}>
-            <Button
-              title={isLast ? t('common.getStarted') : t('common.continue')}
-              onPress={goNext}
-            />
+          <View style={styles.navRow}>
+            <TouchableOpacity onPress={skip} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={styles.footerSkip}>{t('common.skip')}</Text>
+            </TouchableOpacity>
 
             {isLast ? (
-              <TouchableOpacity
-                style={styles.loginLink}
-                onPress={() => void finishOnboarding('/(auth)/login')}
-              >
-                <Text style={styles.loginLinkText}>{t('auth.alreadyHaveAccount')}</Text>
+              <TouchableOpacity style={styles.startBtn} onPress={goNext} activeOpacity={0.85}>
+                <Text style={styles.startLabel}>{t('common.getStarted')}</Text>
               </TouchableOpacity>
-            ) : null}
+            ) : (
+              <TouchableOpacity style={styles.nextBtn} onPress={goNext} activeOpacity={0.85}>
+                <Ionicons name="arrow-forward" size={22} color={BRAND_NAVY} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </View>
@@ -234,115 +210,86 @@ export default function OnboardingScreen() {
   );
 }
 
-const useScreenStyles = createThemedStyles((Colors) => ({
+const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: BRAND_NAVY,
   },
   container: {
     flex: 1,
+    backgroundColor: BRAND_NAVY,
   },
-  topBar: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing[6],
-    paddingTop: Spacing[2],
+    paddingHorizontal: Spacing[5],
     paddingBottom: Spacing[3],
+    zIndex: 2,
   },
-  topBarSpacer: {
-    width: 48,
-  },
-  backBtn: {
+  brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing[1],
-    minWidth: 48,
+    gap: Spacing[3],
   },
-  backText: {
-    ...Typography.labelMedium,
-    color: Colors.textSecondary,
+  mark: {
+    width: 36,
+    height: 36,
+  },
+  brandName: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 16,
+    letterSpacing: 1.4,
+    color: TEXT,
+  },
+  brandSlogan: {
+    ...Typography.caption,
+    color: BRAND_GOLD_MID,
+    marginTop: 2,
+    letterSpacing: 0.6,
   },
   skipText: {
     ...Typography.labelMedium,
-    color: Colors.textSecondary,
+    color: MUTED,
+  },
+  skipPlaceholder: {
+    width: 40,
   },
   slideList: {
     flex: 1,
   },
   slide: {
     flex: 1,
-    paddingHorizontal: Spacing[6],
-    gap: Spacing[6],
+    paddingHorizontal: Spacing[5],
   },
-  heroCard: {
-    height: 240,
-    borderRadius: Radius['2xl'],
-    alignItems: 'center',
-    justifyContent: 'center',
+  artWrap: {
+    borderRadius: Radius.xl,
     overflow: 'hidden',
-    marginTop: Spacing[2],
+    backgroundColor: '#04162E',
+    marginBottom: Spacing[5],
   },
-  heroGlow: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: Radius['2xl'],
+  art: {
+    width: '100%',
+    height: '100%',
   },
-  stepLabel: {
-    position: 'absolute',
-    top: Spacing[4],
-    left: Spacing[5],
-    ...Typography.caption,
-    color: 'rgba(255,255,255,0.65)',
-    fontWeight: '700',
-    letterSpacing: 2,
-  },
-  iconRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.35)',
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textContainer: {
-    flex: 1,
-    gap: Spacing[4],
+  textBlock: {
+    gap: Spacing[3],
+    paddingRight: Spacing[2],
   },
   title: {
-    ...Typography.displayMedium,
-    color: Colors.textPrimary,
-    lineHeight: 36,
+    ...Typography.headingLarge,
+    color: TEXT,
+    fontSize: 26,
+    lineHeight: 32,
   },
   description: {
-    ...Typography.bodyLarge,
-    color: Colors.textSecondary,
-    lineHeight: 24,
-  },
-  accentCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing[3],
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[4],
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  accentText: {
-    ...Typography.bodySmall,
-    color: Colors.textSecondary,
-    flex: 1,
-    lineHeight: 20,
-    fontWeight: '500',
+    ...Typography.bodyMedium,
+    color: MUTED,
+    lineHeight: 22,
   },
   footer: {
-    paddingHorizontal: Spacing[6],
-    paddingBottom: Spacing[8],
-    gap: Spacing[6],
+    paddingHorizontal: Spacing[5],
+    gap: Spacing[4],
   },
   dots: {
     flexDirection: 'row',
@@ -350,26 +297,46 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     gap: Spacing[2],
   },
   dot: {
-    height: 8,
+    height: 7,
     borderRadius: Radius.full,
   },
   dotActive: {
-    width: 28,
-    backgroundColor: Colors.primary,
+    width: 20,
+    backgroundColor: BRAND_GOLD_MID,
   },
   dotInactive: {
-    width: 8,
-    backgroundColor: Colors.border,
+    width: 7,
+    backgroundColor: 'rgba(240, 238, 233, 0.22)',
   },
-  buttons: {
-    gap: Spacing[3],
-  },
-  loginLink: {
+  navRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing[2],
+    justifyContent: 'space-between',
   },
-  loginLinkText: {
-    ...Typography.labelMedium,
-    color: Colors.textSecondary,
+  footerSkip: {
+    ...Typography.labelLarge,
+    color: MUTED,
   },
-}));
+  nextBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: BRAND_GOLD_VIVID,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startBtn: {
+    minWidth: 120,
+    height: 48,
+    paddingHorizontal: Spacing[5],
+    borderRadius: 24,
+    backgroundColor: BRAND_GOLD_VIVID,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startLabel: {
+    ...Typography.labelLarge,
+    color: BRAND_NAVY,
+    fontWeight: '700',
+  },
+});

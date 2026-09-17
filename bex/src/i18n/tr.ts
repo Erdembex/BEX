@@ -268,18 +268,19 @@ export const tr = {
     skipForNow: 'Şimdilik Atla',
     alreadyHaveAccount: 'Zaten hesabım var →',
     onboarding: {
-      slide1Title: 'Yerel işletmeleri\nkeşfet',
+      slogan: 'GÖREV YAP  ·  HİZMET AL',
+      slide1Title: 'Yakındaki işletmeleri\nkeşfet',
       slide1Desc:
-        'Passla ile çevrendeki işletmelerin görevlerine göz at; becerinle gerçek ödüller kazan.',
-      slide1Accent: 'Ücretsiz kahve, saç tıraşı, spor salonu ve daha fazlası seni bekliyor.',
-      slide2Title: 'Görev al,\nteslim et, kazan',
+        'Çevrendeki işletmelerin görevlerine bak. Tasarım, içerik veya sosyal medya karşılığında onların hizmetini al.',
+      slide1Accent: 'Kuaför, kafe, spor salonu — işletme kendi hizmetini sunar.',
+      slide2Title: 'Görevi sen yap,\nhizmeti onlar sunsun',
       slide2Desc:
-        'Beğendiğin göreve başvur, teslimini yükle. Onay sonrası dijital kuponun cüzdanına düşer.',
-      slide2Accent: 'Başvurudan kupona kadar tüm süreç uygulama içinde takip edilir.',
-      slide3Title: 'QR kuponla\nödeme yok',
+        'Beğendiğin göreve başvur, teslimini yükle. Onay sonrası dijital kupon cüzdanına düşer — nakit değil, işletmenin kendi hizmeti.',
+      slide2Accent: 'Başvurudan kupona kadar süreç uygulama içinde.',
+      slide3Title: 'QR ile git,\nhizmeti al',
       slide3Desc:
-        'Kazandığın ödüller QR kodlu dijital kupona dönüşür. İşletmeye git, kodu göster, kullan.',
-      slide3Accent: 'Nakit transferi yok — sadece beceri ve değer takası.',
+        'İşletmeye git, QR kodu göster, hizmetini kullan. Para transferi yok — sadece beceri takası.',
+      slide3Accent: 'Nakit yok — beceri takası.',
     },
   },
   authRequired: {

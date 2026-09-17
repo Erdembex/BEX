@@ -259,18 +259,19 @@ export const en: TranslationSchema = {
     skipForNow: 'Skip for Now',
     alreadyHaveAccount: 'I already have an account →',
     onboarding: {
-      slide1Title: 'Discover local\nbusinesses',
+      slogan: 'DO THE TASK  ·  GET THE SERVICE',
+      slide1Title: 'Discover nearby\nbusinesses',
       slide1Desc:
-        'Browse tasks from businesses near you on Passla and earn real rewards with your skills.',
-      slide1Accent: 'Free coffee, haircuts, gym access, and more are waiting for you.',
-      slide2Title: 'Apply, deliver,\nearn',
+        'Browse tasks from local businesses. Design, content, or social work — they give you their service in return.',
+      slide1Accent: 'Salon, cafe, gym — the business offers its own service.',
+      slide2Title: 'You do the task,\nthey offer the service',
       slide2Desc:
-        'Apply to tasks you like and submit your work. Once approved, your digital coupon lands in your wallet.',
-      slide2Accent: 'Track the full journey from application to coupon in the app.',
-      slide3Title: 'QR coupons,\nno cash',
+        'Apply, submit your work. After approval a digital coupon lands in your wallet — not cash, the business’s own service.',
+      slide2Accent: 'From apply to coupon, all in the app.',
+      slide3Title: 'Show the QR,\nget the service',
       slide3Desc:
-        'Rewards become QR digital coupons. Visit the business, show the code, and redeem.',
-      slide3Accent: 'No cash transfer — just skill and value exchange.',
+        'Visit the business, show the QR, use the service. No cash transfer — just a skill swap.',
+      slide3Accent: 'No cash — skill exchange.',
     },
   },
   authRequired: {
