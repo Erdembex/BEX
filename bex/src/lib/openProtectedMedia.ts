@@ -1,7 +1,8 @@
 import { Linking, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { apiClient } from '@/lib/api/axiosInstance';
+import axios from 'axios';
+import { apiClient, getApiErrorMessage } from '@/lib/api/axiosInstance';
 import { getAccessToken } from '@/lib/auth/tokenStorage';
 import { refreshAccessToken } from '@/lib/auth/authTokenRefresh';
 import { isTokenExpired } from '@/lib/auth/jwtUtils';
@@ -51,10 +52,21 @@ export async function openProtectedMediaUrl(url: string): Promise<void> {
     throw new Error('Oturum gerekli.');
   }
 
-  const { data, headers } = await apiClient.get<ArrayBuffer>(path, {
-    responseType: 'arraybuffer',
-    headers: { Accept: 'application/pdf,application/octet-stream,*/*' },
-  });
+  let data: ArrayBuffer;
+  let headers: Record<string, unknown>;
+  try {
+    const response = await apiClient.get<ArrayBuffer>(path, {
+      responseType: 'arraybuffer',
+      headers: { Accept: 'application/pdf,application/octet-stream,*/*' },
+    });
+    data = response.data;
+    headers = response.headers as Record<string, unknown>;
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err) && err.response?.status === 403) {
+      throw new Error('Bu CV dosyasına erişim yetkiniz yok.');
+    }
+    throw new Error(getApiErrorMessage(err));
+  }
 
   const contentType =
     (headers['content-type'] as string | undefined)?.split(';')[0]?.trim() ||

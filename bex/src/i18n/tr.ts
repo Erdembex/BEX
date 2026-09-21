@@ -1,5 +1,6 @@
 export const tr = {
   common: {
+    error: 'Hata',
     back: '← Geri',
     close: 'Kapat',
     search: 'Ara',
@@ -201,6 +202,13 @@ export const tr = {
     panHint: 'Konumundan başlar; yalnızca seçili il sınırları içinde gezinebilirsin.',
     webFallback: 'Harita mobil uygulamada görüntülenir. {{city}} işletmeleri:',
     loadFailed: 'Harita verisi yüklenemedi.',
+    noPinsInArea: 'Bu bölgede haritada gösterilecek aktif ilan yok.',
+    noPinsHint:
+      'Farklı il/ilçe dene veya görev listesine bak. İşletmelerin açık adresi kayıtlı olmalı.',
+    tilesMissing:
+      'Harita karoları yüklenemedi. Uygulama güncellemesi (mağaza sürümü) ve Maps API anahtarı gerekir.',
+    useMyLocation: 'Konumumu göster',
+    browseTasks: 'Tüm görevleri gör',
   },
   rewardFilter: {
     title: 'Ödül filtrele',
@@ -565,7 +573,7 @@ export const tr = {
     awaitingSubmissionHint: 'Kullanıcı görev teslimi bekleniyor. Teslim gelince burada onaylayıp kupon verebilirsin.',
     reviewNoteLabel: 'Değerlendirme notu (opsiyonel)',
     reviewNotePlaceholder: 'Onay veya red gerekçesi...',
-    approveApplication: 'Başvuruyu Onayla',
+    approveApplication: 'Onayla',
     reject: 'Reddet',
     submissionReviewNoteLabel: 'Teslim değerlendirme notu (opsiyonel)',
     couponNotePlaceholder: 'Kupon notu...',

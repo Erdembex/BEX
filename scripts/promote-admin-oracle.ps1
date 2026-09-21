@@ -19,5 +19,5 @@ if (-not (Test-Path $RemoteScript)) {
 
 Write-Host "==> $Email production'da ADMIN yapiliyor..."
 scp -i $SshKey -o StrictHostKeyChecking=no $RemoteScript "${Remote}:/tmp/promote-admin.sh"
-ssh -i $SshKey -o StrictHostKeyChecking=no $Remote "bash /tmp/promote-admin.sh && rm /tmp/promote-admin.sh"
+ssh -i $SshKey -o StrictHostKeyChecking=no $Remote "bash /tmp/promote-admin.sh '$Email' && rm /tmp/promote-admin.sh"
 Write-Host "==> Tamam. Uygulamada cikis yapip tekrar giris yapin veya uygulamayi yenileyin."

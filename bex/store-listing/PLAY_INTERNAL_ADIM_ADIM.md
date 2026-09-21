@@ -19,7 +19,7 @@ Production ortamında tanımlı:
 - EXPO_PUBLIC_FIREBASE_*
 - EXPO_PUBLIC_EAS_PROJECT_ID
 
-**Eksik (opsiyonel):** `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` — harita için. Ekle:
+**Zorunlu (harita):** `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` — internal test AAB’de harita karoları için. Ekle:
 ```powershell
 cd bex
 npx eas env:create production --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value "SENIN_KEY" --visibility plaintext --scope project --force --non-interactive
@@ -63,7 +63,7 @@ Build bitince: https://expo.dev/accounts/erdem1803/projects/bex/builds
 | Alan | Değer |
 |------|--------|
 | Uygulama adı | Passla |
-| Kısa açıklama | `Görev yap, ödül kazan. Yakındaki işletme görevlerini tamamla, kupon kazan.` |
+| Kısa açıklama | `Görevi sen yap, hizmeti işletme sunsun. Beceri takası — nakit yok.` |
 | Tam açıklama | `bex/store-listing/play-store-tr.txt` içindeki uzun metin |
 | Uygulama simgesi | `bex/assets/icon.png` (512×512) |
 | Öne çıkan grafik | 1024×500 (opsiyonel; yoksa atla) |

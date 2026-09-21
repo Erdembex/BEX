@@ -38,7 +38,7 @@ export default function BusinessTabsLayout() {
   const { t } = useTranslation();
 
   if (isInitialized && !firebaseUser) {
-    return <Redirect href={buildLoginRedirect(pathname || '/(business)/applications/index')} />;
+    return <Redirect href={buildLoginRedirect(pathname || '/(business)/panel')} />;
   }
 
   if (bexUser && bexUser.role !== 'business') {
@@ -48,7 +48,7 @@ export default function BusinessTabsLayout() {
   return (
     <BusinessMenuProvider>
       <Tabs
-        initialRouteName="applications/index"
+        initialRouteName="panel"
         tabBar={(props) => <BusinessTabBar {...props} />}
         screenOptions={{
           headerShown: false,

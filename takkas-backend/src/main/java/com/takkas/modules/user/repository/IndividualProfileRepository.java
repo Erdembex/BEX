@@ -32,6 +32,10 @@ public interface IndividualProfileRepository extends JpaRepository<IndividualPro
 
     boolean existsByAvatarUrlContaining(String suffix);
 
+    boolean existsByUser_IdAndCvUrl(UUID userId, String cvUrl);
+
+    boolean existsByUser_IdAndCvUrlContaining(UUID userId, String suffix);
+
     interface IdAndFullName {
         UUID getId();
         String getFullName();

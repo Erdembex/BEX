@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Href } from 'expo-router';
 import { useResolvedSafeAreaInsets } from '@/components/common/Screen';
 import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
-import { BRAND_GOLD_MID, BRAND_NAVY, BRAND_NAVY_TEXT, brandNavyAlpha } from '@/theme/brand';
+import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 import { PasslaLogo } from '@/components/ui/PasslaLogo';
 
@@ -73,7 +73,7 @@ function BusinessSideMenu({
           style={[
             styles.drawer,
             {
-              backgroundColor: Colors.surface,
+              backgroundColor: Colors.background,
               paddingTop: insets.top + Spacing[4],
               paddingBottom: Math.max(insets.bottom, Spacing[4]),
             },
@@ -94,13 +94,13 @@ function BusinessSideMenu({
                 onPress={() => navigate(item.route)}
                 activeOpacity={0.85}
               >
-                <View style={[styles.menuIconWrap, { backgroundColor: brandNavyAlpha(0.35) }]}>
-                  <Ionicons name={item.icon} size={20} color={BRAND_GOLD_MID} />
+                <View style={[styles.menuIconWrap, { backgroundColor: BRAND_NAVY }]}>
+                  <Ionicons name={item.icon} size={20} color={BRAND_NAVY_TEXT} />
                 </View>
                 <Text style={[styles.menuLabel, { color: Colors.textPrimary }]}>
                   {t(item.labelKey)}
                 </Text>
-                <Ionicons name="chevron-forward" size={18} color={BRAND_GOLD_MID} />
+                <Ionicons name="chevron-forward" size={18} color={BRAND_NAVY} />
               </TouchableOpacity>
             ))}
           </ScrollView>

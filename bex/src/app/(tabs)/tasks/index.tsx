@@ -245,8 +245,6 @@ export default function TasksScreen() {
             district={district}
             onCityChange={setCity}
             onDistrictChange={setDistrict}
-            showMapPicker
-            mapPickerReturnTo="/(tabs)/tasks"
           />
           <CategoryFilter selected={category} onSelect={setCategory} />
           {!restListings ? (

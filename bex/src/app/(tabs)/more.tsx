@@ -36,12 +36,6 @@ const MORE_LINKS: MoreLink[] = [
     icon: '🏆',
   },
   {
-    route: '/map' as Href,
-    labelKey: 'moreScreen.map',
-    hintKey: 'moreScreen.mapHint',
-    icon: '🗺',
-  },
-  {
     route: '/about' as Href,
     labelKey: 'moreScreen.about',
     hintKey: 'moreScreen.aboutHint',

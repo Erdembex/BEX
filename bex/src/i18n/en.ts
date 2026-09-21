@@ -2,6 +2,7 @@ import type { TranslationSchema } from './tr';
 
 export const en: TranslationSchema = {
   common: {
+    error: 'Error',
     back: '← Back',
     close: 'Close',
     search: 'Search',
@@ -192,6 +193,12 @@ export const en: TranslationSchema = {
     panHint: 'Starts near you; pan only within the selected province.',
     webFallback: 'Map is available in the mobile app. Businesses in {{city}}:',
     loadFailed: 'Could not load map data.',
+    noPinsInArea: 'No active listings to show on the map in this area.',
+    noPinsHint: 'Try another city/district or open the task list. Businesses need a saved street address.',
+    tilesMissing:
+      'Map tiles could not load. Use the store build and ensure the Maps API key is configured.',
+    useMyLocation: 'Show my location',
+    browseTasks: 'Browse all tasks',
   },
   rewardFilter: {
     title: 'Filter by reward',

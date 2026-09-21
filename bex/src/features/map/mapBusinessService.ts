@@ -13,7 +13,7 @@ import { isLocationAll, toApiCityFilter } from '@/lib/locationFilterUtils';
 import { isCoordinateNearDistrict } from '@/lib/mapRegionUtils';
 import type { MapBusinessPin } from '@/components/map/types';
 
-const GEOCODE_BATCH = 5;
+const GEOCODE_BATCH = 4;
 const MAP_LISTING_PAGE_SIZE = 50;
 const MAP_LISTING_MAX_PAGES = 4;
 
@@ -28,6 +28,10 @@ type PendingPin = {
   serverLatitude?: number | null;
   serverLongitude?: number | null;
 };
+
+function hasServerCoords(item: PendingPin): boolean {
+  return item.serverLatitude != null && item.serverLongitude != null;
+}
 
 async function mapInBatches<T, R>(
   items: T[],
@@ -102,6 +106,17 @@ async function fetchCityListings(city: string): Promise<EnrichedTask[]> {
   return tasks.filter((task) => task.status === 'active');
 }
 
+function upsertPendingPin(map: Map<string, PendingPin>, next: PendingPin): void {
+  const existing = map.get(next.businessId);
+  if (!existing) {
+    map.set(next.businessId, next);
+    return;
+  }
+  if (!hasServerCoords(existing) && hasServerCoords(next)) {
+    map.set(next.businessId, next);
+  }
+}
+
 function uniqueBusinessesFromDemo(city: string, district: string | null): PendingPin[] {
   const matchedCity = matchCity(city) ?? city;
   const businesses = demoStore.getBusinesses().filter((biz) => {
@@ -113,38 +128,45 @@ function uniqueBusinessesFromDemo(city: string, district: string | null): Pendin
     return !bizDistrict || normalizeTurkish(bizDistrict) === normalizeTurkish(district);
   });
 
-  return businesses.flatMap((biz) => {
+  const byBusiness = new Map<string, PendingPin>();
+
+  for (const biz of businesses) {
     const bizTasks = demoStore.getVisibleTasks().filter((task) => task.businessId === biz.id);
     if (bizTasks.length === 0) {
-      return [
-        {
-          listingId: biz.id,
-          businessId: biz.id,
-          name: biz.name,
-          address: biz.address,
-          verified: biz.isVerified,
-          district: null,
-          geocodeQuery: biz.address,
-        },
-      ];
+      upsertPendingPin(byBusiness, {
+        listingId: biz.id,
+        businessId: biz.id,
+        name: biz.name,
+        address: biz.address,
+        verified: biz.isVerified,
+        district: null,
+        geocodeQuery: biz.address,
+      });
+      continue;
     }
-    return bizTasks.map((task) => ({
-      listingId: task.id,
-      businessId: biz.id,
-      name: task.title?.trim() || biz.name,
-      address: biz.address,
-      verified: biz.isVerified,
-      district: null,
-      geocodeQuery: biz.address,
-    }));
-  });
+    for (const task of bizTasks) {
+      upsertPendingPin(byBusiness, {
+        listingId: task.id,
+        businessId: biz.id,
+        name: task.title?.trim() || biz.name,
+        address: biz.address,
+        verified: biz.isVerified,
+        district: null,
+        geocodeQuery: biz.address,
+      });
+    }
+  }
+
+  return [...byBusiness.values()];
 }
 
-async function geocodeListingPin(
+function pinFromServerCoords(
   item: PendingPin,
   city: string,
   filterDistrict: string | null
-): Promise<MapBusinessPin | null> {
+): MapBusinessPin | null {
+  if (!hasServerCoords(item)) return null;
+
   const metaMatch = filterDistrict
     ? listingMatchesDistrict(city, filterDistrict, {
         district: item.district,
@@ -153,20 +175,37 @@ async function geocodeListingPin(
       })
     : true;
 
-  if (item.serverLatitude != null && item.serverLongitude != null) {
-    const point = {
-      latitude: item.serverLatitude,
-      longitude: item.serverLongitude,
-    };
-    if (
-      filterDistrict &&
-      !metaMatch &&
-      !isCoordinateNearDistrict(point.latitude, point.longitude, city, filterDistrict)
-    ) {
-      return null;
-    }
-    return buildPin(item, point);
+  const point = {
+    latitude: item.serverLatitude as number,
+    longitude: item.serverLongitude as number,
+  };
+
+  if (
+    filterDistrict &&
+    !metaMatch &&
+    !isCoordinateNearDistrict(point.latitude, point.longitude, city, filterDistrict)
+  ) {
+    return null;
   }
+
+  return buildPin(item, point);
+}
+
+async function geocodeListingPin(
+  item: PendingPin,
+  city: string,
+  filterDistrict: string | null
+): Promise<MapBusinessPin | null> {
+  const fromServer = pinFromServerCoords(item, city, filterDistrict);
+  if (fromServer) return fromServer;
+
+  const metaMatch = filterDistrict
+    ? listingMatchesDistrict(city, filterDistrict, {
+        district: item.district,
+        address: item.address,
+        locationLabel: item.district ? `${item.district}, ${city}` : null,
+      })
+    : true;
 
   const geocoded = await geocodeAddressQuery(
     item.geocodeQuery || item.address,
@@ -208,7 +247,7 @@ function buildPin(
   point: { latitude: number; longitude: number }
 ): MapBusinessPin {
   return {
-    id: item.listingId,
+    id: item.businessId,
     listingId: item.listingId,
     businessId: item.businessId,
     name: item.name,
@@ -220,13 +259,50 @@ function buildPin(
   };
 }
 
+async function enrichPendingFromProfile(item: PendingPin, city: string): Promise<PendingPin> {
+  if (hasServerCoords(item)) return item;
+
+  try {
+    const profile = await fetchPublicBusinessProfile(item.businessId);
+    if (!profile) return item;
+
+    const profileDistrict =
+      parseDistrictFromAddress(profile.address, city) ?? item.district ?? null;
+    const lat = profile.location?.latitude;
+    const lng = profile.location?.longitude;
+    const hasProfileCoords =
+      typeof lat === 'number' &&
+      typeof lng === 'number' &&
+      Number.isFinite(lat) &&
+      Number.isFinite(lng) &&
+      !(lat === 41.0082 && lng === 28.9784);
+
+    return {
+      ...item,
+      address: profile.address || item.address,
+      verified: profile.isVerified ?? item.verified,
+      district: profileDistrict,
+      geocodeQuery:
+        profile.address ||
+        buildBusinessGeocodeQuery('', profileDistrict, city) ||
+        item.geocodeQuery,
+      serverLatitude: hasProfileCoords ? lat : item.serverLatitude,
+      serverLongitude: hasProfileCoords ? lng : item.serverLongitude,
+    };
+  } catch {
+    return item;
+  }
+}
+
 export async function loadMapBusinessPins(
   city: string,
   district: string | null
 ): Promise<MapBusinessPin[]> {
   const matchedCity = matchCity(city) ?? city;
   const filterDistrict =
-    district?.trim() && !isLocationAll(district) ? matchDistrict(matchedCity, district) ?? district : null;
+    district?.trim() && !isLocationAll(district)
+      ? matchDistrict(matchedCity, district) ?? district
+      : null;
 
   if (shouldUseDemoData()) {
     const pending = uniqueBusinessesFromDemo(matchedCity, filterDistrict);
@@ -234,51 +310,66 @@ export async function loadMapBusinessPins(
   }
 
   const tasks = await fetchCityListings(matchedCity);
-  const profileCache = new Map<string, Awaited<ReturnType<typeof fetchPublicBusinessProfile>>>();
-
-  const pending: PendingPin[] = [];
+  const byBusiness = new Map<string, PendingPin>();
 
   for (const task of tasks) {
     const businessId = task.businessId;
     if (!businessId || task.status !== 'active') continue;
 
-    let profile = profileCache.get(businessId);
-    if (profile === undefined) {
-      try {
-        profile = await fetchPublicBusinessProfile(businessId);
-      } catch {
-        profile = null;
-      }
-      profileCache.set(businessId, profile);
-    }
+    const profileDistrict = task.locationLabel?.split(',')[0]?.trim() ?? null;
+    const address = task.locationLabel?.trim() || matchedCity;
 
-    const profileDistrict =
-      parseDistrictFromAddress(profile?.address ?? '', matchedCity) ??
-      task.locationLabel?.split(',')[0]?.trim() ??
-      null;
-
-    const address = profile?.address || task.locationLabel?.trim() || matchedCity;
-    const geocodeQuery =
-      profile?.address ||
-      buildBusinessGeocodeQuery('', profileDistrict, matchedCity) ||
-      address;
-
-    pending.push({
+    upsertPendingPin(byBusiness, {
       listingId: task.id,
       businessId,
       name: task.title?.trim() || task.businessName?.trim() || 'İlan',
       address,
-      verified: profile?.isVerified ?? task.businessVerified ?? false,
+      verified: task.businessVerified ?? false,
       district: profileDistrict,
-      geocodeQuery,
+      geocodeQuery:
+        buildBusinessGeocodeQuery('', profileDistrict, matchedCity) || address,
       serverLatitude: task.businessLatitude ?? null,
       serverLongitude: task.businessLongitude ?? null,
     });
   }
 
-  if (pending.length === 0) {
+  if (byBusiness.size === 0) {
     return [];
   }
 
-  return mapInBatches(pending, (item) => geocodeListingPin(item, matchedCity, filterDistrict));
+  let pending = [...byBusiness.values()];
+
+  const withCoords: MapBusinessPin[] = [];
+  const needsProfile: PendingPin[] = [];
+  const needsGeocode: PendingPin[] = [];
+
+  for (const item of pending) {
+    const pin = pinFromServerCoords(item, matchedCity, filterDistrict);
+    if (pin) {
+      withCoords.push(pin);
+      continue;
+    }
+    if (hasServerCoords(item)) {
+      continue;
+    }
+    needsProfile.push(item);
+  }
+
+  if (needsProfile.length > 0) {
+    pending = await mapInBatches(needsProfile, (item) => enrichPendingFromProfile(item, matchedCity));
+    for (const item of pending) {
+      const pin = pinFromServerCoords(item, matchedCity, filterDistrict);
+      if (pin) {
+        withCoords.push(pin);
+      } else if (!hasServerCoords(item)) {
+        needsGeocode.push(item);
+      }
+    }
+  }
+
+  const geocoded = await mapInBatches(needsGeocode, (item) =>
+    geocodeListingPin(item, matchedCity, filterDistrict)
+  );
+
+  return [...withCoords, ...geocoded];
 }

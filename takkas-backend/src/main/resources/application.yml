@@ -50,6 +50,8 @@ app:
     provider: ${STORAGE_PROVIDER:local}
   payment:
     provider: ${APP_PAYMENT_PROVIDER:manual}
+  geocode:
+    backfill-delay-ms: ${GEOCODE_BACKFILL_DELAY_MS:3600000}
   expo:
     access-token: ${EXPO_ACCESS_TOKEN:}
   listings:

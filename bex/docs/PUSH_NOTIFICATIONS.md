@@ -21,7 +21,14 @@ Kilit ekranı ve bildirim çubuğunda push için **mobil uygulama + backend + EA
 
 1. [Expo dashboard](https://expo.dev) → Proje → **Credentials** → Android → **FCM V1 service account key** yükle  
    (Firebase Console → Project settings → Service accounts → Generate new private key)
-2. Yeni build alın (native credential değişince rebuild şart):
+2. **Önemli:** Play internal test **`production`** profiliyle build alınır. FCM V1 anahtarı **production** profilde de olmalı:
+   ```powershell
+   cd bex
+   npx eas credentials -p android
+   # → build profile: production → Push Notifications (FCM V1)
+   ```
+   (`development` profilde FCM varken `production` boşsa push çalışmaz.)
+3. Yeni build alın (native credential değişince rebuild şart):
 
 ```bash
 cd bex

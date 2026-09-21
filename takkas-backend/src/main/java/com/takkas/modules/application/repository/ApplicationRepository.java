@@ -61,6 +61,15 @@ public interface ApplicationRepository extends JpaRepository<Application, UUID> 
         """)
     boolean isPublicPortfolioImage(@Param("url") String url, @Param("filename") String filename);
 
+    @Query("""
+        SELECT COUNT(a) > 0 FROM Application a
+        JOIN a.individual ind
+        WHERE a.businessId = :businessId AND ind.user.id = :userId
+        """)
+    boolean businessHasApplicationWithUser(
+        @Param("businessId") UUID businessId,
+        @Param("userId") UUID userId);
+
     @Query(value = """
         SELECT individual_id, COUNT(*) AS cnt FROM applications
         WHERE status = 'REWARDED'

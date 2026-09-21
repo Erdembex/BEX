@@ -142,13 +142,13 @@ export default function BusinessTasksScreen() {
     <TabScreen style={styles.safe}>
       <BusinessScreenHeader title={t('businessTasksScreen.title')} />
       <View style={styles.header}>
-        <View>
-          {!shouldUseDemoData() ? (
-            <Text style={styles.limitHint}>
-              {t('businessTasksScreen.limitHint', { count: activeCount })}
-            </Text>
-          ) : null}
-        </View>
+        {!shouldUseDemoData() ? (
+          <Text style={styles.limitHint} numberOfLines={2}>
+            {t('businessTasksScreen.limitHint', { count: activeCount })}
+          </Text>
+        ) : (
+          <View style={styles.headerSpacer} />
+        )}
         <Button
           title={t('businessTasksScreen.newTask')}
           size="sm"
@@ -262,15 +262,23 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: Spacing[3],
     paddingHorizontal: Spacing[5],
     paddingTop: Spacing[4],
     paddingBottom: Spacing[2],
   },
+  headerSpacer: { flex: 1 },
   title: { ...Typography.headingLarge, color: Colors.textPrimary },
-  limitHint: { ...Typography.caption, color: Colors.textSecondary, marginTop: 2 },
-  newBtn: { paddingHorizontal: Spacing[4], minWidth: 90 },
+  limitHint: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    flex: 1,
+    flexShrink: 1,
+    paddingRight: Spacing[2],
+  },
+  newBtn: { paddingHorizontal: Spacing[3], flexShrink: 0, maxWidth: 132 },
   list: { padding: Spacing[5], paddingTop: Spacing[2], flexGrow: 1 },
   card: {
     backgroundColor: Colors.card,

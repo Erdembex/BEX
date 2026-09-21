@@ -117,7 +117,13 @@ export function Button({
   ) : (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
       {leftIcon}
-      <Text variant={TEXT_VARIANT[variant]} style={[styles.label, textStyle]}>
+      <Text
+        variant={TEXT_VARIANT[variant]}
+        style={[styles.label, textStyle]}
+        numberOfLines={2}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+      >
         {title}
       </Text>
     </View>

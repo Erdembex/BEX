@@ -27,8 +27,7 @@ import { BRAND_NAVY, BRAND_GOLD_LIGHT, brandNavyAlpha } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const QUICK_LINKS: { route: Href; labelKey: string; hubIcon: 'map' | 'settings' | 'profile' }[] = [
-  { route: '/map' as Href, labelKey: 'userHub.map', hubIcon: 'map' },
+const QUICK_LINKS: { route: Href; labelKey: string; hubIcon: 'settings' | 'profile' }[] = [
   { route: '/settings' as Href, labelKey: 'userHub.settings', hubIcon: 'settings' },
   { route: '/(tabs)/profile' as Href, labelKey: 'userHub.profile', hubIcon: 'profile' },
 ];
@@ -174,13 +173,7 @@ export default function UserHomeScreen() {
               activeOpacity={0.85}
             >
               <Ionicons
-                name={
-                  link.hubIcon === 'map'
-                    ? 'map-outline'
-                    : link.hubIcon === 'settings'
-                      ? 'settings-outline'
-                      : 'person-outline'
-                }
+                name={link.hubIcon === 'settings' ? 'settings-outline' : 'person-outline'}
                 size={16}
                 color={Colors.iconPrimary}
               />

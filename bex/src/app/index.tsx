@@ -94,7 +94,7 @@ export default function Index() {
   }
 
   if (bexUser.role === 'business') {
-    return <Redirect href="/(business)/applications/index" />;
+    return <Redirect href="/(business)/panel" />;
   }
 
   if (bexUser.role === 'admin') {

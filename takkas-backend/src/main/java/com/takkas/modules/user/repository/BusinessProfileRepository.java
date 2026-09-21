@@ -28,4 +28,8 @@ public interface BusinessProfileRepository extends JpaRepository<BusinessProfile
     boolean existsByVerificationDocumentUrlContaining(String suffix);
 
     List<BusinessProfile> findTop50ByLatitudeIsNullAndCityIsNotNullAndDistrictIsNotNull();
+
+    List<BusinessProfile> findTop100ByLatitudeIsNullAndCityIsNotNullAndDistrictIsNotNull();
+
+    List<BusinessProfile> findTop30ByLatitudeIsNullAndCityIsNotNullAndDistrictIsNotNull();
 }

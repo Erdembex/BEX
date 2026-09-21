@@ -213,3 +213,15 @@ export async function hasForegroundLocationPermission(): Promise<boolean> {
     return false;
   }
 }
+
+/** Harita ekranı: konumum noktası için izin iste (reddedilirse sessizce false). */
+export async function requestMapLocationPermission(): Promise<boolean> {
+  try {
+    const current = await Location.getForegroundPermissionsAsync();
+    if (current.status === 'granted') return true;
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    return status === 'granted';
+  } catch {
+    return false;
+  }
+}

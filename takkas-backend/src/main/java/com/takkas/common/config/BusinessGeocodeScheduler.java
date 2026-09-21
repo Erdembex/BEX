@@ -5,32 +5,33 @@ import com.takkas.modules.user.domain.BusinessProfile;
 import com.takkas.modules.user.repository.BusinessProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/** Eksik koordinatlı işletmeleri başlangıçta geocode eder (Nominatim rate limit: ~1/sn). */
+/** Eksik koordinatlı işletmeleri periyodik geocode eder (Nominatim ~1 istek/sn). */
 @Component
 @Profile("!test")
 @RequiredArgsConstructor
 @Slf4j
-public class BusinessGeocodeBackfillRunner implements ApplicationRunner {
+public class BusinessGeocodeScheduler {
 
     private final BusinessProfileRepository businessRepo;
     private final BusinessGeocodingService geocodingService;
 
-    @Override
+    @Scheduled(fixedDelayString = "${app.geocode.backfill-delay-ms:3600000}")
     @Transactional
-    public void run(ApplicationArguments args) {
-        List<BusinessProfile> pending = businessRepo.findTop100ByLatitudeIsNullAndCityIsNotNullAndDistrictIsNotNull();
+    public void backfillMissingCoordinates() {
+        List<BusinessProfile> pending =
+            businessRepo.findTop30ByLatitudeIsNullAndCityIsNotNullAndDistrictIsNotNull();
         if (pending.isEmpty()) {
             return;
         }
-        log.info("Geocoding {} business profiles missing coordinates...", pending.size());
+
+        log.info("Scheduled geocode: {} business profiles pending.", pending.size());
         int updated = 0;
         for (BusinessProfile profile : pending) {
             geocodingService.applyGeocode(profile);
@@ -45,6 +46,6 @@ public class BusinessGeocodeBackfillRunner implements ApplicationRunner {
                 break;
             }
         }
-        log.info("Business geocode backfill complete: {}/{} updated.", updated, pending.size());
+        log.info("Scheduled geocode complete: {}/{} updated.", updated, pending.size());
     }
 }

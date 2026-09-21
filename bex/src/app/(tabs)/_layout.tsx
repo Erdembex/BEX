@@ -40,7 +40,7 @@ export default function UserTabsLayout() {
   const pathname = usePathname();
 
   if (bexUser?.role === 'business') {
-    return <Redirect href="/(business)/applications/index" />;
+    return <Redirect href="/(business)/panel" />;
   }
 
   if (isInitialized && !firebaseUser) {

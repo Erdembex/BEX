@@ -11,8 +11,8 @@
     "primaryColor": "#051F45",
     "backgroundColor": "#051F45",
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
       "backgroundColor": "#051F45"
     },
     "ios": {
@@ -63,9 +63,8 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-icon.png",
-          "imageWidth": 220,
-          "resizeMode": "contain",
+          "image": "./assets/splash.png",
+          "resizeMode": "cover",
           "backgroundColor": "#051F45"
         }
       ],

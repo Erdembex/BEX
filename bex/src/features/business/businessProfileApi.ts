@@ -35,6 +35,8 @@ type BusinessPublicProfileDto = {
   averageRating?: number;
   feedbackCount?: number;
   activeListingCount?: number;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 function mapBusinessCategory(raw?: string): BusinessCategory {
@@ -67,6 +69,13 @@ function formatBusinessAddress(dto: {
 
 function mapPublicBusiness(dto: BusinessPublicProfileDto): Business {
   const address = formatBusinessAddress(dto);
+  const lat = dto.latitude;
+  const lng = dto.longitude;
+  const hasCoords =
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng);
 
   return {
     id: String(dto.profileId ?? ''),
@@ -75,7 +84,7 @@ function mapPublicBusiness(dto: BusinessPublicProfileDto): Business {
     category: mapBusinessCategory(dto.category),
     logoUrl: resolveMediaUrl(dto.logoUrl?.trim() ?? ''),
     address,
-    location: new GeoPoint(41.0082, 28.9784),
+    location: hasCoords ? new GeoPoint(lat, lng) : new GeoPoint(41.0082, 28.9784),
     isVerified: dto.verified ?? false,
     verificationStatus: mapBackendVerificationStatus(undefined, dto.verified),
     reputationScore: Math.round((dto.averageRating ?? 0) * 10),

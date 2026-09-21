@@ -41,27 +41,34 @@ const useStyles = createThemedStyles((Colors) => ({
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surface,
-    overflow: 'hidden',
+  },
+  iconBtnInner: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconPlaceholder: { width: 40 },
   badge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    minWidth: 18,
-    height: 18,
+    top: 2,
+    right: 2,
+    minWidth: 17,
+    height: 17,
     borderRadius: 9,
     backgroundColor: Colors.error,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: Colors.surface,
   },
   badgeText: {
     ...Typography.caption,
     color: Colors.textOnPrimary,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
-    lineHeight: 12,
+    lineHeight: 11,
   },
   titleSpacer: { flex: 1 },
   brandOverlay: {
@@ -153,12 +160,16 @@ export function AppHeader({
             accessibilityLabel={t('header.notifications')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="notifications-outline" size={22} color={Colors.iconPrimary} />
-            {unreadCount > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
-              </View>
-            ) : null}
+            <View style={styles.iconBtnInner}>
+              <Ionicons name="notifications-outline" size={22} color={Colors.iconPrimary} />
+              {unreadCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText} numberOfLines={1}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </TouchableOpacity>
         ) : (
           <View style={styles.iconPlaceholder} />

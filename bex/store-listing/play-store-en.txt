@@ -2,22 +2,25 @@
 
 ## Short description (max 80 characters)
 
-Complete tasks, earn rewards. Find local business tasks and win coupons.
+You do the task, the business provides the service. Skill swap — no cash.
 
 ## Full description
 
-Earn rewards by completing tasks from local businesses with Passla!
+You do the task, the business provides the service.
 
-**What you can do**
-• Discover tasks near you
-• Complete tasks and earn coupons
-• Message businesses and send offers
-• Trade skills and collaborate
-• Add a bio and optional CV to your profile
-• Redeem coupons via QR code
+Passla is not about money transfers — it's skill exchange. Salons, cafés, gyms and more offer their own services when you deliver design, content, or social media work. You submit; they issue a coupon. Show the QR at the venue.
+
+**How it works**
+• Discover tasks from businesses near you
+• Apply to tasks that match your skills and message the business
+• Upload your delivery; after approval the digital coupon lands in your wallet
+• Visit the business, show the QR, redeem the service
+
+**For businesses**
+Post tasks, find talent, manage applications, verify coupons with QR. Not ad spend — real delivery in exchange for your own service.
 
 **Who is it for?**
-Students, freelancers, and anyone looking for extra income. Businesses post tasks; you complete them.
+Students, freelancers, creators — anyone who wants skill-based connections with local businesses.
 
 **Your privacy**
 Location is used only while the app is open to show nearby tasks.

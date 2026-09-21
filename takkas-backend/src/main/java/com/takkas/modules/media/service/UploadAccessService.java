@@ -43,6 +43,13 @@ public class UploadAccessService {
             return;
         }
 
+        if (principal.userType() == UserType.BUSINESS
+            && applicationRepository.businessHasApplicationWithUser(principal.profileId(), ownerUserId)
+            && (individualProfileRepository.existsByUser_IdAndCvUrl(ownerUserId, url)
+                || individualProfileRepository.existsByUser_IdAndCvUrlContaining(ownerUserId, filename))) {
+            return;
+        }
+
         if (applicationRepository.isPublicPortfolioImage(url, filename)) {
             return;
         }

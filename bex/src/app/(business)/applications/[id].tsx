@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Linking, Alert } from 'react-native';
 import { Screen, useResolvedSafeAreaInsets } from '@/components/common/Screen';
 import { router, useLocalSearchParams, Href } from 'expo-router';
@@ -21,6 +21,7 @@ import { canUseApplicationMessages } from '@/features/messages';
 import { useToast } from '@/components/common/Toast';
 import { refreshPendingFeedbackGate } from '@/components/feedback/PendingFeedbackGate';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
+import { BRAND_NAVY } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
 export default function ApplicationDetailScreen() {
@@ -70,6 +71,12 @@ export default function ApplicationDetailScreen() {
       load();
     }, [load])
   );
+
+  useEffect(() => {
+    if (!loading && !application && hasLoadedRef.current) {
+      router.replace('/(business)/panel');
+    }
+  }, [loading, application]);
 
   const needsFeedback =
     !!application &&
@@ -170,7 +177,7 @@ export default function ApplicationDetailScreen() {
   if (!application) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>{t('applicationDetailBizScreen.notFound')}</Text>
+        <ActivityIndicator size="large" color={Colors.primary} />
       </View>
     );
   }
@@ -185,9 +192,8 @@ export default function ApplicationDetailScreen() {
         title={t('applicationDetailBizScreen.approveApplication')}
         onPress={handleApproveApplication}
         loading={actionLoading}
-        size="md"
+        size="sm"
         style={styles.decisionBtn}
-        fullWidth={false}
       />
       <Button
         title={t('applicationDetailBizScreen.reject')}
@@ -195,9 +201,8 @@ export default function ApplicationDetailScreen() {
         onPress={handleReject}
         loading={actionLoading}
         disabled={actionLoading}
-        size="md"
+        size="sm"
         style={styles.decisionBtn}
-        fullWidth={false}
       />
     </View>
   );
@@ -464,19 +469,19 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     padding: Spacing[4],
     marginBottom: Spacing[4],
     borderWidth: 2,
-    borderColor: Colors.borderGold,
+    borderColor: BRAND_NAVY,
     gap: Spacing[3],
   },
   decisionTitle: {
     ...Typography.labelMedium,
-    color: Colors.accent,
+    color: BRAND_NAVY,
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   applicantCardTitle: { ...Typography.labelLarge, color: Colors.textPrimary, fontWeight: '700' },
-  decisionActions: { flexDirection: 'row', gap: Spacing[3] },
-  decisionBtn: { flex: 1 },
+  decisionActions: { flexDirection: 'column', gap: Spacing[2] },
+  decisionBtn: { width: '100%' },
   secondaryLabel: {
     ...Typography.caption,
     color: Colors.textMuted,
@@ -490,7 +495,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     paddingTop: Spacing[3],
     backgroundColor: Colors.surface,
     borderTopWidth: 1,
-    borderTopColor: Colors.borderGold,
+    borderTopColor: Colors.border,
   },
   block: {
     backgroundColor: Colors.card,

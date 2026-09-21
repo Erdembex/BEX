@@ -6,7 +6,8 @@ import { getCityMapBounds } from '@/lib/cityMapRegion';
 import { clampMapRegion, type MapRegion } from '@/lib/mapRegionUtils';
 import { Typography, Radius, Spacing, useThemeColors } from '@/theme';
 import { BRAND_NAVY } from '@/theme/brand';
-import { hasForegroundLocationPermission } from '@/hooks/useDeviceLocation';
+import { useTranslation } from '@/i18n';
+import { getGoogleMapsApiKey, isAndroidMapsKeyConfigured } from '@/lib/googleMapsConfig';
 import type { MapBusinessPin } from './types';
 
 type Props = {
@@ -14,26 +15,23 @@ type Props = {
   focusDistrict?: string | null;
   initialRegion: MapRegion;
   pins: MapBusinessPin[];
+  locationGranted?: boolean;
 };
 
-export function DiscoverMapView({ city, focusDistrict, initialRegion, pins }: Props) {
+export function DiscoverMapView({
+  city,
+  focusDistrict,
+  initialRegion,
+  pins,
+  locationGranted = false,
+}: Props) {
   const Colors = useThemeColors();
+  const { t } = useTranslation();
   const mapRef = useRef<MapView>(null);
   const bounds = useMemo(() => getCityMapBounds(city), [city]);
   const lockDistrictView = Boolean(focusDistrict?.trim());
-  const [locationGranted, setLocationGranted] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    void hasForegroundLocationPermission().then((granted) => {
-      if (!cancelled) setLocationGranted(granted);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const showUserLocation = Platform.OS === 'ios' ? locationGranted : false;
+  const showUserLocation = locationGranted;
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -95,12 +93,20 @@ export function DiscoverMapView({ city, focusDistrict, initialRegion, pins }: Pr
     [bounds]
   );
 
-  const googleMapsKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const googleMapsKey = getGoogleMapsApiKey();
   const mapProvider =
     Platform.OS === 'android' && googleMapsKey ? PROVIDER_GOOGLE : undefined;
+  const showTilesWarning = Platform.OS === 'android' && !isAndroidMapsKeyConfigured();
 
   return (
     <View style={styles.wrap}>
+      {showTilesWarning ? (
+        <View style={[styles.tilesBanner, { backgroundColor: Colors.card, borderColor: Colors.border }]}>
+          <Text style={[styles.tilesBannerText, { color: Colors.textPrimary }]}>
+            {t('map.tilesMissing')}
+          </Text>
+        </View>
+      ) : null}
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -138,7 +144,10 @@ export function DiscoverMapView({ city, focusDistrict, initialRegion, pins }: Pr
       {pins.length === 0 ? (
         <View style={[styles.emptyOverlay, { backgroundColor: Colors.overlayLight }]}>
           <Text style={[styles.emptyText, { color: Colors.textPrimary }]}>
-            Bu bölgede haritada gösterilecek ilan bulunamadı.
+            {t('map.noPinsInArea')}
+          </Text>
+          <Text style={[styles.emptyHint, { color: Colors.textSecondary }]}>
+            {t('map.noPinsHint')}
           </Text>
         </View>
       ) : null}
@@ -166,6 +175,28 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     textAlign: 'center',
     lineHeight: 20,
+    fontWeight: '600',
+  },
+  emptyHint: {
+    ...Typography.caption,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginTop: Spacing[2],
+  },
+  tilesBanner: {
+    position: 'absolute',
+    top: Spacing[2],
+    left: Spacing[3],
+    right: Spacing[3],
+    zIndex: 2,
+    padding: Spacing[3],
+    borderRadius: Radius.md,
+    borderWidth: 1,
+  },
+  tilesBannerText: {
+    ...Typography.caption,
+    textAlign: 'center',
+    lineHeight: 18,
     fontWeight: '600',
   },
 });

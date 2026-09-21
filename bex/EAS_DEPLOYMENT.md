@@ -42,6 +42,20 @@ eas secret:create --name EXPO_PUBLIC_API_BASE_URL --value https://api.SENIN-DOMA
 
 Secrets listesi: `eas secret:list`
 
+**Harita (production / internal AAB):**
+
+```bash
+npx eas env:create production --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value "AIza..." --visibility plaintext --scope project --force --non-interactive
+```
+
+**App Check (internal test, Firebase enforcement öncesi):**
+
+```bash
+npx eas env:create production --name EXPO_PUBLIC_APP_CHECK_DEBUG_TOKEN --value "UUID-from-firebase" --visibility secret --scope project --force --non-interactive
+```
+
+Detay: `store-listing/PRODUCTION_READINESS.md`, test listesi: `store-listing/INTERNAL_E2E_TEST.md`
+
 ## 3. Preview build (internal test)
 
 ```bash

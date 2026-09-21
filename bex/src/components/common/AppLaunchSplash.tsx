@@ -1,20 +1,19 @@
 import { StyleSheet, View, Image } from 'react-native';
-import { BRAND_NAVY } from '@/theme/brand';
 
-const MARK_WHITE = require('../../../assets/branding/passla-mark-white.png');
+const SPLASH = require('../../../assets/splash.png');
 
 interface AppLaunchSplashProps {
   fontsLoaded?: boolean;
 }
 
-/** Uygulama açılışında lacivert zemin + ortada beyaz SS işareti */
+/** Native splash ile aynı görsel — font/yüklenme sırasında kesintisiz geçiş */
 export function AppLaunchSplash(_props: AppLaunchSplashProps) {
   return (
     <View style={styles.container}>
       <Image
-        source={MARK_WHITE}
-        style={styles.mark}
-        resizeMode="contain"
+        source={SPLASH}
+        style={styles.image}
+        resizeMode="cover"
         accessibilityRole="image"
         accessibilityLabel="Passla"
       />
@@ -25,12 +24,11 @@ export function AppLaunchSplash(_props: AppLaunchSplashProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BRAND_NAVY,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#051F45',
   },
-  mark: {
-    width: 200,
-    height: 200,
+  image: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
 });

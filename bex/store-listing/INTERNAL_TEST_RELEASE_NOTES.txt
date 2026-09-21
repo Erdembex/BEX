@@ -1,12 +1,15 @@
-Passla 1.0.2 — Internal test
+Passla 1.0.2+ — Internal test
 
 Yenilikler:
-- Login ekranında "Şimdilik Atla" ile misafir mod (görevleri incele)
-- Onboarding geri tuşu ve güncellenmiş tanıtım metinleri
-- Karanlık/aydınlık mod, offline banner, 404 sayfası
-- Bildirim izni açıklaması, ayarlarda önbellek temizleme
+- Onboarding slaytları, marka ikonları, Play Store metinleri
+- Ayarlar / profil ayrımı (profil düzenleme yalnızca Profil sekmesinde)
+- Harita: önce sunucu koordinatları, işletme başına tek pin, Android konumum
 
 Test notu:
-1. Login → "Şimdilik Atla" → Hub → Görevler
-2. Başvuru / mesaj / cüzdan için kayıt gerekir
-3. API: https://api.passla.com.tr
+1. Onboarding → giriş → hub → görevler / harita
+2. Harita: şehir seçili, pin’ler ve ilan detayı
+3. İşletme: açık adres kaydı → haritada görünürlük (backend geocode)
+4. Bireysel: başvuru → mesaj → teslim → cüzdan / QR
+5. API: https://api.passla.com.tr
+
+Harita boşsa: EAS’te EXPO_PUBLIC_GOOGLE_MAPS_API_KEY kontrol et.
