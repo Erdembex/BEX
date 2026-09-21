@@ -1,5 +1,6 @@
 package com.takkas.modules.messaging.service;
 
+import com.takkas.common.exception.BusinessRuleException;
 import com.takkas.common.event.DomainEventPublisher;
 import com.takkas.common.event.MessageSentEvent;
 import com.takkas.modules.messaging.api.dto.MessageResponse;
