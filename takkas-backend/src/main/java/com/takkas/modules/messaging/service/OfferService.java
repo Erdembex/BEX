@@ -7,8 +7,11 @@ import com.takkas.modules.application.domain.enums.ApplicationStatus;
 import com.takkas.modules.application.repository.ApplicationRepository;
 import com.takkas.modules.listing.domain.Listing;
 import com.takkas.modules.listing.domain.ListingReward;
+import com.takkas.modules.listing.domain.enums.ListingStatus;
 import com.takkas.modules.listing.domain.enums.ListingVisibility;
 import com.takkas.modules.listing.repository.ListingRepository;
+import com.takkas.modules.subscription.domain.enums.FeatureKey;
+import com.takkas.modules.subscription.service.FeatureGateService;
 import com.takkas.modules.messaging.api.dto.*;
 import com.takkas.modules.messaging.domain.*;
 import com.takkas.modules.messaging.domain.enums.MessageType;
@@ -47,6 +50,7 @@ public class OfferService {
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageBufferService bufferService;
     private final UserBlockService userBlockService;
+    private final FeatureGateService featureGateService;
 
     public OfferResponse sendOffer(UUID conversationId, UUID senderId, SendOfferRequest req) {
         Conversation conv = getWritable(conversationId, senderId);
@@ -59,8 +63,14 @@ public class OfferService {
         BusinessProfile business = businessProfileRepository.findByUserId(senderId)
             .orElseThrow(() -> new ResourceNotFoundException("İşletme profili bulunamadı."));
 
-        offerRepository.findPendingByConversationId(conversationId)
-            .ifPresent(Offer::counter);
+        offerRepository.findPendingByConversationId(conversationId).ifPresent(pending -> {
+            pending.counter();
+            closeListingIfActive(pending.getListingId());
+        });
+
+        UUID businessId = business.getId();
+        long activeCount = listingRepository.countByBusinessIdAndStatus(businessId, ListingStatus.ACTIVE);
+        featureGateService.checkLimit(businessId, FeatureKey.MAX_ACTIVE_LISTINGS, (int) activeCount);
 
         Listing listing = Listing.builder()
             .business(business)
@@ -171,6 +181,15 @@ public class OfferService {
             offer.getMessage().getSenderId(), rejectorId));
         messagingTemplate.convertAndSend("/topic/conversation/" + conversationId,
             new OfferStatusUpdate(offerId, OfferStatus.REJECTED));
+    }
+
+    private void closeListingIfActive(UUID listingId) {
+        if (listingId == null) return;
+        listingRepository.findById(listingId).ifPresent(listing -> {
+            if (listing.getStatus() == ListingStatus.ACTIVE) {
+                listing.close();
+            }
+        });
     }
 
     private Conversation getWritable(UUID cid, UUID userId) {

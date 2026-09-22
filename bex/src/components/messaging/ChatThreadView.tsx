@@ -42,6 +42,8 @@ import { formatRelativeTime } from '@/lib/dateUtils';
 import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
+import { useBusiness } from '@/features/business/useBusiness';
+import { getListingLimitInfo, ListingLimitInfo } from '@/lib/listingLimit';
 
 interface ChatThreadViewProps {
   applicationId: string;
@@ -79,6 +81,9 @@ export function ChatThreadView({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const { business } = useBusiness();
+  const isBusiness = currentUserRole === 'business';
+  const [listingLimit, setListingLimit] = useState<ListingLimitInfo | null>(null);
   const [messages, setMessages] = useState<ApplicationMessage[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -160,8 +165,26 @@ export function ChatThreadView({
         setLoading(false);
         void markRead();
       });
-    }, [applicationId, markRead])
+      if (isBusiness && business?.id) {
+        void getListingLimitInfo(business.id).then(setListingLimit);
+      } else {
+        setListingLimit(null);
+      }
+    }, [applicationId, markRead, isBusiness, business?.id])
   );
+
+  const canSendOffer =
+    !isBusiness || listingLimit == null ? true : listingLimit.canCreate;
+
+  const showOfferLimitToast = useCallback(() => {
+    if (!listingLimit) return;
+    showToast(
+      t('createTask.limitReached', {
+        active: listingLimit.active,
+        max: Number.isFinite(listingLimit.max) ? listingLimit.max : '∞',
+      })
+    );
+  }, [listingLimit, showToast, t]);
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -191,6 +214,10 @@ export function ChatThreadView({
 
   const handleSendOffer = async (input: SendChatOfferInput) => {
     if (!conversationId || offerSending) return;
+    if (isBusiness && listingLimit && !listingLimit.canCreate) {
+      showOfferLimitToast();
+      return;
+    }
     setOfferSending(true);
     setSendError(null);
     try {
@@ -232,8 +259,6 @@ export function ChatThreadView({
       setOfferActingId(null);
     }
   };
-
-  const isBusiness = currentUserRole === 'business';
 
   const handleSend = async () => {
     if (!text.trim() || sending || imageSending) return;
@@ -372,8 +397,17 @@ export function ChatThreadView({
       ) : null}
       {isBusiness ? (
         <TouchableOpacity
-          style={[styles.offerBtn, !conversationId && styles.offerBtnDisabled]}
-          onPress={() => setOfferSheetOpen(true)}
+          style={[
+            styles.offerBtn,
+            (!conversationId || !canSendOffer) && styles.offerBtnDisabled,
+          ]}
+          onPress={() => {
+            if (!canSendOffer) {
+              showOfferLimitToast();
+              return;
+            }
+            setOfferSheetOpen(true);
+          }}
           disabled={!conversationId || offerSending}
           activeOpacity={0.88}
         >
