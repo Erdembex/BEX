@@ -27,9 +27,8 @@ import { BRAND_NAVY, BRAND_GOLD_LIGHT, brandNavyAlpha } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const QUICK_LINKS: { route: Href; labelKey: string; hubIcon: 'settings' | 'profile' }[] = [
+const QUICK_LINKS: { route: Href; labelKey: string; hubIcon: 'settings' }[] = [
   { route: '/settings' as Href, labelKey: 'userHub.settings', hubIcon: 'settings' },
-  { route: '/(tabs)/profile' as Href, labelKey: 'userHub.profile', hubIcon: 'profile' },
 ];
 
 export default function UserHomeScreen() {
@@ -95,16 +94,17 @@ export default function UserHomeScreen() {
       >
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => router.push('/(tabs)/profile')}
+            style={[styles.iconBtn, { borderColor: Colors.border, backgroundColor: Colors.surface }]}
+            onPress={() => router.push('/(tabs)/more')}
             activeOpacity={0.85}
             accessibilityRole="button"
-            accessibilityLabel={t('userHub.profile')}
+            accessibilityLabel={t('header.openMenu')}
           >
-            <ProfileAvatar
-              name={displayName}
-              avatarUrl={bexUser?.avatarUrl}
-              size={44}
-            />
+            <View style={styles.menuIcon}>
+              <View style={[styles.menuBar, { backgroundColor: Colors.iconPrimary }]} />
+              <View style={[styles.menuBar, { backgroundColor: Colors.iconPrimary }]} />
+              <View style={[styles.menuBar, { backgroundColor: Colors.iconPrimary }]} />
+            </View>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -140,6 +140,18 @@ export default function UserHomeScreen() {
                 </View>
               ) : null}
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('/(tabs)/profile')}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={t('userHub.profile')}
+            >
+              <ProfileAvatar
+                name={displayName}
+                avatarUrl={bexUser?.avatarUrl}
+                size={40}
+              />
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -172,11 +184,7 @@ export default function UserHomeScreen() {
               onPress={() => router.push(link.route)}
               activeOpacity={0.85}
             >
-              <Ionicons
-                name={link.hubIcon === 'settings' ? 'settings-outline' : 'person-outline'}
-                size={16}
-                color={Colors.iconPrimary}
-              />
+              <Ionicons name="settings-outline" size={16} color={Colors.iconPrimary} />
               <Text style={[styles.quickChipText, { color: Colors.textPrimary }]}>
                 {t(link.labelKey)}
               </Text>
@@ -295,7 +303,13 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
-    gap: Spacing[1],
+    alignItems: 'center',
+    gap: Spacing[2],
+  },
+  menuIcon: { gap: 4, width: 18 },
+  menuBar: {
+    height: 2,
+    borderRadius: 1,
   },
   iconBtn: {
     width: 40,

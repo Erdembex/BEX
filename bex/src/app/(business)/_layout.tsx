@@ -57,7 +57,20 @@ export default function BusinessTabsLayout() {
           tabBarStyle: { display: 'none' },
         }}
       >
-        <Tabs.Screen name="panel" options={{ href: null }} />
+        <Tabs.Screen
+          name="panel"
+          options={{
+            title: t('tabsBusiness.panel'),
+            href: null,
+            tabBarIcon: ({ focused, color }) => (
+              <TabIcon
+                name={focused ? 'grid' : 'grid-outline'}
+                focused={focused}
+                color={color}
+              />
+            ),
+          }}
+        />
         <Tabs.Screen
           name="applications/index"
           options={{

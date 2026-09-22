@@ -12,6 +12,7 @@ import { isAuthEmulatorActive } from '@/lib/firebase';
 import { AccountSettings } from '@/components/profile/AccountSettings';
 import { PublicProfileSections } from '@/components/profile/PublicProfileSections';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { userHubBackHeaderProps } from '@/lib/userHubNavigation';
 import { Button } from '@/components/ui';
 import { CompletedTask, PortfolioItem } from '@/types';
 import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
@@ -78,7 +79,7 @@ export default function ProfileScreen() {
 
   return (
     <TabScreen style={styles.safe}>
-      <AppHeader title={t('profileScreen.title')} showMenu showNotifications />
+      <AppHeader title={t('profileScreen.title')} showNotifications {...userHubBackHeaderProps()} />
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
         <AccountSettings
           bexUser={bexUser}

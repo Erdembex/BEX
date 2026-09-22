@@ -18,7 +18,7 @@ import { useTranslation } from '@/i18n';
 /** Görünür tab bar yüksekliği (safe area hariç) */
 export const BUSINESS_TAB_BAR_HEIGHT = 68;
 
-const VISIBLE_TABS = ['applications/index', 'messages', 'tasks', 'profile'] as const;
+const VISIBLE_TABS = ['panel', 'applications/index', 'messages', 'tasks', 'profile'] as const;
 
 const FAB_SIZE = 58;
 const FAB_LEFT = 14;
