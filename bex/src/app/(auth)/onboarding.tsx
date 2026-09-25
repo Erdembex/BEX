@@ -1,342 +1,183 @@
-import React, { useRef, useState, useMemo, useCallback, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Image,
-  FlatList,
-  Dimensions,
-  TouchableOpacity,
-  ViewToken,
-  StyleSheet,
-  BackHandler,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Screen } from '@/components/common/Screen';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, BackHandler, Easing, PanResponder, StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Typography, Spacing, Radius } from '@/theme';
-import { BRAND_NAVY, BRAND_GOLD_MID, BRAND_GOLD_VIVID, BRAND_NAVY_TEXT } from '@/theme/brand';
-import { useTranslation } from '@/i18n';
 import { markOnboardingComplete } from '@/lib/onboardingStorage';
+import { ONBOARDING_STEPS } from '@/components/onboarding/onboardingSteps';
+import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
+import { OnboardingStepContent } from '@/components/onboarding/OnboardingStepContent';
+import { OnboardingFooter } from '@/components/onboarding/OnboardingFooter';
+import { IS_COMPACT_HEIGHT, rs } from '@/components/onboarding/onboardingTheme';
 
-const { width } = Dimensions.get('window');
-const ART_HEIGHT = 280;
-const MARK = require('../../../assets/branding/passla-mark-white.png');
-const SLIDE_1 = require('../../../assets/branding/onboarding/slide-1.png');
-const SLIDE_2 = require('../../../assets/branding/onboarding/slide-2.png');
-const SLIDE_3 = require('../../../assets/branding/onboarding/slide-3.png');
+const STEP_COUNT = ONBOARDING_STEPS.length;
+const SLIDE_DISTANCE = rs(28);
+const OUT_MS = 170;
+const IN_MS = 260;
+const SWIPE_THRESHOLD = 50;
 
-const TEXT = BRAND_NAVY_TEXT;
-const MUTED = 'rgba(240, 238, 233, 0.68)';
-
-type Slide = {
-  id: string;
-  image: number;
-  title: string;
-  description: string;
-};
+type Destination = '/(auth)/login' | '/(auth)/register';
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
-  const [activeIndex, setActiveIndex] = useState(0);
-  const flatListRef = useRef<FlatList<Slide>>(null);
+  const [currentStep, setCurrentStep] = useState(0);
+  const opacity = useRef(new Animated.Value(1)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const background = useRef(new Animated.Value(0)).current;
+  const animating = useRef(false);
 
-  const slides = useMemo<Slide[]>(
-    () => [
-      {
-        id: '1',
-        image: SLIDE_1,
-        title: t('auth.onboarding.slide1Title'),
-        description: t('auth.onboarding.slide1Desc'),
-      },
-      {
-        id: '2',
-        image: SLIDE_2,
-        title: t('auth.onboarding.slide2Title'),
-        description: t('auth.onboarding.slide2Desc'),
-      },
-      {
-        id: '3',
-        image: SLIDE_3,
-        title: t('auth.onboarding.slide3Title'),
-        description: t('auth.onboarding.slide3Desc'),
-      },
-    ],
-    [t]
-  );
+  const step = ONBOARDING_STEPS[currentStep];
+  const isLast = currentStep === STEP_COUNT - 1;
 
-  const isLast = activeIndex === slides.length - 1;
-
-  const finishOnboarding = useCallback(async (destination: '/(auth)/login') => {
+  const finishOnboarding = useCallback(async (destination: Destination) => {
     await markOnboardingComplete();
     router.replace(destination);
   }, []);
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-      if (viewableItems.length > 0 && viewableItems[0].index !== null) {
-        setActiveIndex(viewableItems[0].index);
-      }
-    }
-  ).current;
+  const goToStep = useCallback(
+    (nextStep: number) => {
+      if (animating.current || nextStep < 0 || nextStep >= STEP_COUNT) return;
+      animating.current = true;
+      const direction = nextStep > currentStep ? 1 : -1;
 
-  const goNext = () => {
-    if (isLast) {
-      void finishOnboarding('/(auth)/login');
-      return;
-    }
-    const nextIndex = activeIndex + 1;
-    flatListRef.current?.scrollToOffset({
-      offset: width * nextIndex,
-      animated: true,
-    });
-    setActiveIndex(nextIndex);
-  };
+      Animated.timing(background, {
+        toValue: nextStep,
+        duration: OUT_MS + IN_MS,
+        easing: Easing.inOut(Easing.quad),
+        useNativeDriver: true,
+      }).start();
 
-  const skip = () => {
-    void finishOnboarding('/(auth)/login');
-  };
+      Animated.parallel([
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: OUT_MS,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateX, {
+          toValue: -SLIDE_DISTANCE * direction,
+          duration: OUT_MS,
+          easing: Easing.in(Easing.quad),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setCurrentStep(nextStep);
+        translateX.setValue(SLIDE_DISTANCE * direction);
+        Animated.parallel([
+          Animated.timing(opacity, {
+            toValue: 1,
+            duration: IN_MS,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.timing(translateX, {
+            toValue: 0,
+            duration: IN_MS,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+        ]).start(() => {
+          animating.current = false;
+        });
+      });
+    },
+    [background, currentStep, opacity, translateX]
+  );
 
-  const goBack = useCallback(() => {
-    if (activeIndex <= 0) return;
-    const prevIndex = activeIndex - 1;
-    flatListRef.current?.scrollToOffset({
-      offset: width * prevIndex,
-      animated: true,
-    });
-    setActiveIndex(prevIndex);
-  }, [activeIndex]);
+  const goNext = useCallback(() => goToStep(currentStep + 1), [currentStep, goToStep]);
+  const goBack = useCallback(() => goToStep(currentStep - 1), [currentStep, goToStep]);
+
+  const swipeHandlers = useRef({ goNext, goBack });
+  swipeHandlers.current = { goNext, goBack };
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, g) =>
+          Math.abs(g.dx) > 12 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+        onPanResponderRelease: (_, g) => {
+          if (g.dx <= -SWIPE_THRESHOLD) swipeHandlers.current.goNext();
+          else if (g.dx >= SWIPE_THRESHOLD) swipeHandlers.current.goBack();
+        },
+      }),
+    []
+  );
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (activeIndex > 0) {
-        goBack();
-        return true;
-      }
+      if (currentStep === 0) return false;
+      goBack();
       return true;
     });
     return () => sub.remove();
-  }, [activeIndex, goBack]);
+  }, [currentStep, goBack]);
 
   return (
-    <Screen style={styles.safe} edges={['left', 'right']}>
-      <View style={[styles.container, { paddingTop: insets.top + Spacing[2] }]}>
-        <View style={styles.header}>
-          <View style={styles.brandRow}>
-            <Image source={MARK} style={styles.mark} resizeMode="contain" accessibilityLabel="Passla" />
-            <View>
-              <Text style={styles.brandName}>PASSLA</Text>
-              <Text style={styles.brandSlogan}>{t('auth.onboarding.slogan')}</Text>
-            </View>
-          </View>
-          {!isLast ? (
-            <TouchableOpacity onPress={skip} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Text style={styles.skipText}>{t('common.skip')}</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.skipPlaceholder} />
-          )}
-        </View>
+    <View style={styles.root} {...panResponder.panHandlers}>
+      <StatusBar style="dark" />
+      {ONBOARDING_STEPS.map((s, i) => (
+        <Animated.View
+          key={s.id}
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            {
+              opacity: background.interpolate({
+                inputRange: [i - 1, i, i + 1],
+                outputRange: [0, 1, 0],
+                extrapolate: 'clamp',
+              }),
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={s.background}
+            locations={[0, 0.5, 1]}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+      ))}
 
-        <FlatList
-          ref={flatListRef}
-          data={slides}
-          keyExtractor={(item) => item.id}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          bounces={false}
-          style={styles.slideList}
-          getItemLayout={(_, index) => ({
-            length: width,
-            offset: width * index,
-            index,
-          })}
-          onScrollToIndexFailed={({ index }) => {
-            flatListRef.current?.scrollToOffset({
-              offset: width * index,
-              animated: true,
-            });
-          }}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
-          renderItem={({ item }) => (
-            <View style={[styles.slide, { width }]}>
-              <View style={[styles.artWrap, { height: ART_HEIGHT }]}>
-                <Image
-                  source={item.image}
-                  style={styles.art}
-                  resizeMode="cover"
-                  fadeDuration={0}
-                />
-              </View>
-              <View style={styles.textBlock}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.description}>{item.description}</Text>
-              </View>
-            </View>
-          )}
+      <View
+        style={[
+          styles.container,
+          {
+            paddingTop: insets.top + (IS_COMPACT_HEIGHT ? rs(12) : rs(22)),
+            paddingBottom: Math.max(insets.bottom, rs(14)) + (IS_COMPACT_HEIGHT ? rs(16) : rs(30)),
+          },
+        ]}
+      >
+        <OnboardingHeader
+          currentStep={currentStep}
+          stepCount={STEP_COUNT}
+          onSkip={isLast ? undefined : () => void finishOnboarding('/(auth)/login')}
         />
 
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, Spacing[4]) }]}>
-          <View style={styles.dots}>
-            {slides.map((slide, i) => (
-              <View
-                key={slide.id}
-                style={[styles.dot, i === activeIndex ? styles.dotActive : styles.dotInactive]}
-              />
-            ))}
-          </View>
+        <Animated.View style={[styles.content, { opacity, transform: [{ translateX }] }]}>
+          <OnboardingStepContent step={step} />
+        </Animated.View>
 
-          <View style={styles.navRow}>
-            <TouchableOpacity onPress={skip} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={styles.footerSkip}>{t('common.skip')}</Text>
-            </TouchableOpacity>
-
-            {isLast ? (
-              <TouchableOpacity style={styles.startBtn} onPress={goNext} activeOpacity={0.85}>
-                <Text style={styles.startLabel}>{t('common.getStarted')}</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.nextBtn} onPress={goNext} activeOpacity={0.85}>
-                <Ionicons name="arrow-forward" size={22} color={BRAND_NAVY} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
+        <OnboardingFooter
+          isLast={isLast}
+          onNext={goNext}
+          onRegister={() => void finishOnboarding('/(auth)/register')}
+          onLogin={() => void finishOnboarding('/(auth)/login')}
+        />
       </View>
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  root: {
     flex: 1,
-    backgroundColor: BRAND_NAVY,
+    backgroundColor: '#F3F1FE',
   },
   container: {
     flex: 1,
-    backgroundColor: BRAND_NAVY,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing[5],
-    paddingBottom: Spacing[3],
-    zIndex: 2,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing[3],
-  },
-  mark: {
-    width: 36,
-    height: 36,
-  },
-  brandName: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 16,
-    letterSpacing: 1.4,
-    color: TEXT,
-  },
-  brandSlogan: {
-    ...Typography.caption,
-    color: BRAND_GOLD_MID,
-    marginTop: 2,
-    letterSpacing: 0.6,
-  },
-  skipText: {
-    ...Typography.labelMedium,
-    color: MUTED,
-  },
-  skipPlaceholder: {
-    width: 40,
-  },
-  slideList: {
+  content: {
     flex: 1,
-  },
-  slide: {
-    flex: 1,
-    paddingHorizontal: Spacing[5],
-  },
-  artWrap: {
-    borderRadius: Radius.xl,
-    overflow: 'hidden',
-    backgroundColor: '#04162E',
-    marginBottom: Spacing[5],
-  },
-  art: {
-    width: '100%',
-    height: '100%',
-  },
-  textBlock: {
-    gap: Spacing[3],
-    paddingRight: Spacing[2],
-  },
-  title: {
-    ...Typography.headingLarge,
-    color: TEXT,
-    fontSize: 26,
-    lineHeight: 32,
-  },
-  description: {
-    ...Typography.bodyMedium,
-    color: MUTED,
-    lineHeight: 22,
-  },
-  footer: {
-    paddingHorizontal: Spacing[5],
-    gap: Spacing[4],
-  },
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing[2],
-  },
-  dot: {
-    height: 7,
-    borderRadius: Radius.full,
-  },
-  dotActive: {
-    width: 20,
-    backgroundColor: BRAND_GOLD_MID,
-  },
-  dotInactive: {
-    width: 7,
-    backgroundColor: 'rgba(240, 238, 233, 0.22)',
-  },
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  footerSkip: {
-    ...Typography.labelLarge,
-    color: MUTED,
-  },
-  nextBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: BRAND_GOLD_VIVID,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  startBtn: {
-    minWidth: 120,
-    height: 48,
-    paddingHorizontal: Spacing[5],
-    borderRadius: 24,
-    backgroundColor: BRAND_GOLD_VIVID,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  startLabel: {
-    ...Typography.labelLarge,
-    color: BRAND_NAVY,
-    fontWeight: '700',
   },
 });

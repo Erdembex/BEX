@@ -266,19 +266,21 @@ export const en: TranslationSchema = {
     skipForNow: 'Skip for Now',
     alreadyHaveAccount: 'I already have an account →',
     onboarding: {
-      slogan: 'DO THE TASK  ·  GET THE SERVICE',
-      slide1Title: 'Discover nearby\nbusinesses',
+      slogan: 'DO THE TASK · GET THE SERVICE',
+      slide1Title: 'Discover\nnearby\nbusinesses',
       slide1Desc:
         'Browse tasks from local businesses. Design, content, or social work — they give you their service in return.',
-      slide1Accent: 'Salon, cafe, gym — the business offers its own service.',
-      slide2Title: 'You do the task,\nthey offer the service',
+      slide2Title: 'You do the task,\nthey offer\nthe service',
       slide2Desc:
         'Apply, submit your work. After approval a digital coupon lands in your wallet — not cash, the business’s own service.',
-      slide2Accent: 'From apply to coupon, all in the app.',
       slide3Title: 'Show the QR,\nget the service',
       slide3Desc:
         'Visit the business, show the QR, use the service. No cash transfer — just a skill swap.',
-      slide3Accent: 'No cash — skill exchange.',
+      next: 'Next →',
+      skip: 'Skip',
+      register: 'Sign up',
+      login: 'Log in',
+      stepLabel: 'Step {{current}} / {{total}}',
     },
   },
   authRequired: {

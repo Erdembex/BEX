@@ -17,9 +17,15 @@ export default function Index() {
   const [authRoute, setAuthRoute] = useState<AuthRoute>('loading');
 
   useEffect(() => {
-    if (!isInitialized || firebaseUser) return;
+    if (!isInitialized) return;
+
+    if (firebaseUser) {
+      setAuthRoute('loading');
+      return;
+    }
 
     let cancelled = false;
+    setAuthRoute('loading');
     void hasCompletedOnboarding().then((done) => {
       if (!cancelled) setAuthRoute(done ? 'login' : 'onboarding');
     });

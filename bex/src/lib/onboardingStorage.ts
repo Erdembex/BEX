@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const ONBOARDING_COMPLETE_KEY = '@passla/onboarding_complete_v1';
+const ONBOARDING_COMPLETE_KEY = '@passla/onboarding_complete_v3';
 
 export async function hasCompletedOnboarding(): Promise<boolean> {
+  // Geliştirme sırasında onboarding her açılışta görünür.
+  if (__DEV__) return false;
   try {
     const value = await AsyncStorage.getItem(ONBOARDING_COMPLETE_KEY);
     return value === '1';

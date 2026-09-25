@@ -1,5 +1,13 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  BackHandler,
+} from 'react-native';
 import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
@@ -61,6 +69,22 @@ export default function RegisterScreen() {
 
   const parsedBirthDate = useMemo(() => parseBirthDateInput(birthDateInput), [birthDateInput]);
   const computedAge = parsedBirthDate ? calculateAge(parsedBirthDate) : null;
+
+  const goBackFromRegister = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.replace('/(auth)/login');
+  }, []);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      goBackFromRegister();
+      return true;
+    });
+    return () => sub.remove();
+  }, [goBackFromRegister]);
 
   const GENDERS: { id: UserGender; label: string }[] = [
     { id: 'MALE', label: t('registerScreen.genderMale') },
@@ -174,7 +198,7 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Geri butonu */}
-          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+          <TouchableOpacity onPress={goBackFromRegister} style={styles.back}>
             <Text style={styles.backText}>{t('registerScreen.back')}</Text>
           </TouchableOpacity>
 
