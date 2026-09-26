@@ -4,7 +4,9 @@ import { Platform, TextStyle } from 'react-native';
 export const readableTextInputStyle: TextStyle = {
   textAlign: 'left',
   textAlignVertical: 'center',
-  ...(Platform.OS === 'android' ? { includeFontPadding: false } : {}),
+  ...(Platform.OS === 'android'
+    ? { includeFontPadding: false, lineHeight: 22, paddingTop: 0, paddingBottom: 0 }
+    : {}),
 };
 
 /** Web TextInput — tarayıcı outline'ını kapatır */
@@ -14,7 +16,7 @@ export const webTextInputStyle: TextStyle | undefined =
     : undefined;
 
 export const textInputPaddingVertical = Platform.select({
-  android: 12,
+  android: 10,
   ios: 14,
   default: 12,
 }) as number;

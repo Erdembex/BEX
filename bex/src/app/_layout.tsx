@@ -99,7 +99,7 @@ export default function RootLayout() {
   }, [appReady]);
 
   if (!appReady) {
-    return <AppLaunchSplash fontsLoaded={fontsLoaded} />;
+    return <AppLaunchSplash />;
   }
 
   return (

@@ -5,12 +5,18 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  Platform,
+  Image,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { BottomTabBarProps } from "expo-router/js-tabs";
+import { usePathname } from 'expo-router';
 import { useThemeColors } from '@/theme';
-import { BRAND_GOLD_MID, BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
+import { BRAND_NAVY, BRAND_NAVY_TEXT } from '@/theme/brand';
 import { useResolvedSafeAreaInsets } from '@/components/common/Screen';
+import { shouldHideUserTabBar } from '@/lib/userTabBarVisibility';
+
+const FAB_MARK = require('../../../assets/branding/passla-mark-white.png');
 
 /** Görünür tab bar yüksekliği (safe area hariç) */
 export const USER_TAB_BAR_HEIGHT = 68;
@@ -47,9 +53,11 @@ function buildBarPath(width: number, height: number, centerX: number): string {
 }
 
 export function UserTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const pathname = usePathname();
   const Colors = useThemeColors();
   const insets = useResolvedSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const hideTabBar = shouldHideUserTabBar(pathname);
   const totalHeight = USER_TAB_BAR_HEIGHT + insets.bottom;
   const centerX = width / 2;
   const barFill = Colors.background;
@@ -121,6 +129,10 @@ export function UserTabBar({ state, descriptors, navigation }: BottomTabBarProps
     }
   };
 
+  if (hideTabBar) {
+    return null;
+  }
+
   return (
     <View
       style={[
@@ -146,7 +158,7 @@ export function UserTabBar({ state, descriptors, navigation }: BottomTabBarProps
       <TouchableOpacity
         style={[
           styles.fab,
-          styles.fabShadow,
+          Platform.OS === 'ios' ? styles.fabShadowIos : styles.fabShadowAndroid,
           {
             backgroundColor: BRAND_NAVY,
             left: centerX - FAB_SIZE / 2,
@@ -162,7 +174,12 @@ export function UserTabBar({ state, descriptors, navigation }: BottomTabBarProps
           homeRoute ? String(descriptors[homeRoute.key].options.title ?? 'Home') : 'Home'
         }
       >
-        <Text style={styles.homeWordmark}>PASSLA</Text>
+        <Image
+          source={FAB_MARK}
+          style={styles.fabMark}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
       </TouchableOpacity>
     </View>
   );
@@ -208,7 +225,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    top: -6,
+    top: 2,
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
@@ -216,19 +233,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     zIndex: 2,
   },
-  fabShadow: {
+  fabShadowIos: {
     shadowColor: BRAND_NAVY,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
   },
-  homeWordmark: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 9,
-    letterSpacing: 0.9,
-    color: BRAND_GOLD_MID,
-    textTransform: 'uppercase',
+  fabShadowAndroid: {
+    elevation: 4,
+  },
+  fabMark: {
+    width: 34,
+    height: 34,
   },
   badge: {
     position: 'absolute',

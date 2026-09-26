@@ -2,28 +2,16 @@
 
 Öncelik sırasıyla tamamlanması gereken maddeler.
 
-## 1. Harita
+## 1. Harita (hub’da kaldırıldı)
 
-| Görev | Durum |
-|--------|--------|
-| Backend işletme `latitude/longitude` (Nominatim + backfill) | Kodda var; prod DB’de dolması gerekir |
-| İlan kartında `businessLatitude/Longitude` | API’den geliyor |
-| Uygulama önce sunucu koordinatını kullanır | `mapBusinessService.ts` |
-| Google Maps API key (EAS production) | **Senin eklemen gerekir** |
-
-```powershell
-cd bex
-npx eas env:create production --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value "AIza..." --visibility plaintext --scope project --force --non-interactive
-```
-
-Google Cloud Console: Maps SDK for Android + iOS etkin, key kısıtları `com.passla.app`.
+Keşif **il/ilçe filtresi** ile; tam ekran harita şu an üründe yok. Backend geocode işletme profili için devam edebilir (ileride). Maps API key internal test için **zorunlu değil**. Eski not: `MAP_SETUP.md`.
 
 ---
 
 ## 2. Internal test build
 
-- `npm run build:production:android`
-- Play Console internal track
+- AAB: **1.0.2 (versionCode 5)** — `npm run build:production:android`
+- Play: `store-listing/PLAY_CONSOLE_INTERNAL_FORMS.md`
 - Test: `store-listing/INTERNAL_E2E_TEST.md`
 
 ---

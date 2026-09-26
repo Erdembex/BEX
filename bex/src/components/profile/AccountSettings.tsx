@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { androidReadableText } from '@/lib/readableTextStyle';
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -283,10 +284,34 @@ export function AccountSettings({
     setShowTasksModal(true);
   };
 
+  const usernameHandle = bexUser?.username?.trim();
+  const displayNameRaw = bexUser?.displayName?.trim();
+  const usernameLine = usernameHandle ? `@${usernameHandle}` : null;
+
+  const { profileTitle, showUsernameSubtitle } = useMemo(() => {
+    if (!displayNameRaw && usernameLine) {
+      return { profileTitle: usernameLine, showUsernameSubtitle: false };
+    }
+    if (!displayNameRaw) {
+      return { profileTitle: t('accountSettings.roleUser'), showUsernameSubtitle: false };
+    }
+    const normalizedDisplay = displayNameRaw.replace(/^@/, '').toLowerCase();
+    const normalizedUser = usernameHandle?.toLowerCase() ?? '';
+    const isDuplicateUsername =
+      !!normalizedUser &&
+      (displayNameRaw === usernameLine ||
+        normalizedDisplay === normalizedUser ||
+        displayNameRaw === usernameHandle);
+    return {
+      profileTitle: displayNameRaw,
+      showUsernameSubtitle: !!usernameLine && !isDuplicateUsername,
+    };
+  }, [displayNameRaw, usernameHandle, usernameLine, t]);
+
   return (
     <>
       <ProfileAvatar
-        name={bexUser?.displayName}
+        name={profileTitle}
         avatarUrl={bexUser?.avatarUrl}
         size={88}
         editable
@@ -295,9 +320,9 @@ export function AccountSettings({
       />
       <Text style={styles.avatarHint}>{t('accountSettings.avatarHint')}</Text>
 
-      <Text style={styles.name}>{bexUser?.displayName ?? t('accountSettings.roleUser')}</Text>
-      {bexUser?.role === 'user' && bexUser.username ? (
-        <Text style={styles.username}>@{bexUser.username}</Text>
+      <Text style={styles.name}>{profileTitle}</Text>
+      {showUsernameSubtitle && usernameLine ? (
+        <Text style={styles.username}>{usernameLine}</Text>
       ) : null}
       <Text style={styles.email}>{bexUser?.email ?? firebaseUser?.email ?? '—'}</Text>
 
@@ -688,8 +713,12 @@ function Row({ label, value }: { label: string; value: string }) {
   const styles = useAccountSettingsStyles();
   return (
     <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+      <Text style={styles.rowLabel} numberOfLines={2}>
+        {label}
+      </Text>
+      <Text style={styles.rowValue} numberOfLines={2} ellipsizeMode="middle">
+        {value}
+      </Text>
     </View>
   );
 }
@@ -754,9 +783,24 @@ const useAccountSettingsStyles = createThemedStyles((Colors) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: Spacing[3],
+    minWidth: 0,
   },
-  rowLabel: { ...Typography.bodySmall, color: Colors.textMuted },
-  rowValue: { ...Typography.labelMedium, color: Colors.textPrimary },
+  rowLabel: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    flexShrink: 0,
+    maxWidth: '42%',
+    ...androidReadableText,
+  },
+  rowValue: {
+    ...Typography.labelMedium,
+    color: Colors.textPrimary,
+    flex: 1,
+    minWidth: 0,
+    textAlign: 'right',
+    ...androidReadableText,
+  },
   editBlock: { gap: Spacing[3] },
   editActions: { flexDirection: 'row', gap: Spacing[2] },
   locationTitle: { ...Typography.labelLarge, color: Colors.textPrimary },

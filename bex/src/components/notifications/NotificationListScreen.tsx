@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, SectionList, TouchableOpacity, RefreshControl } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { router } from 'expo-router';
 import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
@@ -65,6 +66,7 @@ function NotificationCard({
 export function NotificationListScreen({ showBack = false }: NotificationListScreenProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
+  const tabBarPadding = useTabBarBottomPadding(showBack ? 24 : 32, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const { firebaseUser, bexUser } = useAuthStore();
   const { refreshUnread, unreadCount } = useNotificationUnreadCount();
@@ -116,12 +118,12 @@ export function NotificationListScreen({ showBack = false }: NotificationListScr
   );
 
   return (
-    <Screen style={styles.safe}>
+    <TabScreen style={styles.safe}>
       {!showBack ? <AppHeader title={t('notificationsScreen.title')} showNotifications={false} /> : null}
       <SectionList
         sections={sections}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: tabBarPadding }]}
         stickySectionHeadersEnabled={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />
@@ -163,7 +165,7 @@ export function NotificationListScreen({ showBack = false }: NotificationListScr
         )}
         SectionSeparatorComponent={() => <View style={styles.sectionGap} />}
       />
-    </Screen>
+    </TabScreen>
   );
 }
 
@@ -249,7 +251,8 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   cardBody: {
     ...Typography.bodySmall,
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
+    opacity: 0.82,
     lineHeight: 20,
   },
   cardTime: {
@@ -262,7 +265,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   emptyTitle: { ...Typography.headingMedium, color: Colors.textPrimary, marginBottom: Spacing[1] },
   emptyText: {
     ...Typography.bodyMedium,
-    color: Colors.textMuted,
+    color: Colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },

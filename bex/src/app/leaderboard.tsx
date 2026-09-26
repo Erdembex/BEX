@@ -110,15 +110,21 @@ export default function LeaderboardScreen() {
                 accessibilityLabel={item.name}
               >
                 <Text style={styles.rank}>{t('leaderboard.rank', { rank: item.rank })}</Text>
-                <ProfileAvatar
-                  name={item.name}
-                  avatarUrl={item.avatarUrl ?? undefined}
-                  size={44}
-                />
+                <View style={styles.avatarWrap}>
+                  <ProfileAvatar
+                    name={item.name}
+                    avatarUrl={item.avatarUrl ?? undefined}
+                    size={44}
+                  />
+                </View>
                 <View style={styles.rowBody}>
-                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.name} numberOfLines={2}>
+                    {item.name}
+                  </Text>
                   {item.subtitle ? (
-                    <Text style={styles.subtitle}>{item.subtitle}</Text>
+                    <Text style={styles.subtitle} numberOfLines={2}>
+                      {item.subtitle}
+                    </Text>
                   ) : null}
                 </View>
                 <View style={styles.countWrap}>
@@ -157,6 +163,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     },
     tab: {
       flex: 1,
+      minWidth: 0,
       paddingVertical: Spacing[3],
       paddingHorizontal: Spacing[2],
       alignItems: 'center',
@@ -168,6 +175,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
       ...Typography.labelMedium,
       color: Colors.textMuted,
       textAlign: 'center',
+      width: '100%',
     },
     tabTextActive: { color: Colors.primary, fontWeight: '700' },
     scroll: { padding: Spacing[5], gap: Spacing[3] },
@@ -187,11 +195,27 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
       borderWidth: 1,
       borderColor: Colors.borderLight,
     },
-    rank: { ...Typography.labelLarge, color: Colors.primary, width: 36 },
-    rowBody: { flex: 1, gap: 2 },
-    name: { ...Typography.labelLarge, color: Colors.textPrimary },
-    subtitle: { ...Typography.caption, color: Colors.textMuted },
-    countWrap: { alignItems: 'flex-end', gap: 2 },
+    rank: {
+      ...Typography.labelLarge,
+      color: Colors.primary,
+      width: 36,
+      flexShrink: 0,
+      textAlign: 'center',
+    },
+    avatarWrap: { flexShrink: 0 },
+    rowBody: { flex: 1, minWidth: 0, gap: 2, justifyContent: 'center' },
+    name: {
+      ...Typography.labelLarge,
+      color: Colors.textPrimary,
+      flexShrink: 1,
+    },
+    subtitle: {
+      ...Typography.caption,
+      color: Colors.textMuted,
+      lineHeight: 18,
+      flexShrink: 1,
+    },
+    countWrap: { flexShrink: 0, alignItems: 'flex-end', gap: 2, maxWidth: 88 },
     count: { ...Typography.caption, color: Colors.textSecondary },
   });
 }

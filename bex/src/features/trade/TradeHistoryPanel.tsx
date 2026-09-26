@@ -19,9 +19,15 @@ const STATUS_COLOR: Record<TradeHistoryStatus, string> = {
 
 interface TradeHistoryPanelProps {
   userId: string;
+  bottomPadding?: number;
+  headerComponent?: React.ReactNode;
 }
 
-export function TradeHistoryPanel({ userId }: TradeHistoryPanelProps) {
+export function TradeHistoryPanel({
+  userId,
+  bottomPadding,
+  headerComponent,
+}: TradeHistoryPanelProps) {
   const { t } = useTranslation();
   const STATUS_LABEL: Record<TradeHistoryStatus, string> = {
     completed: t('tradeHistoryPanel.statusCompleted'),
@@ -53,9 +59,29 @@ export function TradeHistoryPanel({ userId }: TradeHistoryPanelProps) {
       data={entries}
       keyExtractor={(item) => item.id}
       style={{ flex: 1 }}
+      ListHeaderComponent={() => (
+        <>
+          {headerComponent}
+          <Box
+            padding="md"
+            marginBottom="md"
+            borderRadius="md"
+            backgroundColor="surface"
+            borderWidth={1}
+            borderColor="border"
+          >
+            <Text variant="caption" style={{ color: tradeTheme.colors.tradePrimary, fontWeight: '700' }}>
+              {t('tradeHistoryPanel.headerTitle')}
+            </Text>
+            <Text variant="body" marginTop="xs" style={{ color: tradeTheme.colors.textSecondary, lineHeight: 22 }}>
+              {t('tradeHistoryPanel.headerSubtitle')}
+            </Text>
+          </Box>
+        </>
+      )}
       contentContainerStyle={{
         paddingHorizontal: tradeTheme.spacing.lg,
-        paddingBottom: tradeTheme.spacing['2xl'],
+        paddingBottom: bottomPadding ?? tradeTheme.spacing['2xl'],
         flexGrow: entries.length === 0 ? 1 : undefined,
       }}
       refreshControl={
@@ -65,26 +91,9 @@ export function TradeHistoryPanel({ userId }: TradeHistoryPanelProps) {
           tintColor={tradeTheme.colors.tradePrimary}
         />
       }
-      ListHeaderComponent={
-        <Box
-          padding="md"
-          marginBottom="md"
-          borderRadius="md"
-          backgroundColor="surface"
-          borderWidth={1}
-          borderColor="border"
-        >
-          <Text variant="caption" style={{ color: tradeTheme.colors.tradePrimary, fontWeight: '700' }}>
-            {t('tradeHistoryPanel.headerTitle')}
-          </Text>
-          <Text variant="bodyMuted" marginTop="xs">
-            {t('tradeHistoryPanel.headerSubtitle')}
-          </Text>
-        </Box>
-      }
       ListEmptyComponent={
         <Box paddingTop="xl" alignItems="center" paddingHorizontal="md">
-          <Text variant="bodyMuted" style={{ textAlign: 'center', lineHeight: 22 }}>
+          <Text variant="body" style={{ color: tradeTheme.colors.textSecondary, textAlign: 'center', lineHeight: 22 }}>
             {t('tradeHistoryPanel.empty')}
           </Text>
         </Box>

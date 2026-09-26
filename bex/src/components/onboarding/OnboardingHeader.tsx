@@ -3,8 +3,9 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTranslation } from '@/i18n';
 import { IS_COMPACT_HEIGHT, ONBOARDING_COLORS, rs } from './onboardingTheme';
 
-const SS_MARK = require('../../../assets/branding/onboarding/ss-mark.png');
-const SS_MARK_ASPECT = 805 / 532;
+/** Splash ile aynı sprey dokulu beyaz SS */
+const SS_MARK = require('../../../assets/branding/splash-ss-white.png');
+const SS_MARK_ASPECT = 2400 / 1403;
 
 type Props = {
   currentStep: number;
@@ -17,7 +18,12 @@ export function OnboardingHeader({ currentStep, stepCount, onSkip }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Image source={SS_MARK} style={styles.mark} resizeMode="contain" accessibilityLabel="Passla" />
+      <Image
+        source={SS_MARK}
+        style={styles.mark}
+        resizeMode="contain"
+        accessibilityLabel="Passla"
+      />
       <Text style={styles.slogan}>{t('auth.onboarding.slogan')}</Text>
       <View
         style={styles.progressRow}
@@ -45,7 +51,7 @@ export function OnboardingHeader({ currentStep, stepCount, onSkip }: Props) {
   );
 }
 
-const MARK_HEIGHT = IS_COMPACT_HEIGHT ? rs(34) : rs(40);
+const MARK_HEIGHT = IS_COMPACT_HEIGHT ? rs(26) : rs(30);
 
 const styles = StyleSheet.create({
   wrap: {
@@ -76,7 +82,7 @@ const styles = StyleSheet.create({
   },
   segmentActive: {
     height: 3,
-    backgroundColor: ONBOARDING_COLORS.navy,
+    backgroundColor: ONBOARDING_COLORS.progressActive,
   },
   segmentInactive: {
     height: 2,

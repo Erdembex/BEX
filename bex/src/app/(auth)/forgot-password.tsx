@@ -1,17 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
-import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
+import { Typography, Spacing, Radius } from '@/theme';
 import { Button, Input } from '@/components/ui';
+import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
+import { AuthFrostCard } from '@/components/auth/AuthFrostCard';
 import { useTranslation } from '@/i18n';
+
+const INK = '#17264F';
+const BODY = '#1E293B';
+const MUTED = '#64708C';
 
 type Step = 'form' | 'success';
 
 export default function ForgotPasswordScreen() {
-  const Colors = useThemeColors();
-  const styles = useScreenStyles();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,9 +46,9 @@ export default function ForgotPasswordScreen() {
       const result = await authService.resetPassword(email.trim());
       setDevResetToken(result.devResetToken ?? null);
       setStep('success');
-    } catch (err: any) {
-      const code = err?.code ?? '';
-      const message = err?.message || getAuthErrorMessage(code);
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code ?? '';
+      const message = (err as Error)?.message || getAuthErrorMessage(code);
       if (code === 'auth/not-supported-yet') {
         setError(message);
       } else if (code === 'auth/user-not-found') {
@@ -48,97 +62,92 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <Screen style={styles.safe}>
+    <AuthGlassBackground>
+      <TouchableOpacity
+        style={[styles.backBtn, { top: insets.top + Spacing[2] }]}
+        onPress={() => router.back()}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        accessibilityRole="button"
+        accessibilityLabel={t('common.back')}
+      >
+        <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+
       <KeyboardAvoidingView
-        style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[
+            styles.scroll,
+            { paddingBottom: Math.max(insets.bottom, Spacing[4]) + Spacing[6] },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Geri */}
-          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-            <Text style={styles.backText}>{t('forgotPasswordScreen.back')}</Text>
-          </TouchableOpacity>
+          <View style={styles.heroSpacer} />
 
-          {step === 'form' ? (
-            <>
-              {/* Başlık */}
-              <View style={styles.iconContainer}>
-                <Text style={styles.icon}>🔑</Text>
-              </View>
+          <AuthFrostCard style={styles.card}>
+            {step === 'form' ? (
+              <>
+                <View style={styles.header}>
+                  <Text style={styles.emoji}>🔑</Text>
+                  <Text style={styles.title}>{t('forgotPasswordScreen.title')}</Text>
+                  <Text style={styles.subtitle}>{t('forgotPasswordScreen.subtitle')}</Text>
+                </View>
 
-              <View style={styles.header}>
-                <Text style={styles.title}>{t('forgotPasswordScreen.title')}</Text>
+                <View style={styles.form}>
+                  {error ? (
+                    <View style={styles.errorBanner}>
+                      <Text style={styles.errorBannerText}>{error}</Text>
+                    </View>
+                  ) : null}
+
+                  <Input
+                    variant="frost"
+                    label={t('forgotPasswordScreen.emailLabel')}
+                    placeholder={t('forgotPasswordScreen.emailPlaceholder')}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoComplete="email"
+                    textContentType="emailAddress"
+                    rightIcon={<Ionicons name="mail-outline" size={20} color={MUTED} />}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+                    onPress={handleReset}
+                    disabled={loading}
+                    activeOpacity={0.9}
+                  >
+                    <Text style={styles.primaryBtnText}>{t('forgotPasswordScreen.submit')}</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={() => router.back()} style={styles.linkBtn}>
+                    <Text style={styles.linkText}>{t('forgotPasswordScreen.backToLogin')}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              <View style={styles.successBlock}>
+                <Text style={styles.emoji}>✉️</Text>
+                <Text style={styles.title}>{t('forgotPasswordScreen.successTitle')}</Text>
                 <Text style={styles.subtitle}>
-                  {t('forgotPasswordScreen.subtitle')}
+                  <Text style={styles.emailHighlight}>{email}</Text>
+                  {t('forgotPasswordScreen.successText')}
                 </Text>
-              </View>
 
-              <View style={styles.form}>
-                {error ? (
-                  <View style={styles.errorBanner}>
-                    <Text style={styles.errorBannerText}>{error}</Text>
+                {devResetToken ? (
+                  <View style={styles.devCodeBox}>
+                    <Text style={styles.devCodeLabel}>{t('forgotPasswordScreen.devTokenLabel')}</Text>
+                    <Text style={styles.devCodeValue} selectable>
+                      {devResetToken}
+                    </Text>
+                    <Text style={styles.devCodeHint}>{t('forgotPasswordScreen.devTokenHint')}</Text>
                   </View>
                 ) : null}
 
-                <Input
-                  label={t('forgotPasswordScreen.emailLabel')}
-                  placeholder={t('forgotPasswordScreen.emailPlaceholder')}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoComplete="email"
-                  textContentType="emailAddress"
-                />
-
-                <Button
-                  title={t('forgotPasswordScreen.submit')}
-                  onPress={handleReset}
-                  loading={loading}
-                />
-
-                <Button
-                  title={t('forgotPasswordScreen.backToLogin')}
-                  onPress={() => router.back()}
-                  variant="ghost"
-                />
-              </View>
-            </>
-          ) : (
-            /* Başarı durumu */
-            <View style={styles.successContainer}>
-              <View style={styles.successIcon}>
-                <Text style={styles.successEmoji}>✉️</Text>
-              </View>
-
-              <Text style={styles.successTitle}>{t('forgotPasswordScreen.successTitle')}</Text>
-              <Text style={styles.successText}>
-                <Text style={styles.emailHighlight}>{email}</Text>
-                {t('forgotPasswordScreen.successText')}
-              </Text>
-
-              {devResetToken ? (
-                <View style={styles.devCodeBox}>
-                  <Text style={styles.devCodeLabel}>{t('forgotPasswordScreen.devTokenLabel')}</Text>
-                  <Text style={styles.devCodeValue} selectable>
-                    {devResetToken}
-                  </Text>
-                  <Text style={styles.devCodeHint}>
-                    {t('forgotPasswordScreen.devTokenHint')}
-                  </Text>
-                </View>
-              ) : __DEV__ ? (
-                <View style={styles.devCodeBox}>
-                  <Text style={styles.devCodeHint}>
-                    {t('forgotPasswordScreen.devNoTokenHint')}
-                  </Text>
-                </View>
-              ) : null}
-
-              <View style={styles.successActions}>
                 <Button
                   title={t('forgotPasswordScreen.enterCode')}
                   onPress={() =>
@@ -160,134 +169,104 @@ export default function ForgotPasswordScreen() {
                   variant="ghost"
                 />
               </View>
-            </View>
-          )}
+            )}
+          </AuthFrostCard>
         </ScrollView>
       </KeyboardAvoidingView>
-    </Screen>
+    </AuthGlassBackground>
   );
 }
 
-const useScreenStyles = createThemedStyles((Colors) => ({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  kav: {
-    flex: 1,
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  backBtn: {
+    position: 'absolute',
+    left: Spacing[4],
+    zIndex: 2,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: Spacing[6],
-    paddingTop: Spacing[6],
-    paddingBottom: Spacing[8],
-    gap: Spacing[6],
+    paddingHorizontal: Spacing[5],
   },
-  back: {
-    alignSelf: 'flex-start',
-  },
-  backText: {
-    ...Typography.labelMedium,
-    color: Colors.textSecondary,
-  },
-  iconContainer: {
-    alignItems: 'center',
-    marginTop: Spacing[8],
-  },
-  icon: {
-    fontSize: 64,
-  },
-  header: {
-    gap: Spacing[2],
-  },
+  heroSpacer: { minHeight: 120 },
+  card: { width: '100%' },
+  header: { alignItems: 'center', gap: Spacing[2], marginBottom: Spacing[4] },
+  emoji: { fontSize: 48 },
   title: {
-    ...Typography.headingLarge,
-    color: Colors.textPrimary,
+    ...Typography.headingMedium,
+    color: INK,
+    fontWeight: '800',
+    textAlign: 'center',
   },
   subtitle: {
-    ...Typography.bodyLarge,
-    color: Colors.textSecondary,
-    lineHeight: 24,
+    ...Typography.bodyMedium,
+    color: BODY,
+    lineHeight: 22,
+    textAlign: 'center',
+    opacity: 0.92,
   },
-  form: {
-    gap: Spacing[5],
-  },
+  form: { gap: Spacing[4] },
   errorBanner: {
-    backgroundColor: Colors.errorLight,
+    backgroundColor: 'rgba(220, 38, 38, 0.12)',
     borderRadius: Radius.md,
-    padding: Spacing[4],
+    padding: Spacing[3],
     borderLeftWidth: 3,
-    borderLeftColor: Colors.error,
+    borderLeftColor: '#DC2626',
   },
   errorBannerText: {
     ...Typography.bodySmall,
-    color: Colors.error,
+    color: '#B91C1C',
+    lineHeight: 20,
   },
-
-  // Başarı durumu
-  successContainer: {
-    flex: 1,
+  primaryBtn: {
+    backgroundColor: INK,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing[4],
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: Spacing[16],
-    gap: Spacing[5],
   },
-  successIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+  primaryBtnDisabled: { opacity: 0.6 },
+  primaryBtnText: {
+    ...Typography.labelLarge,
+    color: '#FFFFFF',
+    fontWeight: '800',
   },
-  successEmoji: {
-    fontSize: 48,
+  linkBtn: { alignItems: 'center', paddingVertical: Spacing[2] },
+  linkText: {
+    ...Typography.labelMedium,
+    color: INK,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
-  successTitle: {
-    ...Typography.headingLarge,
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-  successText: {
-    ...Typography.bodyLarge,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-  emailHighlight: {
-    color: Colors.textPrimary,
-    fontWeight: '600',
-  },
-  successActions: {
-    width: '100%',
-    gap: Spacing[3],
-    marginTop: Spacing[4],
-  },
+  successBlock: { gap: Spacing[4], alignItems: 'stretch' },
+  emailHighlight: { fontWeight: '700', color: INK },
   devCodeBox: {
-    width: '100%',
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: 'rgba(23, 38, 79, 0.08)',
     borderRadius: Radius.lg,
     padding: Spacing[4],
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: 'rgba(23, 38, 79, 0.2)',
     gap: Spacing[2],
   },
   devCodeLabel: {
     ...Typography.labelMedium,
-    color: Colors.primary,
+    color: INK,
     fontWeight: '700',
   },
   devCodeValue: {
-    ...Typography.displayMedium,
-    color: Colors.textPrimary,
-    letterSpacing: 4,
+    ...Typography.headingMedium,
+    color: INK,
+    letterSpacing: 2,
     textAlign: 'center',
     fontWeight: '800',
   },
   devCodeHint: {
     ...Typography.bodySmall,
-    color: Colors.textSecondary,
+    color: MUTED,
     lineHeight: 20,
     textAlign: 'center',
   },
-}));
+});

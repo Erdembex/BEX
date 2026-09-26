@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { androidReadableText } from '@/lib/readableTextStyle';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { EnrichedTask } from '@/features/data/businessesRepository';
@@ -10,7 +11,9 @@ import { BRAND_NAVY, brandNavyAlpha } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
 const CARD_WIDTH = Math.min(Dimensions.get('window').width * 0.72, 300);
-const CARD_HEIGHT = 340;
+const CARD_HEIGHT = 360;
+const IMAGE_HEIGHT = Math.round(CARD_HEIGHT * 0.5);
+const INFO_HEIGHT = CARD_HEIGHT - IMAGE_HEIGHT;
 
 type Props = {
   task: EnrichedTask;
@@ -70,26 +73,28 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
       </View>
 
       <LinearGradient colors={[BRAND_NAVY, brandNavyAlpha(0.92)]} style={styles.infoArea}>
-        <Text style={styles.title} numberOfLines={2}>
-          {task.title}
-        </Text>
-        <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={14} color="rgba(240,238,233,0.85)" />
-          <Text style={styles.location} numberOfLines={1}>
-            {locationLabel}
+        <View style={styles.infoBody}>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+            {task.title}
           </Text>
+          <View style={styles.locationRow}>
+            <Ionicons name="location-outline" size={14} color="rgba(240,238,233,0.85)" />
+            <Text style={styles.location} numberOfLines={1}>
+              {locationLabel}
+            </Text>
+          </View>
+          {task.businessName ? (
+            <Text style={styles.businessName} numberOfLines={1}>
+              {task.businessName}
+              {task.businessVerified ? ' ✓' : ''}
+            </Text>
+          ) : null}
+          {task.rewardDescription ? (
+            <Text style={styles.reward} numberOfLines={1}>
+              🎁 {task.rewardDescription}
+            </Text>
+          ) : null}
         </View>
-        {task.businessName ? (
-          <Text style={styles.businessName} numberOfLines={1}>
-            {task.businessName}
-            {task.businessVerified ? ' ✓' : ''}
-          </Text>
-        ) : null}
-        {task.rewardDescription ? (
-          <Text style={styles.reward} numberOfLines={1}>
-            🎁 {task.rewardDescription}
-          </Text>
-        ) : null}
         <View style={styles.ctaRow}>
           <Text style={styles.cta}>{t('userHome.viewTask')}</Text>
           <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
@@ -114,7 +119,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   imageArea: {
-    height: CARD_HEIGHT * 0.52,
+    height: IMAGE_HEIGHT,
+    flexShrink: 0,
     overflow: 'hidden',
     backgroundColor: '#E8E4DA',
   },
@@ -159,16 +165,26 @@ const styles = StyleSheet.create({
     color: BRAND_NAVY,
   },
   infoArea: {
-    flex: 1,
-    padding: Spacing[4],
+    height: INFO_HEIGHT,
+    flexShrink: 0,
+    paddingHorizontal: Spacing[4],
+    paddingTop: Spacing[3],
+    paddingBottom: Spacing[3],
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+  },
+  infoBody: {
+    flexShrink: 1,
+    minHeight: 0,
     gap: Spacing[1],
-    justifyContent: 'flex-end',
   },
   title: {
     ...Typography.labelLarge,
     fontWeight: '800',
     color: '#F0EEE9',
     lineHeight: 22,
+    flexShrink: 1,
+    ...androidReadableText,
   },
   locationRow: {
     flexDirection: 'row',
@@ -180,7 +196,9 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: 'rgba(240,238,233,0.85)',
     flex: 1,
+    minWidth: 0,
     fontWeight: '600',
+    ...androidReadableText,
   },
   businessName: {
     ...Typography.caption,
@@ -192,16 +210,18 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: 'rgba(240,238,233,0.9)',
     fontWeight: '600',
-    marginTop: 4,
+    marginTop: 2,
+    flexShrink: 1,
+    ...androidReadableText,
   },
   ctaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: Spacing[3],
     paddingTop: Spacing[2],
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(255,255,255,0.15)',
+    flexShrink: 0,
   },
   cta: {
     ...Typography.labelMedium,

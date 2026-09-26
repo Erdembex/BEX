@@ -1,3 +1,5 @@
+import { ONBOARDING_BG } from './onboardingTheme';
+
 export type OnboardingStep = {
   id: string;
   titleKey: string;
@@ -12,20 +14,20 @@ export const ONBOARDING_STEPS: readonly OnboardingStep[] = [
     titleKey: 'auth.onboarding.slide1Title',
     descriptionKey: 'auth.onboarding.slide1Desc',
     illustration: require('../../../assets/branding/onboarding/illustration-1.webp'),
-    background: ['#E9E5FD', '#F3F1FE', '#EEEBFC'],
+    background: ONBOARDING_BG,
   },
   {
     id: '2',
     titleKey: 'auth.onboarding.slide2Title',
     descriptionKey: 'auth.onboarding.slide2Desc',
     illustration: require('../../../assets/branding/onboarding/illustration-2.webp'),
-    background: ['#FEFAEF', '#FEF9F5', '#FFF6EA'],
+    background: ONBOARDING_BG,
   },
   {
     id: '3',
     titleKey: 'auth.onboarding.slide3Title',
     descriptionKey: 'auth.onboarding.slide3Desc',
     illustration: require('../../../assets/branding/onboarding/illustration-3.webp'),
-    background: ['#DDE6FD', '#EDEFFC', '#EEEDFD'],
+    background: ONBOARDING_BG,
   },
 ];

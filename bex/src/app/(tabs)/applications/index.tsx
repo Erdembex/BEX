@@ -38,7 +38,7 @@ export default function MyApplicationsScreen() {
   const Colors = useThemeColors();
   const statusColors = useStatusColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
+  const tabBarPadding = useTabBarBottomPadding(32, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const APPLICATION_STATUS_LABELS = useApplicationStatusLabels();
   const { firebaseUser } = useAuthStore();
@@ -143,10 +143,8 @@ export default function MyApplicationsScreen() {
                 <Text style={styles.cardTitle} numberOfLines={2}>
                   {item.taskTitle}
                 </Text>
-                <View
-                  style={[styles.badge, { backgroundColor: statusColor + '22' }]}
-                >
-                  <Text style={[styles.badgeText, { color: statusColor }]}>
+                <View style={[styles.badge, { backgroundColor: `${statusColor}1F` }]}>
+                  <Text style={[styles.badgeText, { color: statusColor }]} numberOfLines={1}>
                     {APPLICATION_STATUS_LABELS[item.status]}
                   </Text>
                 </View>
@@ -155,10 +153,10 @@ export default function MyApplicationsScreen() {
                 {item.coverLetter}
               </Text>
               <View style={styles.cardFooter}>
-                <Text style={styles.timeText}>
+                <Text style={styles.timeText} numberOfLines={1}>
                   {formatRelativeTime(item.createdAt) || '—'}
                 </Text>
-                <Text style={styles.tapHint}>
+                <Text style={styles.tapHint} numberOfLines={1}>
                   {quickAction ? t(quickAction.labelKey) : t('applicationsScreen.detail')}
                 </Text>
               </View>
@@ -192,6 +190,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   cardHeader: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: Spacing[2],
     marginBottom: Spacing[2],
@@ -200,13 +199,19 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     ...Typography.labelLarge,
     color: Colors.textPrimary,
     flex: 1,
+    minWidth: 0,
+    lineHeight: 22,
   },
   badge: {
+    flexShrink: 0,
+    maxWidth: '46%',
     paddingHorizontal: Spacing[2],
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: Radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  badgeText: { ...Typography.caption, fontWeight: '600' },
+  badgeText: { ...Typography.caption, fontWeight: '600', lineHeight: 16 },
   preview: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
@@ -215,11 +220,27 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   cardFooter: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing[3],
+    marginTop: Spacing[1],
   },
-  timeText: { ...Typography.caption, color: Colors.textMuted },
-  tapHint: { ...Typography.caption, color: Colors.primary, fontWeight: '600' },
+  timeText: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    flex: 1,
+    minWidth: 0,
+    lineHeight: 18,
+  },
+  tapHint: {
+    ...Typography.caption,
+    color: Colors.primary,
+    fontWeight: '600',
+    flexShrink: 0,
+    maxWidth: '52%',
+    textAlign: 'right',
+    lineHeight: 18,
+  },
   empty: { alignItems: 'center', paddingTop: Spacing[16] },
   emptyEmoji: { fontSize: 48, marginBottom: Spacing[3] },
   emptyTitle: { ...Typography.headingMedium, color: Colors.textPrimary },

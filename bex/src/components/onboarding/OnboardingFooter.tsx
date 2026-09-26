@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@/i18n';
 import { IS_COMPACT_HEIGHT, ONBOARDING_COLORS, rs } from './onboardingTheme';
 
@@ -33,8 +32,6 @@ export function OnboardingFooter({ isLast, onNext, onRegister, onLogin }: Props)
   return (
     <View style={styles.wrap}>
       <PrimaryButton label={t('auth.onboarding.next')} onPress={onNext} />
-      <View style={styles.spacer} />
-      <Ionicons name="star-outline" size={rs(15)} color={ONBOARDING_COLORS.star} />
     </View>
   );
 }
@@ -66,14 +63,14 @@ const styles = StyleSheet.create({
     height: rs(44),
     paddingHorizontal: rs(28),
     borderRadius: 999,
-    backgroundColor: ONBOARDING_COLORS.navy,
+    backgroundColor: ONBOARDING_COLORS.buttonFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: rs(13.5),
-    color: '#FFFFFF',
+    color: ONBOARDING_COLORS.buttonText,
   },
   secondary: {
     height: rs(44),
@@ -85,9 +82,6 @@ const styles = StyleSheet.create({
   secondaryText: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: rs(13.5),
-    color: ONBOARDING_COLORS.navy,
-  },
-  spacer: {
-    flex: 1,
+    color: ONBOARDING_COLORS.link,
   },
 });

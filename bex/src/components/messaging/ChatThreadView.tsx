@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from "expo-router/react-navigation";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useResolvedSafeAreaInsets } from '@/components/common/Screen';
+import { androidReadableText } from '@/lib/readableTextStyle';
 import { ApplicationMessage, UserRole } from '@/types';
 import { messagesRepository } from '@/features/messages';
 import {
@@ -79,7 +80,7 @@ export function ChatThreadView({
   const Colors = useThemeColors();
   const styles = useScreenStyles();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const insets = useResolvedSafeAreaInsets();
   const { showToast } = useToast();
   const { business } = useBusiness();
   const isBusiness = currentUserRole === 'business';
@@ -631,7 +632,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   listFullscreenContent: {
     paddingHorizontal: Spacing[4],
     paddingTop: Spacing[3],
-    paddingBottom: Spacing[2],
+    paddingBottom: Spacing[6],
     flexGrow: 1,
   },
   emptyIcon: { fontSize: 40, marginBottom: Spacing[2] },
@@ -686,6 +687,8 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     ...Typography.bodyMedium,
     color: Colors.textPrimary,
     lineHeight: 22,
+    flexShrink: 1,
+    ...androidReadableText,
   },
   bubbleTextMine: { color: Colors.textOnPrimary },
   bubbleTime: { ...Typography.caption, color: Colors.textMuted, alignSelf: 'flex-end' },

@@ -21,7 +21,7 @@ import { useTranslation } from '@/i18n';
 export default function ProfileScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
+  const tabBarPadding = useTabBarBottomPadding(40, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const { bexUser, firebaseUser, setBexUser, signOut } = useAuthStore();
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);

@@ -233,34 +233,42 @@ export default function CreateTaskScreen() {
     return (
       <Screen style={styles.safe}>
         <View style={styles.topBar}>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.topBarSide}>
             <Text style={styles.back}>{t('common.back')}</Text>
           </TouchableOpacity>
-          <Text style={styles.screenTitle}>{t('createTask.title')}</Text>
-          <View style={{ width: 48 }} />
-        </View>
-        <View style={styles.limitBlockWrap}>
-          <Text style={styles.limitBlockEmoji}>🔒</Text>
-          <Text style={styles.limitBlockTitle}>{t('createTask.limitTitle')}</Text>
-          <Text style={styles.limitBlockText}>
-            {t('createTask.limitText', {
-              plan: limitInfo.planLabel,
-              max: maxLabel,
-              active: limitInfo.active,
-            })}
+          <Text style={styles.screenTitle} numberOfLines={1}>
+            {t('createTask.title')}
           </Text>
-          <Button
-            title={t('createTask.upgradePlan')}
-            onPress={() => router.push('/(business)/subscription')}
-            style={styles.limitBlockBtn}
-          />
-          <Button
-            title={t('createTask.backToTasks')}
-            variant="outline"
-            onPress={() => router.replace('/(business)/tasks')}
-            style={styles.limitBlockBtn}
-          />
+          <View style={styles.topBarSide} />
         </View>
+        <ScrollView
+          contentContainerStyle={styles.limitScroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.limitCard}>
+            <Text style={styles.limitBlockEmoji}>🔒</Text>
+            <Text style={styles.limitBlockTitle}>{t('createTask.limitTitle')}</Text>
+            <Text style={styles.limitBlockText}>
+              {t('createTask.limitText', {
+                plan: limitInfo.planLabel,
+                max: maxLabel,
+                active: limitInfo.active,
+              })}
+            </Text>
+            <Button
+              title={t('createTask.upgradePlan')}
+              onPress={() => router.push('/(business)/subscription')}
+              style={styles.limitBlockBtn}
+            />
+            <Button
+              title={t('createTask.backToTasks')}
+              variant="outline"
+              onPress={() => router.replace('/(business)/tasks')}
+              style={styles.limitBlockBtn}
+            />
+          </View>
+        </ScrollView>
       </Screen>
     );
   }
@@ -459,12 +467,36 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing[5],
+    paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[3],
+    gap: Spacing[2],
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
   },
-  back: { ...Typography.labelMedium, color: Colors.textSecondary },
-  screenTitle: { ...Typography.labelLarge, color: Colors.textPrimary },
+  topBarSide: { width: 72 },
+  back: { ...Typography.labelMedium, color: Colors.primary, fontWeight: '700' },
+  screenTitle: {
+    ...Typography.labelLarge,
+    color: Colors.textPrimary,
+    flex: 1,
+    minWidth: 0,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  limitScroll: {
+    flexGrow: 1,
+    padding: Spacing[5],
+    paddingBottom: Spacing[10],
+  },
+  limitCard: {
+    backgroundColor: Colors.card,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing[5],
+    gap: Spacing[3],
+    alignItems: 'stretch',
+  },
   scroll: { padding: Spacing[5], paddingBottom: Spacing[10] },
   section: { gap: Spacing[1] },
   limitBanner: {
@@ -489,18 +521,19 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     padding: Spacing[6],
     gap: Spacing[3],
   },
-  limitBlockEmoji: { fontSize: 44, marginBottom: Spacing[2] },
+  limitBlockEmoji: { fontSize: 44, textAlign: 'center' },
   limitBlockTitle: {
     ...Typography.headingMedium,
     color: Colors.textPrimary,
     textAlign: 'center',
+    fontWeight: '800',
   },
   limitBlockText: {
     ...Typography.bodyMedium,
-    color: Colors.textSecondary,
+    color: Colors.textPrimary,
+    opacity: 0.88,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Spacing[2],
+    lineHeight: 24,
   },
   limitBlockBtn: { width: '100%' },
   locationBanner: {

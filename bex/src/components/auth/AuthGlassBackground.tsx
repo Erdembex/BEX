@@ -1,9 +1,12 @@
 import React from 'react';
 import { ImageBackground, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-const AUTH_LOGIN_WALL = require('../../../assets/branding/auth-login-wall.png');
+const AUTH_LOGIN_WALL =
+  Platform.OS === 'android'
+    ? require('../../../assets/branding/auth-wall-passla.png')
+    : require('../../../assets/branding/auth-wall-passla.webp');
 
-/** Giriş ekranı — graffiti üstte, alt gri yol bandı form için */
+/** Giriş ekranı — spreyle PASSLA yazılmış tuğla duvar, üstte duvar lambası */
 export function AuthGlassBackground() {
   const { width, height } = useWindowDimensions();
 

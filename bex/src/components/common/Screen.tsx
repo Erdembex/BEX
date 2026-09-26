@@ -12,7 +12,7 @@ const TAB_BAR_BASE_HEIGHT = 58;
 export function useResolvedSafeAreaInsets() {
   const insets = useSafeAreaInsets();
   const androidStatus = StatusBar.currentHeight ?? 28;
-  const androidBottomFallback = 20;
+  const androidBottomFallback = 24;
 
   return {
     top: Math.max(insets.top, Platform.OS === 'android' ? androidStatus : 0),
@@ -75,10 +75,14 @@ export function SafeScreen({ children, style, edges }: ScreenProps) {
   );
 }
 
+/** Orta FAB çentiği listeyi kesmesin diye ek pay (UserTabBar). */
+const FAB_LIST_CLEARANCE = 28;
+
 /** ScrollView / FlatList contentContainerStyle için alt boşluk (tab bar + gesture bar). */
 export function useTabBarBottomPadding(extra = 24, barHeight = TAB_BAR_BASE_HEIGHT): number {
   const insets = useResolvedSafeAreaInsets();
-  return barHeight + insets.bottom + extra;
+  const fabClearance = barHeight >= 64 ? FAB_LIST_CLEARANCE : 0;
+  return barHeight + insets.bottom + extra + fabClearance;
 }
 
 export function useTabBarStyle(backgroundColor: string, borderColor: string) {

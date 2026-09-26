@@ -1,6 +1,8 @@
 # Google Play Internal Test — Adım Adım (Passla)
 
-Sürüm: **1.0.2** · Paket: **com.passla.app** · versionCode: **4**
+Sürüm: **1.0.2** · Paket: **com.passla.app** · versionCode: **5** (EAS remote)
+
+Form cevapları (kopyala-yapıştır): [`PLAY_CONSOLE_INTERNAL_FORMS.md`](PLAY_CONSOLE_INTERNAL_FORMS.md)
 
 ---
 
@@ -19,11 +21,7 @@ Production ortamında tanımlı:
 - EXPO_PUBLIC_FIREBASE_*
 - EXPO_PUBLIC_EAS_PROJECT_ID
 
-**Zorunlu (harita):** `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` — internal test AAB’de harita karoları için. Ekle:
-```powershell
-cd bex
-npx eas env:create production --name EXPO_PUBLIC_GOOGLE_MAPS_API_KEY --value "SENIN_KEY" --visibility plaintext --scope project --force --non-interactive
-```
+**Push (isteğe bağlı ama önerilir):** Android **production** profilde FCM V1 — `bex/docs/PUSH_NOTIFICATIONS.md`
 
 ---
 
@@ -118,18 +116,8 @@ Toplanan veriler (uygulamada var):
 1. **Test et ve yayınla → Test → Dahili test**
 2. **Yeni sürüm oluştur**
 3. **Yükle** → ADIM 4’te indirdiğin `.aab`
-4. Sürüm adı: `1.0.2 (4)`
-5. Sürüm notları (TR):
-```
-Passla 1.0.2 — Internal test
-
-- Görev keşfi, başvuru, mesaj, cüzdan
-- Misafir mod: Login → Şimdilik Atla
-- Karanlık/aydınlık mod, bildirimler, hesap silme
-
-Test: api.passla.com.tr
-Demo: mert@demo.passla.com.tr / PasslaDemo1! (backend demo seed açıksa)
-```
+4. Sürüm adı: `1.0.2 (5)`
+5. Sürüm notları (TR): [`INTERNAL_TEST_RELEASE_NOTES.txt`](INTERNAL_TEST_RELEASE_NOTES.txt) dosyasının tamamını yapıştır
 6. **Sürümü incele** → **Dahili teste dağıt**
 
 ---
@@ -167,7 +155,7 @@ npm run submit:android
 - [x] EAS production env
 - [x] Yasal URL’ler 200
 - [x] Ekran görüntüsü taslakları
-- [ ] Production AAB build
-- [ ] Play Console formları
+- [x] Production AAB build (versionCode 5)
+- [ ] Play Console formları → `PLAY_CONSOLE_INTERNAL_FORMS.md`
 - [ ] Internal release yayın
 - [ ] Tester e-postaları

@@ -1,34 +1,71 @@
-import { StyleSheet, View, Image } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  Image,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import Constants from 'expo-constants';
+import { initialWindowMetrics } from 'react-native-safe-area-context';
 
-const SPLASH = require('../../../assets/splash.png');
+const SPLASH_LOGO = require('../../../assets/branding/splash-ss-white.png');
+const LOGO_ASPECT = 2400 / 1403;
 
-interface AppLaunchSplashProps {
-  fontsLoaded?: boolean;
+const NAVY = '#17264F';
+
+function appVersion(): string {
+  return Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '1.0.2';
 }
 
-/** Native splash ile aynı görsel — font/yüklenme sırasında kesintisiz geçiş */
-export function AppLaunchSplash(_props: AppLaunchSplashProps) {
+/** SS fiziksel ekranın tam ortasında; yüklenme ve sürüm altta */
+export function AppLaunchSplash() {
+  const { width: screenW, height: screenH } = Dimensions.get('screen');
+  const bottomInset = initialWindowMetrics?.insets.bottom ?? 0;
+  const version = appVersion();
+
+  const logoWidth = Math.min(screenW * 0.62, 360);
+  const logoHeight = logoWidth / LOGO_ASPECT;
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { width: screenW, height: screenH }]}>
       <Image
-        source={SPLASH}
-        style={styles.image}
-        resizeMode="cover"
+        source={SPLASH_LOGO}
+        style={{
+          position: 'absolute',
+          top: screenH / 2 - logoHeight / 2,
+          left: screenW / 2 - logoWidth / 2,
+          width: logoWidth,
+          height: logoHeight,
+        }}
+        resizeMode="contain"
         accessibilityRole="image"
         accessibilityLabel="Passla"
       />
+
+      <View style={[styles.footer, { paddingBottom: Math.max(bottomInset, 28) + 24 }]}>
+        <ActivityIndicator color="#FFFFFF" size="large" />
+        <Text style={styles.version}>{version}</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#051F45',
+    backgroundColor: NAVY,
   },
-  image: {
-    ...StyleSheet.absoluteFillObject,
-    width: '100%',
-    height: '100%',
+  footer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    gap: 12,
+  },
+  version: {
+    fontSize: 13,
+    letterSpacing: 0.3,
+    color: 'rgba(232, 237, 250, 0.72)',
   },
 });

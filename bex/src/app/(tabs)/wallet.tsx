@@ -21,7 +21,7 @@ import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from 
 export default function WalletScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
+  const tabBarPadding = useTabBarBottomPadding(32, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const COUPON_STATUS_LABELS = useCouponStatusLabels();
   const { firebaseUser } = useAuthStore();

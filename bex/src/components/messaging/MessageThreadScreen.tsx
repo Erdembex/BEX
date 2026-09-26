@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import { TabScreen } from '@/components/common/Screen';
 import { router, Href } from 'expo-router';
 import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
@@ -99,17 +99,17 @@ export function MessageThreadScreen({
 
   if (allowed === null) {
     return (
-      <Screen style={styles.safe}>
+      <TabScreen style={styles.safe}>
         <View style={styles.center}>
           <ActivityIndicator color={Colors.primary} />
         </View>
-      </Screen>
+      </TabScreen>
     );
   }
 
   if (!allowed) {
     return (
-      <Screen style={styles.safe}>
+      <TabScreen style={styles.safe}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Text style={styles.backText}>←</Text>
@@ -123,12 +123,12 @@ export function MessageThreadScreen({
             {t('messageThreadScreen.notOpenedText')}
           </Text>
         </View>
-      </Screen>
+      </TabScreen>
     );
   }
 
   return (
-    <Screen style={styles.safe}>
+    <TabScreen style={styles.safe}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backText}>←</Text>
@@ -170,7 +170,7 @@ export function MessageThreadScreen({
           messagingAudience={messagingAudience}
         />
       </View>
-    </Screen>
+    </TabScreen>
   );
 }
 
@@ -194,10 +194,34 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     justifyContent: 'center',
   },
   backText: { fontSize: 22, color: Colors.primary, fontWeight: '700' },
-  headerMeta: { flex: 1, alignItems: 'center', paddingVertical: Spacing[1], gap: Spacing[1] },
-  headerTitle: { ...Typography.labelLarge, color: Colors.textPrimary, fontWeight: '700' },
-  headerSubtitle: { ...Typography.caption, color: Colors.primary, marginTop: 2 },
-  headerTask: { ...Typography.caption, color: Colors.textSecondary, marginTop: 2 },
+  headerMeta: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'center',
+    paddingVertical: Spacing[1],
+    gap: Spacing[1],
+  },
+  headerTitle: {
+    ...Typography.labelLarge,
+    color: Colors.textPrimary,
+    fontWeight: '700',
+    maxWidth: '100%',
+    textAlign: 'center',
+  },
+  headerSubtitle: {
+    ...Typography.caption,
+    color: Colors.primary,
+    marginTop: 2,
+    maxWidth: '100%',
+    textAlign: 'center',
+  },
+  headerTask: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    marginTop: 2,
+    maxWidth: '100%',
+    textAlign: 'center',
+  },
   blockedTitle: { ...Typography.labelLarge, color: Colors.textPrimary, marginBottom: Spacing[2] },
   blockedText: {
     ...Typography.bodySmall,

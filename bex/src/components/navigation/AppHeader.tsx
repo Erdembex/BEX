@@ -90,6 +90,8 @@ const useStyles = createThemedStyles((Colors) => ({
     ...Typography.headingMedium,
     color: Colors.textPrimary,
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
   },
 }));
 
@@ -144,7 +146,13 @@ export function AppHeader({
           <View style={styles.iconPlaceholder} />
         )}
         {!showBrand && title ? (
-          <Text style={styles.title} numberOfLines={1}>
+          <Text
+            style={styles.title}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            adjustsFontSizeToFit
+            minimumFontScale={0.82}
+          >
             {title}
           </Text>
         ) : (

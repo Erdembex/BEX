@@ -23,9 +23,16 @@ const Box = createBox<TradeTheme>();
 interface TradeNewSwapPanelProps {
   ownerId: string;
   onCreated: () => void | Promise<void>;
+  bottomPadding?: number;
+  headerComponent?: React.ReactNode;
 }
 
-export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps) {
+export function TradeNewSwapPanel({
+  ownerId,
+  onCreated,
+  bottomPadding,
+  headerComponent,
+}: TradeNewSwapPanelProps) {
   const theme = useTradeTheme();
   const inputStyle = useMemo(() => getTradeInputStyle(theme), [theme]);
   const { t } = useTranslation();
@@ -88,11 +95,13 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
       style={{ flex: 1 }}
       contentContainerStyle={{
         paddingHorizontal: theme.spacing.lg,
-        paddingBottom: theme.spacing['2xl'],
+        paddingBottom: bottomPadding ?? theme.spacing['2xl'],
+        flexGrow: 1,
       }}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator
       keyboardShouldPersistTaps="handled"
     >
+      {headerComponent}
       <Box
         padding="md"
         marginBottom="md"
@@ -104,7 +113,7 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
         <Text variant="label" style={{ color: theme.colors.tradeHighlight }}>
           {t('tradeNewSwapPanel.headerTitle')}
         </Text>
-        <Text variant="body" marginTop="xs" style={{ color: theme.colors.tradeInfoText, lineHeight: 22 }}>
+        <Text variant="body" marginTop="xs" style={{ color: theme.colors.tradeInfoText, lineHeight: 22, fontSize: 14 }}>
           {t('tradeNewSwapPanel.headerSubtitle')}
         </Text>
       </Box>
@@ -121,7 +130,7 @@ export function TradeNewSwapPanel({ ownerId, onCreated }: TradeNewSwapPanelProps
           backgroundColor="tradeCard"
           marginBottom="md"
         >
-          <Text variant="bodyMuted">
+          <Text variant="body" style={{ color: theme.colors.textSecondary, lineHeight: 22 }}>
             {t('tradeNewSwapPanel.noCouponText')}
           </Text>
         </Box>

@@ -3,15 +3,16 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Pressable,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Keyboard,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
-import { Screen } from '@/components/common/Screen';
 import { router, useLocalSearchParams } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
@@ -21,19 +22,19 @@ import {
   saveCredentials,
   clearSavedCredentials,
 } from '@/lib/credentialStorage';
-import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
-import { BRAND_NAVY } from '@/theme/brand';
-import { Button, Input } from '@/components/ui';
+import { Typography, Spacing, Radius } from '@/theme';
+import { Input } from '@/components/ui';
 import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
-import { AuthGlassCard } from '@/components/auth/AuthGlassCard';
+import { AuthFrostCard } from '@/components/auth/AuthFrostCard';
 import { useTranslation } from '@/i18n';
 
-const GLASS_TEXT = '#F0EEE9';
-const GLASS_MUTED = 'rgba(240, 238, 233, 0.72)';
-const GLASS_GOLD = '#E7C663';
+const INK = '#17264F';
+const BODY = '#1E293B';
+const MUTED = '#64708C';
+const LINE = '#64708C';
 
 export default function LoginScreen() {
-  const Colors = useThemeColors();
+  const windowHeight = Dimensions.get('window').height;
   const insets = useSafeAreaInsets();
   const { setBexUser, setFirebaseUser } = useAuthStore();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string | string[] }>();
@@ -115,7 +116,8 @@ export default function LoginScreen() {
   };
 
   return (
-    <Screen style={[styles.safe, { backgroundColor: Colors.background }]}>
+    <View style={styles.root}>
+      <StatusBar style="light" />
       <AuthGlassBackground />
 
       {router.canGoBack() ? (
@@ -129,35 +131,40 @@ export default function LoginScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('common.back')}
         >
-          <Ionicons name="chevron-back" size={24} color={GLASS_TEXT} />
+          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       ) : null}
 
       <KeyboardAvoidingView
-        style={styles.root}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <Pressable
-          style={styles.dismissArea}
-          onPress={Keyboard.dismiss}
-          accessibilityRole="button"
-          accessibilityLabel={t('auth.dismissKeyboard')}
-        />
-
-        <View
-          style={[
-            styles.formDock,
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
             {
-              paddingBottom: Math.max(insets.bottom, Spacing[3]),
+              paddingTop: keyboardVisible ? insets.top + Spacing[2] : 0,
+              paddingBottom: Math.max(insets.bottom, Spacing[4]) + Spacing[4],
             },
           ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          showsVerticalScrollIndicator={false}
         >
-          <AuthGlassCard style={styles.formCard} compact={keyboardVisible}>
+          {!keyboardVisible ? (
+            <View style={{ minHeight: Math.max(windowHeight * 0.34, 220) }} />
+          ) : null}
+
+          <AuthFrostCard style={styles.card} compact={keyboardVisible}>
             {!keyboardVisible ? (
               <View style={styles.header}>
                 <Text style={styles.title}>{t('auth.loginTitle')}</Text>
-                <Text style={styles.subtitle} numberOfLines={2}>
+                <Text
+                  style={styles.subtitle}
+                  numberOfLines={2}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.82}
+                >
                   {t('auth.loginSubtitle')}
                 </Text>
               </View>
@@ -171,8 +178,7 @@ export default function LoginScreen() {
               ) : null}
 
               <Input
-                variant="glass"
-                compact={keyboardVisible}
+                variant="frost"
                 placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
@@ -180,12 +186,11 @@ export default function LoginScreen() {
                 autoComplete="email"
                 textContentType="emailAddress"
                 returnKeyType="next"
-                rightIcon={<Ionicons name="mail-outline" size={20} color={GLASS_MUTED} />}
+                rightIcon={<Ionicons name="mail-outline" size={20} color={MUTED} />}
               />
 
               <Input
-                variant="glass"
-                compact={keyboardVisible}
+                variant="frost"
                 placeholder="••••••••"
                 value={password}
                 onChangeText={setPassword}
@@ -203,7 +208,9 @@ export default function LoginScreen() {
                   activeOpacity={0.8}
                 >
                   <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                    {rememberMe ? <Text style={styles.checkmark}>✓</Text> : null}
+                    {rememberMe ? (
+                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                    ) : null}
                   </View>
                   <Text style={styles.rememberText}>{t('auth.rememberMe')}</Text>
                 </TouchableOpacity>
@@ -216,37 +223,44 @@ export default function LoginScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Button
-                title={t('auth.login')}
+              <TouchableOpacity
+                style={[styles.loginBtn, loading && styles.loginBtnDisabled]}
                 onPress={handleLogin}
-                loading={loading}
-                variant="gold"
-                size="md"
-              />
+                disabled={loading}
+                activeOpacity={0.88}
+                accessibilityRole="button"
+              >
+                <Text style={styles.loginLabel}>
+                  {loading ? '...' : `${t('auth.login')}  →`}
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            {!keyboardVisible ? (
-              <View style={styles.registerRow}>
-                <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
-                <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                  <Text style={styles.registerLink}>{t('auth.register')}</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-          </AuthGlassCard>
-        </View>
+            <View style={styles.registerRow}>
+              <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
+              <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+                <Text style={styles.registerLink}>{t('auth.register')}</Text>
+              </TouchableOpacity>
+            </View>
+          </AuthFrostCard>
+        </ScrollView>
       </KeyboardAvoidingView>
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-  },
   root: {
     flex: 1,
+    backgroundColor: '#17264F',
+  },
+  flex: {
+    flex: 1,
+  },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'flex-end',
+    paddingHorizontal: Spacing[4],
   },
   backBtn: {
     position: 'absolute',
@@ -257,42 +271,36 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  dismissArea: {
-    flex: 1,
-  },
-  formDock: {
-    paddingHorizontal: Spacing[4],
-  },
-  formCard: {
+  card: {
     alignSelf: 'stretch',
   },
   header: {
-    marginBottom: Spacing[3],
+    marginBottom: Spacing[4],
     gap: Spacing[1],
   },
   title: {
     ...Typography.headingLarge,
-    color: GLASS_TEXT,
-    fontSize: 24,
+    color: INK,
+    fontSize: 26,
   },
   subtitle: {
     ...Typography.bodyMedium,
-    color: GLASS_MUTED,
+    color: MUTED,
     lineHeight: 20,
   },
   form: {
-    gap: Spacing[2],
+    gap: Spacing[3],
   },
   errorBanner: {
-    backgroundColor: 'rgba(201, 90, 98, 0.12)',
-    borderRadius: Radius.md,
+    backgroundColor: 'rgba(185, 28, 28, 0.08)',
+    borderRadius: Radius.xl,
     padding: Spacing[3],
     borderWidth: 1,
-    borderColor: 'rgba(201, 90, 98, 0.35)',
+    borderColor: 'rgba(185, 28, 28, 0.28)',
   },
   errorBannerText: {
     ...Typography.bodySmall,
-    color: '#F5A8AD',
+    color: '#B91C1C',
   },
   optionsRow: {
     flexDirection: 'row',
@@ -300,7 +308,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: Spacing[2],
-    marginTop: -Spacing[1],
   },
   rememberRow: {
     flexDirection: 'row',
@@ -308,31 +315,42 @@ const styles = StyleSheet.create({
     gap: Spacing[2],
   },
   checkbox: {
-    width: 20,
-    height: 20,
+    width: 22,
+    height: 22,
     borderRadius: Radius.sm,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.45)',
-    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: LINE,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxActive: {
-    backgroundColor: GLASS_GOLD,
-    borderColor: GLASS_GOLD,
-  },
-  checkmark: {
-    color: BRAND_NAVY,
-    fontSize: 12,
-    fontWeight: '700',
+    backgroundColor: INK,
+    borderColor: INK,
   },
   rememberText: {
     ...Typography.bodySmall,
-    color: GLASS_TEXT,
+    color: BODY,
   },
   forgotText: {
     ...Typography.labelMedium,
-    color: GLASS_GOLD,
+    color: INK,
+  },
+  loginBtn: {
+    height: 56,
+    borderRadius: Radius.full,
+    backgroundColor: INK,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing[1],
+  },
+  loginBtnDisabled: {
+    opacity: 0.6,
+  },
+  loginLabel: {
+    ...Typography.labelLarge,
+    color: '#FFFFFF',
+    fontSize: 17,
   },
   registerRow: {
     flexDirection: 'row',
@@ -344,10 +362,10 @@ const styles = StyleSheet.create({
   },
   registerText: {
     ...Typography.bodyMedium,
-    color: GLASS_MUTED,
+    color: MUTED,
   },
   registerLink: {
     ...Typography.labelLarge,
-    color: GLASS_GOLD,
+    color: INK,
   },
 });

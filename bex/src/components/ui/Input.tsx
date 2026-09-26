@@ -21,8 +21,13 @@ interface InputProps extends TextInputProps {
   containerStyle?: ViewStyle;
   compact?: boolean;
   isPassword?: boolean;
-  variant?: 'default' | 'glass';
+  variant?: 'default' | 'glass' | 'frost';
 }
+
+/** Buzlu cam kart üzerindeki beyaz pill alanlar (giriş/kayıt) */
+const FROST_INK = '#17264F';
+const FROST_LINE = '#CED2E8';
+const FROST_MUTED = '#64708C';
 
 const useStyles = createThemedStyles((Colors) => ({
   wrapper: {
@@ -35,7 +40,7 @@ const useStyles = createThemedStyles((Colors) => ({
   container: {
     minHeight: 54,
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
     borderWidth: 1.5,
@@ -58,8 +63,10 @@ const useStyles = createThemedStyles((Colors) => ({
   },
   input: {
     flex: 1,
+    minWidth: 0,
     fontFamily: Typography.bodyLarge.fontFamily,
     fontSize: Typography.bodyLarge.fontSize,
+    lineHeight: Typography.bodyLarge.lineHeight,
     color: Colors.textPrimary,
     paddingVertical: textInputPaddingVertical,
     ...readableTextInputStyle,
@@ -119,6 +126,24 @@ const useStyles = createThemedStyles((Colors) => ({
     color: '#FFFFFF',
     fontWeight: '500',
   },
+  labelFrost: {
+    ...Typography.labelMedium,
+    color: FROST_MUTED,
+  },
+  containerFrost: {
+    minHeight: 58,
+    backgroundColor: '#FFFFFF',
+    borderColor: FROST_LINE,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing[5],
+  },
+  containerFrostFocused: {
+    borderColor: FROST_INK,
+    backgroundColor: '#FFFFFF',
+  },
+  inputFrost: {
+    color: FROST_INK,
+  },
 }));
 
 export function Input({
@@ -142,22 +167,33 @@ export function Input({
 
   const hasError = !!error;
   const isGlass = variant === 'glass';
-  const placeholderColor = isGlass ? 'rgba(240, 238, 233, 0.45)' : Colors.textMuted;
-  const selectionColor = isGlass ? '#E7C663' : Colors.primary;
+  const isFrost = variant === 'frost';
+  const placeholderColor = isGlass
+    ? 'rgba(240, 238, 233, 0.45)'
+    : isFrost
+      ? FROST_MUTED
+      : Colors.textMuted;
+  const selectionColor = isGlass ? '#E7C663' : isFrost ? FROST_INK : Colors.primary;
+
+  const labelStyle = isGlass ? styles.labelGlass : isFrost ? styles.labelFrost : styles.label;
+  const focusedStyle = isGlass
+    ? styles.containerGlassFocused
+    : isFrost
+      ? styles.containerFrostFocused
+      : styles.containerFocused;
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
-      {label ? (
-        <Text style={isGlass ? styles.labelGlass : styles.label}>{label}</Text>
-      ) : null}
+      {label ? <Text style={labelStyle}>{label}</Text> : null}
 
       <View
         style={[
           styles.container,
           props.multiline && styles.containerMultiline,
           isGlass && styles.containerGlass,
+          isFrost && styles.containerFrost,
           compact && styles.containerCompact,
-          isFocused && (isGlass ? styles.containerGlassFocused : styles.containerFocused),
+          isFocused && focusedStyle,
           hasError && styles.containerError,
         ]}
       >
@@ -167,6 +203,7 @@ export function Input({
           style={[
             styles.input,
             isGlass && styles.inputGlass,
+            isFrost && styles.inputFrost,
             compact && styles.inputCompact,
             props.multiline && styles.inputMultiline,
             leftIcon ? styles.inputWithLeft : null,
@@ -188,11 +225,11 @@ export function Input({
             onPress={() => setShowPassword(!showPassword)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            {isGlass ? (
+            {isGlass || isFrost ? (
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}
                 size={20}
-                color="rgba(240, 238, 233, 0.72)"
+                color={isFrost ? FROST_MUTED : 'rgba(240, 238, 233, 0.72)'}
               />
             ) : (
               <Text style={styles.passwordToggle}>{showPassword ? '🙈' : '👁'}</Text>

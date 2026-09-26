@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
 
 export function useAppFonts(): boolean {
@@ -8,5 +9,16 @@ export function useAppFonts(): boolean {
     Inter_700Bold: require('../../assets/fonts/Inter_700Bold.ttf'),
     Inter_800ExtraBold: require('../../assets/fonts/Inter_800ExtraBold.ttf'),
   });
-  return loaded || !!error;
+
+  useEffect(() => {
+    if (error) {
+      console.error('[useAppFonts] Inter yüklenemedi — AAB layout bozulabilir:', error);
+    }
+  }, [error]);
+
+  // Expo Go: hata olsa bile devam (Metro yeniden dene). Release AAB: font hazır olmadan UI açma.
+  if (__DEV__) {
+    return loaded || !!error;
+  }
+  return loaded;
 }

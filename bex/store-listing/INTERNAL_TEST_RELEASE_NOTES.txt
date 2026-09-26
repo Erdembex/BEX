@@ -1,15 +1,16 @@
-Passla 1.0.2+ — Internal test
+Passla 1.0.2 (5) — Dahili test
 
 Yenilikler:
-- Onboarding slaytları, marka ikonları, Play Store metinleri
-- Ayarlar / profil ayrımı (profil düzenleme yalnızca Profil sekmesinde)
-- Harita: önce sunucu koordinatları, işletme başına tek pin, Android konumum
+• Açılış ekranı (spotlight splash)
+• Ana sayfa: sol menü, sağ profil fotoğrafı; profil ekranında geri tuşu
+• İşletme: alt barda Panel sekmesi; görev kotası (2 aktif) sohbetteki özel ilana da uygulanır
+• İşletme UX: panel yönlendirme, başvuru detayı, bildirim rozeti
+• E-posta doğrulama (Resend), başvuru sahibi CV erişimi (işletme)
 
-Test notu:
-1. Onboarding → giriş → hub → görevler / harita
-2. Harita: şehir seçili, pin’ler ve ilan detayı
-3. İşletme: açık adres kaydı → haritada görünürlük (backend geocode)
-4. Bireysel: başvuru → mesaj → teslim → cüzdan / QR
-5. API: https://api.passla.com.tr
+Test:
+1. Kayıt / giriş → e-posta doğrulama
+2. Hub → görevler → başvuru → mesaj → teslim → cüzdan / QR
+3. İşletme: Panel, görev oluştur (+), 2/2 doluyken yeni görev ve sohbetten özel ilan engeli
+4. API: https://api.passla.com.tr
 
-Harita boşsa: EAS’te EXPO_PUBLIC_GOOGLE_MAPS_API_KEY kontrol et.
+Bildirim (push): production FCM V1 yüklüyse arka planda test et.

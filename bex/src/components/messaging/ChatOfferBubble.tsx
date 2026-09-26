@@ -5,6 +5,7 @@ import { ChatOffer } from '@/types';
 import { formatOfferLabel } from '@/features/messages/offersApi';
 import { formatRelativeTime } from '@/lib/dateUtils';
 import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
+import { androidReadableText } from '@/lib/readableTextStyle';
 import { Timestamp } from 'firebase/firestore';
 import { useTranslation } from '@/i18n';
 
@@ -56,9 +57,19 @@ export function ChatOfferBubble({
     <View style={[styles.row, mine ? styles.rowMine : styles.rowOther]}>
       <View style={[styles.card, mine ? styles.cardMine : styles.cardOther]}>
         <Text style={[styles.badge, mine && styles.badgeMine]}>{t('chatOfferBubble.badgeLabel')}</Text>
-        <Text style={[styles.jobTitle, mine && styles.textOnGold]}>{title}</Text>
+        <Text
+          style={[styles.jobTitle, mine && styles.textOnGold]}
+          numberOfLines={3}
+          ellipsizeMode="tail"
+        >
+          {title}
+        </Text>
         {offer.listingDescription ? (
-          <Text style={[styles.description, mine && styles.descriptionMine]}>
+          <Text
+            style={[styles.description, mine && styles.descriptionMine]}
+            numberOfLines={4}
+            ellipsizeMode="tail"
+          >
             {offer.listingDescription}
           </Text>
         ) : null}
@@ -66,7 +77,13 @@ export function ChatOfferBubble({
           {t('chatOfferBubble.rewardLabel', { summary: rewardSummary(offer) })}
         </Text>
         {offer.note ? (
-          <Text style={[styles.note, mine && styles.noteMine]}>{offer.note}</Text>
+          <Text
+            style={[styles.note, mine && styles.noteMine]}
+            numberOfLines={3}
+            ellipsizeMode="tail"
+          >
+            {offer.note}
+          </Text>
         ) : null}
         <Text style={[styles.meta, mine && styles.metaMine]}>
           {t('chatOfferBubble.validityLabel', { days: offer.validityDays })}
@@ -125,11 +142,13 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   rowOther: { alignItems: 'flex-start' },
   card: {
     maxWidth: '92%',
+    minWidth: 0,
     paddingHorizontal: Spacing[4],
     paddingVertical: Spacing[3],
     borderRadius: Radius.xl,
     gap: Spacing[2],
     borderWidth: 1,
+    overflow: 'hidden',
   },
   cardMine: {
     backgroundColor: Colors.primary,
@@ -151,6 +170,8 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     ...Typography.labelLarge,
     color: Colors.textPrimary,
     fontWeight: '700',
+    flexShrink: 1,
+    ...androidReadableText,
   },
   textOnGold: { color: Colors.textOnGold },
   description: {
@@ -190,9 +211,10 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     color: Colors.moneyGreen,
     fontWeight: '700',
   },
-  actions: { flexDirection: 'row', gap: Spacing[2], marginTop: Spacing[1] },
+  actions: { flexDirection: 'row', gap: Spacing[2], marginTop: Spacing[1], width: '100%' },
   btn: {
     flex: 1,
+    minWidth: 0,
     paddingVertical: Spacing[2],
     borderRadius: Radius.md,
     alignItems: 'center',

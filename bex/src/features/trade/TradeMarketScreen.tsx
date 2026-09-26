@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { FlatList, TouchableOpacity, ListRenderItem, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
-import { Screen, useTabBarBottomPadding } from '@/components/common/Screen';
+import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { useFocusEffect } from "expo-router/react-navigation";
 import { useLocalSearchParams } from 'expo-router';
@@ -150,6 +150,7 @@ function TradeTabSwitch({
   active: TradeTab;
   onChange: (tab: TradeTab) => void;
 }) {
+  const theme = useTradeTheme();
   const { t } = useTranslation();
   const TAB_ITEMS: { id: TradeTab; label: string; short: string }[] = [
     { id: 'market', label: t('tradeMarketScreen.tabMarket'), short: t('tradeMarketScreen.tabMarketShort') },
@@ -177,17 +178,19 @@ function TradeTabSwitch({
               paddingHorizontal="md"
               borderRadius="sm"
               alignItems="center"
-              backgroundColor={selected ? 'tradeCta' : 'tradeCard'}
+              backgroundColor={selected ? 'tradeCta' : 'tradeTabInactiveBg'}
               borderWidth={1}
               borderColor={selected ? 'tradeCta' : 'tradeInputBorder'}
               minWidth={72}
             >
               <Text
-                variant="caption"
                 style={{
-                  color: selected ? tradeTheme.colors.tradeCtaText : tradeTheme.colors.text,
+                  color: selected
+                    ? theme.colors.tradeCtaText
+                    : theme.colors.tradeTabInactiveText,
                   fontWeight: '700',
-                  fontSize: 11,
+                  fontSize: 12,
+                  lineHeight: 16,
                 }}
               >
                 {tab.short}
@@ -203,7 +206,7 @@ function TradeTabSwitch({
 export function TradeMarketScreen() {
   const tradeTheme = useTradeTheme();
   const Colors = useThemeColors();
-  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
+  const tabBarPadding = useTabBarBottomPadding(32, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const { firebaseUser } = useAuthStore();
   const { requireAuth } = useRequireAuth();
@@ -298,31 +301,35 @@ export function TradeMarketScreen() {
     />
   );
 
+  const listHeader = (
+    <Box paddingTop="sm" paddingBottom="md">
+      <Text variant="body" marginTop="xs" style={{ color: tradeTheme.colors.textSecondary, lineHeight: 22 }}>
+        {t('tradeMarketScreen.subtitle')}
+      </Text>
+      <TradeTabSwitch active={tab} onChange={setTab} />
+      {tab === 'market' ? (
+        <Box
+          flexDirection="row"
+          marginTop="md"
+          padding="md"
+          borderRadius="md"
+          backgroundColor="tradeInfoBg"
+          borderWidth={1}
+          borderColor="tradeAccentBorder"
+        >
+          <Text variant="body" style={{ color: tradeTheme.colors.tradeInfoText, lineHeight: 22, fontSize: 14, flex: 1 }}>
+            {t('tradeMarketScreen.couponHint')}
+          </Text>
+        </Box>
+      ) : null}
+    </Box>
+  );
+
   return (
     <ThemeProvider theme={tradeTheme}>
-      <Screen style={{ flex: 1, backgroundColor: tradeTheme.colors.background }}>
+      <TabScreen style={{ flex: 1, backgroundColor: tradeTheme.colors.background }}>
         <AppHeader title={t('tradeMarketScreen.headerTitle')} showMenu showNotifications />
         <Box flex={1} backgroundColor="background">
-          <Box paddingHorizontal="lg" paddingTop="sm" paddingBottom="md">
-            <Text variant="body" marginTop="xs" style={{ color: tradeTheme.colors.tradeMuted }}>
-              {t('tradeMarketScreen.subtitle')}
-            </Text>
-            <TradeTabSwitch active={tab} onChange={setTab} />
-            <Box
-              flexDirection="row"
-              marginTop="md"
-              padding="sm"
-              borderRadius="sm"
-              backgroundColor="tradeInfoBg"
-              borderWidth={1}
-              borderColor="tradeAccentBorder"
-            >
-              <Text variant="body" style={{ color: tradeTheme.colors.tradeInfoText, lineHeight: 20, fontSize: 13 }}>
-                {t('tradeMarketScreen.couponHint')}
-              </Text>
-            </Box>
-          </Box>
-
           {loading ? (
             <Box flex={1} alignItems="center" justifyContent="center">
               <ActivityIndicator color={tradeTheme.colors.tradePrimary} size="large" />
@@ -346,19 +353,47 @@ export function TradeMarketScreen() {
             </Box>
           ) : tab === 'new' ? (
             firebaseUser ? (
-              <TradeNewSwapPanel ownerId={firebaseUser.uid} onCreated={load} />
+              <TradeNewSwapPanel
+                ownerId={firebaseUser.uid}
+                onCreated={load}
+                bottomPadding={tabBarPadding}
+                headerComponent={listHeader}
+              />
             ) : (
-              <Box paddingHorizontal="lg">
-                <Text variant="bodyMuted">{t('tradeMarketScreen.loginForNewTrade')}</Text>
-              </Box>
+              <ScrollView
+                contentContainerStyle={{
+                  paddingHorizontal: tradeTheme.spacing.lg,
+                  paddingBottom: tabBarPadding,
+                  flexGrow: 1,
+                }}
+                keyboardShouldPersistTaps="handled"
+              >
+                {listHeader}
+                <Text variant="body" style={{ color: tradeTheme.colors.textSecondary, lineHeight: 22 }}>
+                  {t('tradeMarketScreen.loginForNewTrade')}
+                </Text>
+              </ScrollView>
             )
           ) : tab === 'history' ? (
             firebaseUser ? (
-              <TradeHistoryPanel userId={firebaseUser.uid} />
+              <TradeHistoryPanel
+                userId={firebaseUser.uid}
+                bottomPadding={tabBarPadding}
+                headerComponent={listHeader}
+              />
             ) : (
-              <Box paddingHorizontal="lg">
-                <Text variant="bodyMuted">{t('tradeMarketScreen.loginForHistory')}</Text>
-              </Box>
+              <ScrollView
+                contentContainerStyle={{
+                  paddingHorizontal: tradeTheme.spacing.lg,
+                  paddingBottom: tabBarPadding,
+                  flexGrow: 1,
+                }}
+              >
+                {listHeader}
+                <Text variant="body" style={{ color: tradeTheme.colors.textSecondary, lineHeight: 22 }}>
+                  {t('tradeMarketScreen.loginForHistory')}
+                </Text>
+              </ScrollView>
             )
           ) : tab === 'offers' ? (
             firebaseUser ? (
@@ -368,12 +403,23 @@ export function TradeMarketScreen() {
                   offers={myOffers}
                   onRefresh={onRefresh}
                   refreshing={refreshing}
+                  bottomPadding={tabBarPadding}
+                  headerComponent={listHeader}
                 />
               </Box>
             ) : (
-              <Box paddingHorizontal="lg">
-                <Text variant="bodyMuted">{t('tradeMarketScreen.loginForOffers')}</Text>
-              </Box>
+              <ScrollView
+                contentContainerStyle={{
+                  paddingHorizontal: tradeTheme.spacing.lg,
+                  paddingBottom: tabBarPadding,
+                  flexGrow: 1,
+                }}
+              >
+                {listHeader}
+                <Text variant="body" style={{ color: tradeTheme.colors.textSecondary, lineHeight: 22 }}>
+                  {t('tradeMarketScreen.loginForOffers')}
+                </Text>
+              </ScrollView>
             )
           ) : (
             <FlatList
@@ -387,9 +433,10 @@ export function TradeMarketScreen() {
                   tintColor={tradeTheme.colors.tradePrimary}
                 />
               }
+              ListHeaderComponent={listHeader}
               ListEmptyComponent={
                 <Box paddingHorizontal="lg" paddingTop="xl" alignItems="center">
-                  <Text variant="bodyMuted" style={{ textAlign: 'center' }}>
+                  <Text variant="body" style={{ color: tradeTheme.colors.textSecondary, textAlign: 'center', lineHeight: 22 }}>
                     {t('tradeMarketScreen.emptyMarket')}
                   </Text>
                 </Box>
@@ -399,7 +446,7 @@ export function TradeMarketScreen() {
                 paddingBottom: tabBarPadding,
                 flexGrow: listings.length === 0 ? 1 : undefined,
               }}
-              showsVerticalScrollIndicator={false}
+              showsVerticalScrollIndicator
             />
           )}
         </Box>
@@ -413,7 +460,7 @@ export function TradeMarketScreen() {
             onSubmitted={load}
           />
         ) : null}
-      </Screen>
+      </TabScreen>
     </ThemeProvider>
   );
 }

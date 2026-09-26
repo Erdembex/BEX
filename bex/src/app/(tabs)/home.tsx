@@ -337,18 +337,22 @@ const styles = StyleSheet.create({
   },
   searchCard: {
     borderRadius: Radius.xl + 4,
-    padding: Spacing[4],
-    gap: Spacing[2],
+    paddingHorizontal: Spacing[4],
+    paddingTop: Spacing[3],
+    paddingBottom: Spacing[3],
+    gap: Spacing[1],
   },
   searchCardTitle: {
     ...Typography.labelLarge,
     fontWeight: '800',
     color: '#F0EEE9',
+    lineHeight: 22,
   },
   searchCardSubtitle: {
     ...Typography.caption,
     color: 'rgba(240,238,233,0.8)',
-    marginBottom: Spacing[1],
+    lineHeight: 18,
+    marginBottom: Spacing[2],
   },
   searchBar: {
     flexDirection: 'row',
@@ -356,7 +360,8 @@ const styles = StyleSheet.create({
     gap: Spacing[2],
     borderRadius: Radius.full,
     paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3],
+    minHeight: 48,
+    paddingVertical: Spacing[2],
   },
   searchPlaceholder: {
     ...Typography.bodyMedium,
@@ -443,7 +448,7 @@ const styles = StyleSheet.create({
     marginRight: Spacing[3],
   },
   loadingWrap: {
-    height: 340,
+    height: 360,
     alignItems: 'center',
     justifyContent: 'center',
   },

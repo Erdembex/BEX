@@ -28,7 +28,7 @@ const DIFFICULTIES: (TaskDifficulty | null)[] = [null, 'easy', 'medium', 'hard']
 export default function TasksScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
-  const tabBarPadding = useTabBarBottomPadding(24, USER_TAB_BAR_HEIGHT);
+  const tabBarPadding = useTabBarBottomPadding(32, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
   const difficultyLabels = useDifficultyLabels();
   const categoryLabels = useCategoryLabels();

@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     fontSize: IS_COMPACT_HEIGHT ? rs(26) : rs(31),
     lineHeight: IS_COMPACT_HEIGHT ? rs(31) : rs(37),
     letterSpacing: -0.4,
-    color: ONBOARDING_COLORS.navy,
+    color: ONBOARDING_COLORS.title,
   },
   artWrap: {
     flex: 1,

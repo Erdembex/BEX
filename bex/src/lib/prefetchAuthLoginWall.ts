@@ -1,6 +1,9 @@
 import { Image, Platform } from 'react-native';
 
-const AUTH_LOGIN_WALL = require('../../assets/branding/auth-login-wall.png');
+const AUTH_LOGIN_WALL =
+  Platform.OS === 'android'
+    ? require('../../assets/branding/auth-wall-passla.png')
+    : require('../../assets/branding/auth-wall-passla.webp');
 
 let cached: Promise<boolean> | null = null;
 

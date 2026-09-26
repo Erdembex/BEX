@@ -42,9 +42,11 @@ export function getTradeTheme(palette: Record<ColorKey, string>) {
       tradeInputBg: isDark ? '#F5F3EE' : palette.surface,
       tradeInputText: isDark ? palette.textInverse : palette.text,
       tradeInputBorder: isDark ? '#B8C9DC' : palette.border,
-      /** Bilgi kutusu */
-      tradeInfoBg: isDark ? 'rgba(143, 175, 212, 0.10)' : palette.infoLight,
-      tradeInfoText: palette.textSecondary,
+      /** Bilgi kutusu — metin arka plandan net ayrışsın */
+      tradeInfoBg: isDark ? 'rgba(143, 175, 212, 0.14)' : palette.infoLight,
+      tradeInfoText: palette.textPrimary,
+      tradeTabInactiveText: palette.textPrimary,
+      tradeTabInactiveBg: isDark ? palette.surfaceSecondary : palette.surface,
     },
     borderRadii: {
       ...base.borderRadii,

@@ -9,7 +9,7 @@ import { ONBOARDING_STEPS } from '@/components/onboarding/onboardingSteps';
 import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { OnboardingStepContent } from '@/components/onboarding/OnboardingStepContent';
 import { OnboardingFooter } from '@/components/onboarding/OnboardingFooter';
-import { IS_COMPACT_HEIGHT, rs } from '@/components/onboarding/onboardingTheme';
+import { IS_COMPACT_HEIGHT, ONBOARDING_COLORS, rs } from '@/components/onboarding/onboardingTheme';
 
 const STEP_COUNT = ONBOARDING_STEPS.length;
 const SLIDE_DISTANCE = rs(28);
@@ -115,7 +115,7 @@ export default function OnboardingScreen() {
 
   return (
     <View style={styles.root} {...panResponder.panHandlers}>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       {ONBOARDING_STEPS.map((s, i) => (
         <Animated.View
           key={s.id}
@@ -172,7 +172,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F3F1FE',
+    backgroundColor: ONBOARDING_COLORS.navy,
   },
   container: {
     flex: 1,

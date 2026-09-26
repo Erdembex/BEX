@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
+import { View, TextInput, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '../../theme';
 import { useTranslation } from '@/i18n';
 import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
@@ -20,37 +16,37 @@ interface SearchBarProps {
 const useStyles = createThemedStyles((Colors) => ({
   container: {
     flexDirection: 'row',
-    alignItems: 'stretch',
+    alignItems: 'center',
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
     borderWidth: 1.5,
     borderColor: Colors.border,
     paddingHorizontal: Spacing[4],
-    minHeight: 50,
+    minHeight: 52,
     gap: Spacing[2],
     minWidth: 0,
     flexGrow: 1,
     flexShrink: 1,
   },
   icon: {
-    fontSize: 16,
-    alignSelf: 'center',
-    color: Colors.iconMuted,
+    width: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   input: {
     flex: 1,
     minWidth: 0,
     fontFamily: Typography.bodyMedium.fontFamily,
     fontSize: Typography.bodyMedium.fontSize,
+    lineHeight: Typography.bodyMedium.lineHeight,
     color: Colors.textPrimary,
     paddingVertical: textInputPaddingVertical,
     ...readableTextInputStyle,
   },
   clear: {
-    fontSize: 14,
-    color: Colors.textTertiary,
     padding: 4,
-    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 }));
 
@@ -67,7 +63,9 @@ export function SearchBar({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      <Text style={styles.icon}>🔍</Text>
+      <View style={styles.icon}>
+        <Ionicons name="search" size={18} color={Colors.iconMuted} />
+      </View>
       <TextInput
         style={styles.input}
         value={value}
@@ -77,11 +75,15 @@ export function SearchBar({
         returnKeyType="search"
         onSubmitEditing={onSubmit}
       />
-      {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={styles.clear}>✕</Text>
+      {value.length > 0 ? (
+        <TouchableOpacity
+          onPress={() => onChangeText('')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={styles.clear}
+        >
+          <Ionicons name="close-circle" size={18} color={Colors.textTertiary} />
         </TouchableOpacity>
-      )}
+      ) : null}
     </View>
   );
 }

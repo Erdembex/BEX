@@ -1,85 +1,71 @@
-# Passla — Internal test uçtan uca kontrol listesi
-
-Production API: `https://api.passla.com.tr` · Paket: `com.passla.app`
-
-Her yeni AAB yüklemesinden sonra aşağıdaki akışları **gerçek cihazda** işaretle.
-
----
-
-## 0 — Kurulum
-
-- [ ] Internal test track’ten uygulamayı yükle (Expo Go değil)
-- [ ] İnternet açık, bildirim izni sorulduysa kabul et
-- [ ] Konum izni (harita / yakın görevler) ver
-
----
-
-## 1 — Bireysel kullanıcı
-
-- [ ] Kayıt → e-posta doğrulama → giriş
-- [ ] Onboarding (ilk kurulum) bir kez görünür, bitince tekrar dönmez
-- [ ] Profil: foto, isim, il/ilçe, bio kaydedilir
-- [ ] Görevler: şehir filtresi, ilan detayı, başvuru
-- [ ] Mesajlar: başvuru sonrası sohbet açılır, mesaj gider/gelir
-- [ ] Teslim: foto/metin yükleme
-- [ ] Cüzdan: onay sonrası kupon görünür
-- [ ] QR: işletme tarafında doğrulama (bkz. bölüm 2)
-
----
-
-## 2 — İşletme hesabı
-
-- [ ] İşletme kaydı / giriş
-- [ ] Konum + açık adres kaydı (harita pin’i için zorunlu)
-- [ ] Görev oluştur → admin/onay akışı (ortamınıza göre)
-- [ ] Başvuruları gör, kabul/red
-- [ ] Teslim onayı → kupon oluştur
-- [ ] QR ile kupon okut / kullan
-
----
-
-## 3 — Harita
-
-- [ ] Hub → Harita: şehir seçiliyse karolar yüklenir (boş gri ekran yok)
-- [ ] Pin’lere dokun → ilan detayına git
-- [ ] İlçe filtresi pin sayısını mantıklı daraltır
-- [ ] Android: mavi nokta (konumum) izin verince görünür
-
-**Harita boşsa:** Play/EAS’te `EXPO_PUBLIC_GOOGLE_MAPS_API_KEY` tanımlı mı; işletmelerde il/ilçe/açık adres ve backend’de latitude dolu mu kontrol et.
-
----
-
-## 4 — Bildirimler
-
-- [ ] Uygulama arka plandayken test push (başvuru / mesaj)
-- [ ] Bildirime dokununca doğru ekrana gider
-- [ ] Rozet sayısı güncellenir
-
----
-
-## 5 — Abonelik (işletme)
-
-- [ ] Abonelik ekranı planları listeler
-- [ ] Yükseltme talebi → referans kodu mesajı (manuel ödeme modu)
-- [ ] Admin panelden ödeme onayı sonrası plan ACTIVE
-
----
-
-## 6 — Ayarlar / hesap
-
-- [ ] Ayarlar: dil, tema, önbellek — **profil düzenleme yok** (profil sekmesinde)
-- [ ] Engellenen kullanıcılar
-- [ ] Veri indir / hesap sil linkleri açılır
-
----
-
-## Build komutu
-
-```powershell
-cd bex
-npm run build:production:android
-```
-
-Build bitince Play Console → Internal testing → yeni sürüm → AAB yükle.
-
-Release notları: `store-listing/INTERNAL_TEST_RELEASE_NOTES.txt`
+# Passla — Internal test uçtan uca kontrol listesi
+
+Production API: `https://api.passla.com.tr` · Paket: `com.passla.app` · Son AAB: **1.0.2 (versionCode 5)**
+
+Her yeni AAB yüklemesinden sonra aşağıdaki akışları **gerçek cihazda** (Play dahili test, Expo Go değil) işaretle.
+
+---
+
+## 0 — Kurulum
+
+- [ ] Dahili test track’ten uygulamayı yükle
+- [ ] İnternet açık; bildirim izni (push testi için)
+- [ ] Konum izni (il/ilçe / yakın görev filtresi için, isteğe bağlı)
+
+---
+
+## 1 — Bireysel kullanıcı
+
+- [ ] Kayıt → e-posta doğrulama → giriş
+- [ ] Onboarding bir kez görünür
+- [ ] Hub: sol **menü**, sağ **profil**; profilde **geri** → hub
+- [ ] Profil sekmesi / avatar: profil düzenleme
+- [ ] Görevler: şehir filtresi, detay, başvuru
+- [ ] Mesajlar, teslim (foto/metin), cüzdan, QR (işletme doğrulama)
+
+---
+
+## 2 — İşletme hesabı
+
+- [ ] Giriş → varsayılan **Panel**; alt barda **Panel** sekmesi
+- [ ] Açık adres + il/ilçe kaydı
+- [ ] Görev oluştur (+); **2 aktif** dolunca yeni görev engeli
+- [ ] Sohbetten **özel iş ilanı**: 2/2 doluyken engel; bekleyen ilanı güncellerken slot boşalır
+- [ ] Başvuru kabul/red, teslim onayı, kupon, QR okutma
+- [ ] Başvuru detayında aday CV (yetkili işletme)
+
+---
+
+## 3 — Bildirimler
+
+- [ ] Arka planda push (FCM production credential + dahili AAB)
+- [ ] Bildirime dokununca doğru ekran; rozet güncellenir
+
+---
+
+## 4 — Abonelik (işletme)
+
+- [ ] Plan listesi; manuel yükseltme referans kodu
+- [ ] (Opsiyonel) Admin ödeme onayı → ACTIVE plan
+
+---
+
+## 5 — Ayarlar / hesap
+
+- [ ] Ayarlar: dil, tema (profil düzenleme profil sekmesinde)
+- [ ] Gizlilik / kullanım / hesap silme linkleri: passla.com.tr
+
+---
+
+## Build / yükleme
+
+```powershell
+cd bex
+npm run build:production:android
+```
+
+Play Console → Dahili test → Yeni sürüm → `.aab`  
+Sürüm notları: `store-listing/INTERNAL_TEST_RELEASE_NOTES.txt`
+
+Form rehberi: `store-listing/PLAY_CONSOLE_INTERNAL_FORMS.md`
+

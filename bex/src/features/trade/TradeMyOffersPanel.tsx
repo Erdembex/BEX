@@ -16,12 +16,16 @@ interface TradeMyOffersPanelProps {
   offers: TradeOffer[];
   onRefresh?: () => void | Promise<void>;
   refreshing?: boolean;
+  bottomPadding?: number;
+  headerComponent?: React.ReactNode;
 }
 
 export function TradeMyOffersPanel({
   offers,
   onRefresh,
   refreshing = false,
+  bottomPadding,
+  headerComponent,
 }: TradeMyOffersPanelProps) {
   const { t } = useTranslation();
   const STATUS_LABEL: Record<TradeOfferStatus, string> = {
@@ -36,9 +40,10 @@ export function TradeMyOffersPanel({
         data={offers}
         keyExtractor={(item) => item.id}
         style={{ flex: 1 }}
+        ListHeaderComponent={headerComponent ? () => <>{headerComponent}</> : undefined}
         contentContainerStyle={{
           paddingHorizontal: tradeTheme.spacing.lg,
-          paddingBottom: tradeTheme.spacing['2xl'],
+          paddingBottom: bottomPadding ?? tradeTheme.spacing['2xl'],
           flexGrow: offers.length === 0 ? 1 : undefined,
         }}
         refreshControl={
@@ -52,7 +57,7 @@ export function TradeMyOffersPanel({
         }
         ListEmptyComponent={
           <Box paddingTop="xl" alignItems="center">
-            <Text variant="bodyMuted" style={{ textAlign: 'center' }}>
+            <Text variant="body" style={{ color: tradeTheme.colors.textSecondary, textAlign: 'center', lineHeight: 22 }}>
               {t('tradeMyOffersPanel.empty')}
             </Text>
           </Box>
