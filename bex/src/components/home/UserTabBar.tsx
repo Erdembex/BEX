@@ -104,7 +104,9 @@ export function UserTabBar({ state, descriptors, navigation }: BottomTabBarProps
           {icon}
           {options.tabBarBadge != null ? (
             <View style={[styles.badge, { backgroundColor: Colors.error }]}>
-              <Text style={styles.badgeText}>{String(options.tabBarBadge)}</Text>
+              <Text style={styles.badgeText} allowFontScaling={false}>
+                {String(options.tabBarBadge)}
+              </Text>
             </View>
           ) : null}
         </View>

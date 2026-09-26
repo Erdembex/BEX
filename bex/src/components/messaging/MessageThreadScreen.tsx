@@ -141,18 +141,20 @@ export function MessageThreadScreen({
           accessibilityRole="button"
           accessibilityLabel={t('messageThreadScreen.viewProfile')}
         >
-          <ProfileAvatar name={peerLabel} avatarUrl={peerAvatarUrl} size={36} />
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {peerLabel}
-          </Text>
-          <Text style={styles.headerSubtitle} numberOfLines={1}>
-            {peerProfileHref ? t('messageThreadScreen.viewProfileHint') : taskTitle}
-          </Text>
-          {peerProfileHref ? (
-            <Text style={styles.headerTask} numberOfLines={1}>
+          <ProfileAvatar name={peerLabel} avatarUrl={peerAvatarUrl} size={40} />
+          <View style={styles.headerTextCol}>
+            <Text style={styles.headerTitle} numberOfLines={1} ellipsizeMode="tail">
+              {peerLabel}
+            </Text>
+            <Text style={styles.headerTask} numberOfLines={1} ellipsizeMode="tail">
               {taskTitle}
             </Text>
-          ) : null}
+            {peerProfileHref ? (
+              <Text style={styles.headerSubtitle} numberOfLines={1}>
+                {t('messageThreadScreen.viewProfileHint')}
+              </Text>
+            ) : null}
+          </View>
         </TouchableOpacity>
         <View style={styles.backBtn} />
       </View>
@@ -181,11 +183,12 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3],
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[2],
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    gap: Spacing[2],
+    minHeight: 56,
+    maxHeight: 88,
   },
   backBtn: {
     width: 40,
@@ -197,30 +200,34 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   headerMeta: {
     flex: 1,
     minWidth: 0,
+    flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: Spacing[1],
-    gap: Spacing[1],
+    paddingHorizontal: Spacing[1],
+  },
+  headerTextCol: {
+    flex: 1,
+    minWidth: 0,
+    marginLeft: Spacing[2],
+    justifyContent: 'center',
   },
   headerTitle: {
     ...Typography.labelLarge,
     color: Colors.textPrimary,
     fontWeight: '700',
-    maxWidth: '100%',
-    textAlign: 'center',
+    width: '100%',
   },
   headerSubtitle: {
     ...Typography.caption,
     color: Colors.primary,
     marginTop: 2,
-    maxWidth: '100%',
-    textAlign: 'center',
+    width: '100%',
   },
   headerTask: {
     ...Typography.caption,
     color: Colors.textSecondary,
     marginTop: 2,
-    maxWidth: '100%',
-    textAlign: 'center',
+    width: '100%',
   },
   blockedTitle: { ...Typography.labelLarge, color: Colors.textPrimary, marginBottom: Spacing[2] },
   blockedText: {

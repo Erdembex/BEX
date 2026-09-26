@@ -3,7 +3,7 @@ export type { ColorKey } from './colors';
 export { LightColors } from './colorsLight';
 export { useThemeColors, useIsDarkMode } from './useThemeColors';
 export { createThemedStyles } from './createThemedStyles';
-export { Typography, FontFamily, FontSize } from './typography';
+export { Typography, FontFamily, FontSize, scaledFontSize } from './typography';
 export { Spacing, Radius, Shadow } from './spacing';
 export { useThemeShadow } from './shadows';
 export { theme, getTheme } from './restyle';

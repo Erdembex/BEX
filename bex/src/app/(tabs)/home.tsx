@@ -134,7 +134,7 @@ export default function UserHomeScreen() {
               <Ionicons name="notifications-outline" size={20} color={Colors.iconPrimary} />
               {unreadCount > 0 ? (
                 <View style={[styles.notifBadge, { backgroundColor: Colors.error }]}>
-                  <Text style={styles.notifBadgeText}>
+                  <Text style={styles.notifBadgeText} allowFontScaling={false}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Text>
                 </View>
@@ -199,7 +199,9 @@ export default function UserHomeScreen() {
             </Text>
             {taskCountLabel ? (
               <View style={[styles.countBadge, { backgroundColor: Colors.error }]}>
-                <Text style={styles.countBadgeText}>{taskCountLabel}</Text>
+                <Text style={styles.countBadgeText} allowFontScaling={false}>
+                  {taskCountLabel}
+                </Text>
               </View>
             ) : null}
           </View>

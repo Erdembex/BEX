@@ -137,23 +137,29 @@ export default function LoginScreen() {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? insets.top : 0}
       >
         <ScrollView
           contentContainerStyle={[
             styles.scroll,
             {
               paddingTop: keyboardVisible ? insets.top + Spacing[2] : 0,
-              paddingBottom: Math.max(insets.bottom, Spacing[4]) + Spacing[4],
+              paddingBottom: keyboardVisible
+                ? Math.max(insets.bottom, Spacing[4]) + 280
+                : Math.max(insets.bottom, Spacing[4]) + Spacing[4],
             },
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets
         >
           {!keyboardVisible ? (
-            <View style={{ minHeight: Math.max(windowHeight * 0.34, 220) }} />
-          ) : null}
+            <View style={{ minHeight: Math.max(windowHeight * 0.28, 180) }} />
+          ) : (
+            <View style={{ height: Spacing[2] }} />
+          )}
 
           <AuthFrostCard style={styles.card} compact={keyboardVisible}>
             {!keyboardVisible ? (
@@ -285,8 +291,9 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...Typography.bodyMedium,
-    color: MUTED,
-    lineHeight: 20,
+    color: BODY,
+    lineHeight: 22,
+    opacity: 0.92,
   },
   form: {
     gap: Spacing[3],
@@ -319,7 +326,7 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: Radius.sm,
     borderWidth: 2,
-    borderColor: LINE,
+    borderColor: INK,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',

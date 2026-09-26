@@ -172,7 +172,7 @@ export function AppHeader({
               <Ionicons name="notifications-outline" size={22} color={Colors.iconPrimary} />
               {unreadCount > 0 ? (
                 <View style={styles.badge}>
-                  <Text style={styles.badgeText} numberOfLines={1}>
+                  <Text style={styles.badgeText} numberOfLines={1} allowFontScaling={false}>
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </Text>
                 </View>

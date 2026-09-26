@@ -46,7 +46,7 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
       onPress={onPress}
       activeOpacity={0.92}
     >
-      <View style={styles.imageArea}>
+      <View style={styles.imageArea} pointerEvents="none">
         {task.businessLogoUrl?.trim() ? (
           <AuthenticatedImage
             uri={task.businessLogoUrl}
@@ -72,7 +72,12 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
         </View>
       </View>
 
-      <LinearGradient colors={[BRAND_NAVY, brandNavyAlpha(0.92)]} style={styles.infoArea}>
+      <View style={styles.infoShell}>
+        <LinearGradient
+          colors={[BRAND_NAVY, brandNavyAlpha(0.92)]}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
         <View style={styles.infoBody}>
           <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
             {task.title}
@@ -99,7 +104,7 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
           <Text style={styles.cta}>{t('userHome.viewTask')}</Text>
           <Ionicons name="arrow-forward" size={16} color={Colors.primary} />
         </View>
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -113,6 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl + 4,
     overflow: 'hidden',
     backgroundColor: BRAND_NAVY,
+    flexDirection: 'column',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 16,
@@ -164,26 +170,30 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: BRAND_NAVY,
   },
-  infoArea: {
+  infoShell: {
     height: INFO_HEIGHT,
+    width: CARD_WIDTH,
     flexShrink: 0,
     paddingHorizontal: Spacing[4],
     paddingTop: Spacing[3],
     paddingBottom: Spacing[3],
     justifyContent: 'space-between',
     overflow: 'hidden',
+    zIndex: 2,
+    elevation: 2,
   },
   infoBody: {
     flexShrink: 1,
     minHeight: 0,
-    gap: Spacing[1],
+    width: '100%',
   },
   title: {
     ...Typography.labelLarge,
     fontWeight: '800',
     color: '#F0EEE9',
     lineHeight: 22,
-    flexShrink: 1,
+    width: '100%',
+    marginBottom: 4,
     ...androidReadableText,
   },
   locationRow: {

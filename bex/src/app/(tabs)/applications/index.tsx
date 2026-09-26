@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, StyleSheet } from 'react-native';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { router, Href } from 'expo-router';
@@ -143,8 +143,16 @@ export default function MyApplicationsScreen() {
                 <Text style={styles.cardTitle} numberOfLines={2}>
                   {item.taskTitle}
                 </Text>
-                <View style={[styles.badge, { backgroundColor: `${statusColor}1F` }]}>
-                  <Text style={[styles.badgeText, { color: statusColor }]} numberOfLines={1}>
+                <View
+                  style={[
+                    styles.badge,
+                    {
+                      backgroundColor: `${statusColor}2E`,
+                      borderColor: statusColor,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.badgeText, { color: statusColor }]} numberOfLines={2}>
                     {APPLICATION_STATUS_LABELS[item.status]}
                   </Text>
                 </View>
@@ -153,10 +161,11 @@ export default function MyApplicationsScreen() {
                 {item.coverLetter}
               </Text>
               <View style={styles.cardFooter}>
-                <Text style={styles.timeText} numberOfLines={1}>
+                <Text style={styles.timeText} numberOfLines={1} ellipsizeMode="tail">
                   {formatRelativeTime(item.createdAt) || '—'}
                 </Text>
-                <Text style={styles.tapHint} numberOfLines={1}>
+                <View style={styles.footerDivider} />
+                <Text style={styles.tapHint} numberOfLines={1} ellipsizeMode="clip">
                   {quickAction ? t(quickAction.labelKey) : t('applicationsScreen.detail')}
                 </Text>
               </View>
@@ -204,14 +213,15 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   badge: {
     flexShrink: 0,
-    maxWidth: '46%',
+    maxWidth: '42%',
     paddingHorizontal: Spacing[2],
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: Radius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
-  badgeText: { ...Typography.caption, fontWeight: '600', lineHeight: 16 },
+  badgeText: { ...Typography.caption, fontWeight: '700', lineHeight: 16, textAlign: 'center' },
   preview: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
@@ -221,23 +231,33 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing[3],
-    marginTop: Spacing[1],
+    marginTop: Spacing[2],
+    paddingTop: Spacing[2],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.borderLight,
   },
   timeText: {
     ...Typography.caption,
-    color: Colors.textMuted,
-    flex: 1,
+    color: Colors.textSecondary,
+    flexShrink: 1,
     minWidth: 0,
+    maxWidth: '46%',
     lineHeight: 18,
+    marginRight: Spacing[2],
+  },
+  footerDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: Colors.border,
+    marginRight: Spacing[2],
+    flexShrink: 0,
   },
   tapHint: {
     ...Typography.caption,
     color: Colors.primary,
-    fontWeight: '600',
-    flexShrink: 0,
-    maxWidth: '52%',
+    fontWeight: '700',
+    flex: 1,
+    minWidth: 0,
     textAlign: 'right',
     lineHeight: 18,
   },

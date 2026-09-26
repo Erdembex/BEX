@@ -35,7 +35,7 @@
       "softwareKeyboardLayoutMode": "resize",
       "splash": {
         "image": "./assets/branding/splash-native.png",
-        "resizeMode": "cover",
+        "resizeMode": "contain",
         "backgroundColor": "#17264F"
       },
       "adaptiveIcon": {
@@ -69,11 +69,11 @@
         "expo-splash-screen",
         {
           "image": "./assets/branding/splash-native.png",
-          "resizeMode": "cover",
+          "resizeMode": "contain",
           "backgroundColor": "#17264F",
           "android": {
             "image": "./assets/branding/splash-native.png",
-            "resizeMode": "cover",
+            "resizeMode": "contain",
             "backgroundColor": "#17264F"
           }
         }

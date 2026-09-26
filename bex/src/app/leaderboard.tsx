@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { fetchTopEarners, fetchTopGivers, LeaderboardEntry } from '@/features/leaderboard/leaderboardApi';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
+import { flexRowItem, flexRowTextHost } from '@/lib/flexLayoutFix';
+import { androidReadableText } from '@/lib/readableTextStyle';
 import { useTranslation } from '@/i18n';
 
 type Tab = 'earners' | 'givers';
@@ -73,6 +75,9 @@ export default function LeaderboardScreen() {
               <Text
                 style={[styles.tabText, active && styles.tabTextActive]}
                 numberOfLines={1}
+                ellipsizeMode="tail"
+                adjustsFontSizeToFit
+                minimumFontScale={0.78}
               >
                 {key === 'earners' ? t('leaderboard.topEarners') : t('leaderboard.topGivers')}
               </Text>
@@ -109,31 +114,36 @@ export default function LeaderboardScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={item.name}
               >
-                <Text style={styles.rank}>{t('leaderboard.rank', { rank: item.rank })}</Text>
-                <View style={styles.avatarWrap}>
+                <Text style={[styles.rank, flexRowItem]}>{t('leaderboard.rank', { rank: item.rank })}</Text>
+                <View style={[styles.avatarWrap, flexRowItem]}>
                   <ProfileAvatar
                     name={item.name}
                     avatarUrl={item.avatarUrl ?? undefined}
                     size={44}
                   />
                 </View>
-                <View style={styles.rowBody}>
-                  <Text style={styles.name} numberOfLines={2}>
+                <View style={[styles.rowBody, flexRowTextHost]}>
+                  <Text style={styles.name} numberOfLines={2} ellipsizeMode="tail">
                     {item.name}
                   </Text>
                   {item.subtitle ? (
-                    <Text style={styles.subtitle} numberOfLines={2}>
+                    <Text style={styles.subtitle} numberOfLines={2} ellipsizeMode="tail">
                       {item.subtitle}
                     </Text>
                   ) : null}
                 </View>
-                <View style={styles.countWrap}>
+                <View style={[styles.countWrap, flexRowItem]}>
                   <Ionicons name="gift-outline" size={16} color={Colors.iconPrimary} />
-                  <Text style={styles.count}>
+                  <Text style={styles.count} numberOfLines={1}>
                     {t('leaderboard.rewardCount', { count: item.rewardCount })}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={Colors.iconMuted} />
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={Colors.iconMuted}
+                  style={styles.chevron}
+                />
               </TouchableOpacity>
             ))
           )}
@@ -178,7 +188,7 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
       width: '100%',
     },
     tabTextActive: { color: Colors.primary, fontWeight: '700' },
-    scroll: { padding: Spacing[5], gap: Spacing[3] },
+    scroll: { padding: Spacing[5], paddingBottom: Spacing[10] },
     empty: {
       ...Typography.bodyMedium,
       color: Colors.textMuted,
@@ -188,10 +198,10 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
     row: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: Spacing[3],
       backgroundColor: Colors.card,
       borderRadius: Radius.lg,
       padding: Spacing[4],
+      marginBottom: Spacing[3],
       borderWidth: 1,
       borderColor: Colors.borderLight,
     },
@@ -199,23 +209,38 @@ function createStyles(Colors: ReturnType<typeof useThemeColors>) {
       ...Typography.labelLarge,
       color: Colors.primary,
       width: 36,
-      flexShrink: 0,
+      marginRight: Spacing[2],
       textAlign: 'center',
+      ...androidReadableText,
     },
-    avatarWrap: { flexShrink: 0 },
-    rowBody: { flex: 1, minWidth: 0, gap: 2, justifyContent: 'center' },
+    avatarWrap: { marginRight: Spacing[2] },
+    rowBody: { justifyContent: 'center' },
     name: {
       ...Typography.labelLarge,
       color: Colors.textPrimary,
-      flexShrink: 1,
+      width: '100%',
+      ...androidReadableText,
     },
     subtitle: {
       ...Typography.caption,
-      color: Colors.textMuted,
+      color: Colors.textSecondary,
       lineHeight: 18,
-      flexShrink: 1,
+      width: '100%',
+      marginTop: 2,
+      ...androidReadableText,
     },
-    countWrap: { flexShrink: 0, alignItems: 'flex-end', gap: 2, maxWidth: 88 },
-    count: { ...Typography.caption, color: Colors.textSecondary },
+    countWrap: {
+      alignItems: 'flex-end',
+      marginLeft: Spacing[2],
+      maxWidth: 76,
+      minWidth: 56,
+    },
+    count: {
+      ...Typography.caption,
+      color: Colors.textSecondary,
+      textAlign: 'right',
+      ...androidReadableText,
+    },
+    chevron: { marginLeft: Spacing[1], width: 18 },
   });
 }

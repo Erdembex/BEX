@@ -1,4 +1,4 @@
-import { TextStyle } from 'react-native';
+import { PixelRatio, TextStyle } from 'react-native';
 
 export const FontFamily = {
   regular: 'Inter_400Regular',
@@ -8,17 +8,33 @@ export const FontFamily = {
   extraBold: 'Inter_800ExtraBold',
 } as const;
 
+/**
+ * Cihazın yazı boyutu ayarı (Android'de "Huge" seçeneği 2.0'a kadar çıkar).
+ * React Native her fontSize'ı bu katsayıyla çarpar; tasarımın taşıyabileceği
+ * üst sınırı aşan kısmı burada geri alıyoruz, yoksa isimler dikey kırılıyor,
+ * başlıklar kesiliyor ve kartlar taşıyor.
+ */
+const MAX_FONT_SCALE = 1.2;
+const deviceFontScale = PixelRatio.getFontScale();
+const fontScaleCompensation =
+  deviceFontScale > MAX_FONT_SCALE ? MAX_FONT_SCALE / deviceFontScale : 1;
+
+/** Ekranda görünecek boyutu MAX_FONT_SCALE ile sınırlar. */
+export function scaledFontSize(size: number): number {
+  return Math.round(size * fontScaleCompensation * 100) / 100;
+}
+
 export const FontSize = {
-  xs: 11,
-  sm: 13,
-  base: 15,
-  md: 16,
-  lg: 18,
-  xl: 20,
-  '2xl': 24,
-  '3xl': 28,
-  '4xl': 32,
-  '5xl': 40,
+  xs: scaledFontSize(11),
+  sm: scaledFontSize(13),
+  base: scaledFontSize(15),
+  md: scaledFontSize(16),
+  lg: scaledFontSize(18),
+  xl: scaledFontSize(20),
+  '2xl': scaledFontSize(24),
+  '3xl': scaledFontSize(28),
+  '4xl': scaledFontSize(32),
+  '5xl': scaledFontSize(40),
 } as const;
 
 export const LineHeight = {

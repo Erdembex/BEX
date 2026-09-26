@@ -92,7 +92,9 @@ export function BusinessTabBar({ state, descriptors, navigation }: BottomTabBarP
           {icon}
           {options.tabBarBadge != null ? (
             <View style={[styles.badge, { backgroundColor: Colors.error }]}>
-              <Text style={styles.badgeText}>{String(options.tabBarBadge)}</Text>
+              <Text style={styles.badgeText} allowFontScaling={false}>
+                {String(options.tabBarBadge)}
+              </Text>
             </View>
           ) : null}
         </View>

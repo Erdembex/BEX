@@ -2,6 +2,8 @@
 export function shouldHideUserTabBar(pathname: string | null | undefined): boolean {
   const path = (pathname ?? '').replace(/\?.*$/, '');
   if (!path) return false;
-  if (path === '/messages' || path.endsWith('/messages')) return false;
+  const normalized = path.replace(/^\/+\(tabs\)\/?/, '/').replace(/^\/+/, '');
+  if (normalized === 'messages' || normalized.endsWith('/messages')) return false;
+  if (/^messages\/[^/]+/.test(normalized)) return true;
   return /\/messages\/[^/]+/.test(path);
 }
