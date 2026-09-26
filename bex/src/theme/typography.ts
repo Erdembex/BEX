@@ -1,4 +1,4 @@
-import { PixelRatio, TextStyle } from 'react-native';
+import { PixelRatio, Platform, TextStyle } from 'react-native';
 
 export const FontFamily = {
   regular: 'Inter_400Regular',
@@ -44,12 +44,19 @@ export const LineHeight = {
   relaxed: 1.65,
 } as const;
 
+/** Play AAB / Android: ekstra font padding ve dikey harf kırılmasını kapatır. */
+const androidReleaseText: TextStyle =
+  Platform.OS === 'android'
+    ? { includeFontPadding: false, textBreakStrategy: 'simple' }
+    : {};
+
 export const Typography = {
   displayLarge: {
     fontFamily: FontFamily.extraBold,
     fontSize: FontSize['4xl'],
     lineHeight: FontSize['4xl'] * LineHeight.tight,
     letterSpacing: -0.8,
+    ...androidReleaseText,
   } as TextStyle,
 
   displayMedium: {
@@ -57,6 +64,7 @@ export const Typography = {
     fontSize: FontSize['3xl'],
     lineHeight: FontSize['3xl'] * LineHeight.tight,
     letterSpacing: -0.6,
+    ...androidReleaseText,
   } as TextStyle,
 
   headingLarge: {
@@ -64,6 +72,7 @@ export const Typography = {
     fontSize: FontSize['2xl'],
     lineHeight: FontSize['2xl'] * LineHeight.snug,
     letterSpacing: -0.4,
+    ...androidReleaseText,
   } as TextStyle,
 
   headingMedium: {
@@ -71,6 +80,7 @@ export const Typography = {
     fontSize: FontSize.xl,
     lineHeight: FontSize.xl * LineHeight.snug,
     letterSpacing: -0.2,
+    ...androidReleaseText,
   } as TextStyle,
 
   headingSmall: {
@@ -78,24 +88,28 @@ export const Typography = {
     fontSize: FontSize.lg,
     lineHeight: FontSize.lg * LineHeight.snug,
     letterSpacing: -0.1,
+    ...androidReleaseText,
   } as TextStyle,
 
   bodyLarge: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.md,
     lineHeight: FontSize.md * LineHeight.relaxed,
+    ...androidReleaseText,
   } as TextStyle,
 
   bodyMedium: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.base,
     lineHeight: FontSize.base * LineHeight.relaxed,
+    ...androidReleaseText,
   } as TextStyle,
 
   bodySmall: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.sm,
     lineHeight: FontSize.sm * LineHeight.relaxed,
+    ...androidReleaseText,
   } as TextStyle,
 
   labelLarge: {
@@ -103,6 +117,7 @@ export const Typography = {
     fontSize: FontSize.base,
     lineHeight: FontSize.base * LineHeight.normal,
     letterSpacing: 0.1,
+    ...androidReleaseText,
   } as TextStyle,
 
   labelMedium: {
@@ -110,6 +125,7 @@ export const Typography = {
     fontSize: FontSize.sm,
     lineHeight: FontSize.sm * LineHeight.normal,
     letterSpacing: 0.1,
+    ...androidReleaseText,
   } as TextStyle,
 
   labelSmall: {
@@ -118,11 +134,13 @@ export const Typography = {
     lineHeight: FontSize.xs * LineHeight.normal,
     letterSpacing: 0.4,
     textTransform: 'uppercase',
+    ...androidReleaseText,
   } as TextStyle,
 
   caption: {
     fontFamily: FontFamily.regular,
     fontSize: FontSize.xs,
     lineHeight: FontSize.xs * LineHeight.normal,
+    ...androidReleaseText,
   } as TextStyle,
 } as const;

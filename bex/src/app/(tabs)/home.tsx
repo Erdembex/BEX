@@ -194,7 +194,11 @@ export default function UserHomeScreen() {
 
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
-            <Text style={[styles.sectionTitle, { color: Colors.textPrimary }]}>
+            <Text
+              style={[styles.sectionTitle, { color: Colors.textPrimary }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {t('userHome.nearbyTasks')}
             </Text>
             {taskCountLabel ? (
@@ -210,7 +214,9 @@ export default function UserHomeScreen() {
             activeOpacity={0.85}
             style={styles.seeAllBtn}
           >
-            <Text style={[styles.seeAll, { color: Colors.primary }]}>{t('common.seeAll')}</Text>
+            <Text style={[styles.seeAll, { color: Colors.primary }]} numberOfLines={1}>
+              {t('common.seeAll')}
+            </Text>
             <Ionicons name="chevron-forward" size={16} color={Colors.primary} />
           </TouchableOpacity>
         </View>
@@ -399,8 +405,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: Spacing[1],
+    minWidth: 0,
+    gap: Spacing[2],
   },
   sectionTitleRow: {
+    flex: 1,
+    minWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing[2],
@@ -408,6 +418,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...Typography.headingSmall,
     fontWeight: '800',
+    flexShrink: 1,
+    minWidth: 0,
   },
   countBadge: {
     minWidth: 22,
@@ -426,6 +438,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+    flexShrink: 0,
   },
   seeAll: {
     ...Typography.labelMedium,
