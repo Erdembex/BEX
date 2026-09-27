@@ -32,6 +32,8 @@ const FROST_MUTED = '#64708C';
 const useStyles = createThemedStyles((Colors) => ({
   wrapper: {
     gap: 6,
+    width: '100%',
+    alignSelf: 'stretch',
   },
   label: {
     ...Typography.labelMedium,
@@ -131,11 +133,12 @@ const useStyles = createThemedStyles((Colors) => ({
     color: FROST_MUTED,
   },
   containerFrost: {
-    minHeight: 58,
+    minHeight: 50,
     backgroundColor: '#FFFFFF',
     borderColor: FROST_LINE,
     borderRadius: Radius.full,
-    paddingHorizontal: Spacing[5],
+    paddingHorizontal: Spacing[4],
+    minWidth: 0,
   },
   containerFrostFocused: {
     borderColor: FROST_INK,
@@ -143,6 +146,7 @@ const useStyles = createThemedStyles((Colors) => ({
   },
   inputFrost: {
     color: FROST_INK,
+    fontSize: 15,
   },
 }));
 

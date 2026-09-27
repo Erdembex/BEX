@@ -6,16 +6,14 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { router, Href } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { TabScreen, useTabBarBottomPadding } from '@/components/common/Screen';
 import { USER_TAB_BAR_HEIGHT } from '@/components/home/UserTabBar';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
-import {
-  HomeTaskCarouselCard,
-  HOME_TASK_CARD_WIDTH,
-} from '@/components/home/HomeTaskCarouselCard';
+import { HomeTaskCarouselCard, homeTaskCardWidth } from '@/components/home/HomeTaskCarouselCard';
 import { tasksRepository, EnrichedTask } from '@/features/data';
 import { useAuthStore } from '@/store/authStore';
 import { useOpenNotifications } from '@/hooks/useOpenNotifications';
@@ -32,6 +30,8 @@ const QUICK_LINKS: { route: Href; labelKey: string; hubIcon: 'settings' }[] = [
 ];
 
 export default function UserHomeScreen() {
+  const { width: windowWidth } = useWindowDimensions();
+  const carouselSnap = homeTaskCardWidth(windowWidth);
   const Colors = useThemeColors();
   const tabBarPadding = useTabBarBottomPadding(16, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
@@ -258,7 +258,7 @@ export default function UserHomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             decelerationRate="fast"
-            snapToInterval={HOME_TASK_CARD_WIDTH}
+            snapToInterval={carouselSnap}
             contentContainerStyle={styles.carousel}
           >
             {tasks.map((task, index) => (
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   carousel: {
-    paddingRight: Spacing[4],
+    paddingHorizontal: Spacing[1],
     paddingVertical: Spacing[1],
   },
   carouselGap: {

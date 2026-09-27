@@ -5,7 +5,13 @@ export const readableTextInputStyle: TextStyle = {
   textAlign: 'left',
   textAlignVertical: 'center',
   ...(Platform.OS === 'android'
-    ? { includeFontPadding: false, lineHeight: 22, paddingTop: 0, paddingBottom: 0 }
+    ? {
+        includeFontPadding: false,
+        textBreakStrategy: 'simple' as const,
+        lineHeight: 22,
+        paddingTop: 0,
+        paddingBottom: 0,
+      }
     : {}),
 };
 

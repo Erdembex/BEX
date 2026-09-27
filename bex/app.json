@@ -9,11 +9,11 @@
     "scheme": "passla",
     "description": "Görev yap, ödül kazan, kupon takas et. Passla ile işletmelerden görev al, tamamla ve değerini aktar.",
     "primaryColor": "#17264F",
-    "backgroundColor": "#17264F",
+    "backgroundColor": "#FFFFFF",
     "splash": {
-      "image": "./assets/branding/splash-native.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#17264F"
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": false,
@@ -34,9 +34,9 @@
       "screenOrientation": "portrait",
       "softwareKeyboardLayoutMode": "resize",
       "splash": {
-        "image": "./assets/branding/splash-native.png",
+        "image": "./assets/icon.png",
         "resizeMode": "contain",
-        "backgroundColor": "#17264F"
+        "backgroundColor": "#FFFFFF"
       },
       "adaptiveIcon": {
         "backgroundColor": "#17264F",
@@ -68,13 +68,13 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/branding/splash-native.png",
+          "image": "./assets/icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#17264F",
+          "backgroundColor": "#FFFFFF",
           "android": {
-            "image": "./assets/branding/splash-native.png",
+            "image": "./assets/icon.png",
             "resizeMode": "contain",
-            "backgroundColor": "#17264F"
+            "backgroundColor": "#FFFFFF"
           }
         }
       ],

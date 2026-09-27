@@ -370,7 +370,12 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     fontWeight: '700',
   },
   list: { flexGrow: 1 },
-  gridRow: { gap: Spacing[3], paddingHorizontal: Spacing[5], marginBottom: Spacing[3] },
+  gridRow: {
+    gap: Spacing[3],
+    paddingHorizontal: Spacing[5],
+    marginBottom: Spacing[3],
+    alignItems: 'stretch',
+  },
   emptyState: {
     ...Typography.bodyMedium,
     color: Colors.textTertiary,

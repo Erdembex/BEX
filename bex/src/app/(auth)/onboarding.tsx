@@ -1,5 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, BackHandler, Easing, PanResponder, StyleSheet, View } from 'react-native';
+import {
+  Animated,
+  BackHandler,
+  Easing,
+  PanResponder,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { usePageColumnStyle } from '@/lib/pageLayout';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -9,10 +19,9 @@ import { ONBOARDING_STEPS } from '@/components/onboarding/onboardingSteps';
 import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { OnboardingStepContent } from '@/components/onboarding/OnboardingStepContent';
 import { OnboardingFooter } from '@/components/onboarding/OnboardingFooter';
-import { IS_COMPACT_HEIGHT, ONBOARDING_COLORS, rs } from '@/components/onboarding/onboardingTheme';
+import { ONBOARDING_COLORS, useOnboardingTheme } from '@/components/onboarding/onboardingTheme';
 
 const STEP_COUNT = ONBOARDING_STEPS.length;
-const SLIDE_DISTANCE = rs(28);
 const OUT_MS = 170;
 const IN_MS = 260;
 const SWIPE_THRESHOLD = 50;
@@ -21,6 +30,11 @@ type Destination = '/(auth)/login' | '/(auth)/register';
 
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
+  const pageColumnStyle = usePageColumnStyle();
+  const { rs, IS_COMPACT_HEIGHT } = useOnboardingTheme();
+  const slideDistance = rs(28);
+  const horizontalSafe =
+    Platform.OS === 'android' ? Math.max(insets.left, insets.right, 0) : 0;
   const [currentStep, setCurrentStep] = useState(0);
   const opacity = useRef(new Animated.Value(1)).current;
   const translateX = useRef(new Animated.Value(0)).current;
@@ -56,14 +70,14 @@ export default function OnboardingScreen() {
           useNativeDriver: true,
         }),
         Animated.timing(translateX, {
-          toValue: -SLIDE_DISTANCE * direction,
+          toValue: -slideDistance * direction,
           duration: OUT_MS,
           easing: Easing.in(Easing.quad),
           useNativeDriver: true,
         }),
       ]).start(() => {
         setCurrentStep(nextStep);
-        translateX.setValue(SLIDE_DISTANCE * direction);
+        translateX.setValue(slideDistance * direction);
         Animated.parallel([
           Animated.timing(opacity, {
             toValue: 1,
@@ -82,7 +96,7 @@ export default function OnboardingScreen() {
         });
       });
     },
-    [background, currentStep, opacity, translateX]
+    [background, currentStep, opacity, slideDistance, translateX]
   );
 
   const goNext = useCallback(() => goToStep(currentStep + 1), [currentStep, goToStep]);
@@ -142,9 +156,11 @@ export default function OnboardingScreen() {
       <View
         style={[
           styles.container,
+          pageColumnStyle,
           {
             paddingTop: insets.top + (IS_COMPACT_HEIGHT ? rs(12) : rs(22)),
-            paddingBottom: Math.max(insets.bottom, rs(14)) + (IS_COMPACT_HEIGHT ? rs(16) : rs(30)),
+            paddingBottom: Math.max(insets.bottom, rs(10)) + (IS_COMPACT_HEIGHT ? rs(8) : rs(16)),
+            paddingHorizontal: horizontalSafe,
           },
         ]}
       >
@@ -154,9 +170,17 @@ export default function OnboardingScreen() {
           onSkip={isLast ? undefined : () => void finishOnboarding('/(auth)/login')}
         />
 
-        <Animated.View style={[styles.content, { opacity, transform: [{ translateX }] }]}>
-          <OnboardingStepContent step={step} />
-        </Animated.View>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Animated.View style={[styles.content, { opacity, transform: [{ translateX }] }]}>
+            <OnboardingStepContent step={step} />
+          </Animated.View>
+        </ScrollView>
 
         <OnboardingFooter
           isLast={isLast}
@@ -173,11 +197,22 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: ONBOARDING_COLORS.navy,
+    alignItems: 'center',
   },
   container: {
     flex: 1,
+    width: '100%',
+  },
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 8,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
+    minHeight: 0,
   },
 });

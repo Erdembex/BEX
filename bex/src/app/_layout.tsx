@@ -3,7 +3,7 @@ import { useEffect, useMemo, useCallback } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from '@shopify/restyle';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
@@ -105,7 +105,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root} onLayout={onLayoutRootView}>
       <ThemeProvider theme={theme}>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        <SafeAreaProvider
+          initialMetrics={Platform.OS === 'android' ? undefined : initialWindowMetrics}
+        >
           <ErrorBoundary>
             <ToastProvider>
               <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={Colors.background} />

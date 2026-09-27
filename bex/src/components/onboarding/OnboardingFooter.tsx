@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from '@/i18n';
-import { IS_COMPACT_HEIGHT, ONBOARDING_COLORS, rs } from './onboardingTheme';
+import { pageReadableText } from '@/lib/pageLayout';
+import { ONBOARDING_COLORS, useOnboardingTheme } from './onboardingTheme';
 
 type Props = {
   isLast: boolean;
@@ -12,11 +13,64 @@ type Props = {
 
 export function OnboardingFooter({ isLast, onNext, onRegister, onLogin }: Props) {
   const { t } = useTranslation();
+  const { rs, IS_COMPACT_HEIGHT } = useOnboardingTheme();
+
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        wrap: {
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: rs(24),
+          marginTop: IS_COMPACT_HEIGHT ? rs(12) : rs(18),
+          flexShrink: 0,
+        },
+        wrapLast: {
+          alignItems: 'center',
+          paddingHorizontal: rs(24),
+          marginTop: IS_COMPACT_HEIGHT ? rs(12) : rs(18),
+          gap: rs(10),
+          flexShrink: 0,
+        },
+        button: {
+          minWidth: rs(132),
+          height: rs(44),
+          paddingHorizontal: rs(28),
+          borderRadius: 999,
+          backgroundColor: ONBOARDING_COLORS.buttonFill,
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        buttonWide: {
+          alignSelf: 'stretch',
+          maxWidth: 320,
+        },
+        buttonText: {
+          fontFamily: 'Inter_600SemiBold',
+          fontSize: rs(13.5),
+          color: ONBOARDING_COLORS.buttonText,
+          ...pageReadableText,
+        },
+        secondary: {
+          minHeight: rs(40),
+          paddingHorizontal: rs(16),
+          alignItems: 'center',
+          justifyContent: 'center',
+        },
+        secondaryText: {
+          fontFamily: 'Inter_600SemiBold',
+          fontSize: rs(13.5),
+          color: ONBOARDING_COLORS.link,
+          ...pageReadableText,
+        },
+      }),
+    [IS_COMPACT_HEIGHT, rs]
+  );
 
   if (isLast) {
     return (
-      <View style={styles.wrap}>
-        <PrimaryButton label={t('auth.onboarding.register')} onPress={onRegister} />
+      <View style={styles.wrapLast}>
+        <PrimaryButton label={t('auth.onboarding.register')} onPress={onRegister} wide styles={styles} />
         <TouchableOpacity
           style={styles.secondary}
           onPress={onLogin}
@@ -31,15 +85,25 @@ export function OnboardingFooter({ isLast, onNext, onRegister, onLogin }: Props)
 
   return (
     <View style={styles.wrap}>
-      <PrimaryButton label={t('auth.onboarding.next')} onPress={onNext} />
+      <PrimaryButton label={t('auth.onboarding.next')} onPress={onNext} styles={styles} />
     </View>
   );
 }
 
-function PrimaryButton({ label, onPress }: { label: string; onPress: () => void }) {
+function PrimaryButton({
+  label,
+  onPress,
+  wide = false,
+  styles,
+}: {
+  label: string;
+  onPress: () => void;
+  wide?: boolean;
+  styles: ReturnType<typeof StyleSheet.create>;
+}) {
   return (
     <TouchableOpacity
-      style={styles.button}
+      style={[styles.button, wide && styles.buttonWide]}
       onPress={onPress}
       activeOpacity={0.85}
       accessibilityRole="button"
@@ -49,39 +113,3 @@ function PrimaryButton({ label, onPress }: { label: string; onPress: () => void 
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: rs(38),
-    paddingRight: rs(48),
-    marginTop: IS_COMPACT_HEIGHT ? rs(16) : rs(22),
-  },
-  button: {
-    minWidth: rs(118),
-    height: rs(44),
-    paddingHorizontal: rs(28),
-    borderRadius: 999,
-    backgroundColor: ONBOARDING_COLORS.buttonFill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: rs(13.5),
-    color: ONBOARDING_COLORS.buttonText,
-  },
-  secondary: {
-    height: rs(44),
-    paddingHorizontal: rs(20),
-    marginLeft: rs(8),
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryText: {
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: rs(13.5),
-    color: ONBOARDING_COLORS.link,
-  },
-});

@@ -10,9 +10,9 @@ type AuthFrostCardProps = {
   compact?: boolean;
 };
 
-/** Android release'te blur zayıf; opak cam PASSLA'yı kartın içine sızdırmaz */
-const FROST_IOS = 'rgba(255, 255, 255, 0.88)';
-const FROST_ANDROID = 'rgba(255, 255, 255, 0.99)';
+/** Android release'te yarı saydam kart duvar yazısını içeri alır. Kart düz beyaz. */
+const FROST_IOS = 'rgba(255, 255, 255, 0.94)';
+const FROST_ANDROID = '#FFFFFF';
 const FROST_WEB = 'rgba(255, 255, 255, 0.96)';
 const BORDER = 'rgba(255, 255, 255, 0.72)';
 const LAMP_SPILL = ['rgba(255, 218, 150, 0.38)', 'rgba(255, 232, 192, 0.10)', 'rgba(255, 255, 255, 0)'] as const;
@@ -35,9 +35,7 @@ export function AuthFrostCard({ children, style, compact = false }: AuthFrostCar
           />
           <View style={[styles.frostOverlay, { backgroundColor: frost }]} pointerEvents="none" />
         </>
-      ) : (
-        <View style={[StyleSheet.absoluteFillObject, { backgroundColor: frost }]} pointerEvents="none" />
-      )}
+      ) : null}
       <LinearGradient
         colors={LAMP_SPILL}
         locations={[0, 0.45, 1]}
@@ -76,6 +74,6 @@ const styles = StyleSheet.create({
   },
   innerCompact: {
     paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[4],
+    paddingVertical: Spacing[3],
   },
 });

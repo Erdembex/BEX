@@ -59,8 +59,11 @@ export function Screen({ children, style, edges = ['top', 'bottom', 'left', 'rig
 
 /** Alt tab bar olan ekranlar — alt inset tab bar tarafından verilir. */
 export function TabScreen({ children, style }: Omit<ScreenProps, 'edges'>) {
+  // Play AAB: yatay safe-area tutarsız → kenara kayma; üst inset yeterli.
+  const edges: Edge[] =
+    Platform.OS === 'android' ? ['top'] : ['top', 'left', 'right'];
   return (
-    <InsetPadding style={style} edges={['top', 'left', 'right']}>
+    <InsetPadding style={style} edges={edges}>
       {children}
     </InsetPadding>
   );

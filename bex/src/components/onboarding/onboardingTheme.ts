@@ -1,15 +1,8 @@
-import { Dimensions } from 'react-native';
+import { useMemo } from 'react';
+import { useWindowDimensions } from 'react-native';
 
-/** Referans tasarımdaki panel genişliği; tüm ölçüler buna göre ölçeklenir. */
+/** Referans tasarım genişliği; AAB'de modül yüklenirken ölçü alınmaz — hook kullan. */
 const REFERENCE_WIDTH = 322;
-
-const { width, height } = Dimensions.get('window');
-const scale = Math.min(width / REFERENCE_WIDTH, 1.35);
-
-export const rs = (size: number) => Math.round(size * scale);
-
-/** Kısa ekranlarda (ör. 16:9 telefonlar) başlık ve boşluklar küçülür, illüstrasyona yer kalır. */
-export const IS_COMPACT_HEIGHT = height < 720;
 
 /** Giriş duvarı ile aynı marka laciverti (#17264F). */
 export const ONBOARDING_BG = ['#1A2F58', '#17264F', '#141F3F'] as const;
@@ -25,3 +18,13 @@ export const ONBOARDING_COLORS = {
   buttonText: '#17264F',
   link: '#E8EDFA',
 } as const;
+
+export function useOnboardingTheme() {
+  const { width, height } = useWindowDimensions();
+  return useMemo(() => {
+    const scale = Math.min(Math.max(width, 320) / REFERENCE_WIDTH, 1.35);
+    const rs = (size: number) => Math.round(size * scale);
+    const IS_COMPACT_HEIGHT = height < 720;
+    return { rs, IS_COMPACT_HEIGHT, width, height, scale };
+  }, [width, height]);
+}

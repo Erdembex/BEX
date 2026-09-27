@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
+import { androidReadableText } from '@/lib/readableTextStyle';
 import { Ionicons } from '@expo/vector-icons';
 import { Task, TaskCategory } from '@/types';
 import { EnrichedTask } from '@/features/data/businessesRepository';
@@ -176,9 +177,16 @@ export function ListingProjectCard({
             </Text>
           </View>
           {task.rewardDescription ? (
-            <Text style={[styles.rewardHint, { color: palette.muted }]} numberOfLines={1}>
-              🎁 {task.rewardDescription}
-            </Text>
+            <View style={styles.rewardRow}>
+              <Text style={[styles.rewardIcon, { color: palette.muted }]}>🎁</Text>
+              <Text
+                style={[styles.rewardHint, { color: palette.muted }]}
+                numberOfLines={2}
+                ellipsizeMode="tail"
+              >
+                {task.rewardDescription}
+              </Text>
+            </View>
           ) : null}
         </View>
       )}
@@ -189,11 +197,11 @@ export function ListingProjectCard({
 const useStyles = createThemedStyles(() => ({
   card: {
     flex: 1,
-    minWidth: '46%',
+    minWidth: 0,
     borderRadius: Radius.xl,
-    padding: Spacing[4],
-    gap: Spacing[3],
-    minHeight: 172,
+    padding: Spacing[3],
+    gap: Spacing[2],
+    minHeight: 168,
     borderWidth: 1,
   },
   cardTop: {
@@ -213,12 +221,14 @@ const useStyles = createThemedStyles(() => ({
   },
   titleWrap: {
     flex: 1,
+    minWidth: 0,
     gap: 2,
   },
   title: {
     ...Typography.labelLarge,
     fontWeight: '700',
     lineHeight: 20,
+    ...androidReadableText,
   },
   category: {
     ...Typography.caption,
@@ -272,8 +282,22 @@ const useStyles = createThemedStyles(() => ({
     fontWeight: '600',
     flex: 1,
   },
+  rewardRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 4,
+    minWidth: 0,
+  },
+  rewardIcon: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
   rewardHint: {
     ...Typography.caption,
+    flex: 1,
+    minWidth: 0,
+    lineHeight: 16,
+    ...androidReadableText,
   },
 }));
 

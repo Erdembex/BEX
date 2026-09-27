@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { androidReadableText } from '@/lib/readableTextStyle';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,7 +10,6 @@ import { Typography, Spacing, Radius, useThemeColors } from '@/theme';
 import { BRAND_NAVY, brandNavyAlpha } from '@/theme/brand';
 import { useTranslation } from '@/i18n';
 
-const CARD_WIDTH = Math.min(Dimensions.get('window').width * 0.72, 300);
 const CARD_HEIGHT = 360;
 const IMAGE_HEIGHT = Math.round(CARD_HEIGHT * 0.5);
 const INFO_HEIGHT = CARD_HEIGHT - IMAGE_HEIGHT;
@@ -21,6 +20,8 @@ type Props = {
 };
 
 export function HomeTaskCarouselCard({ task, onPress }: Props) {
+  const { width: windowWidth } = useWindowDimensions();
+  const cardWidth = Math.min(windowWidth * 0.72, 300);
   const Colors = useThemeColors();
   const { t } = useTranslation();
 
@@ -42,7 +43,7 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
 
   return (
     <TouchableOpacity
-      style={[styles.card, { shadowColor: BRAND_NAVY }]}
+      style={[styles.card, { shadowColor: BRAND_NAVY, width: cardWidth, height: CARD_HEIGHT }]}
       onPress={onPress}
       activeOpacity={0.92}
     >
@@ -72,7 +73,7 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
         </View>
       </View>
 
-      <View style={styles.infoShell}>
+      <View style={[styles.infoShell, { width: cardWidth }]}>
         <LinearGradient
           colors={[BRAND_NAVY, brandNavyAlpha(0.92)]}
           style={StyleSheet.absoluteFillObject}
@@ -95,7 +96,7 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
             </Text>
           ) : null}
           {task.rewardDescription ? (
-            <Text style={styles.reward} numberOfLines={1}>
+            <Text style={styles.reward} numberOfLines={2} ellipsizeMode="tail">
               🎁 {task.rewardDescription}
             </Text>
           ) : null}
@@ -109,12 +110,12 @@ export function HomeTaskCarouselCard({ task, onPress }: Props) {
   );
 }
 
-export const HOME_TASK_CARD_WIDTH = CARD_WIDTH + Spacing[3];
+export function homeTaskCardWidth(windowWidth: number): number {
+  return Math.min(windowWidth * 0.72, 300) + Spacing[3];
+}
 
 const styles = StyleSheet.create({
   card: {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
     borderRadius: Radius.xl + 4,
     overflow: 'hidden',
     backgroundColor: BRAND_NAVY,
@@ -172,7 +173,6 @@ const styles = StyleSheet.create({
   },
   infoShell: {
     height: INFO_HEIGHT,
-    width: CARD_WIDTH,
     flexShrink: 0,
     paddingHorizontal: Spacing[4],
     paddingTop: Spacing[3],

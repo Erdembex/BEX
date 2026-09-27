@@ -1,7 +1,8 @@
 # Play Console — Internal test form rehberi (Passla)
 
-Paket: **com.passla.app** · Sürüm: **1.0.2** · **versionCode 5**  
-Son AAB (örnek): `Passla-production-1.0.2-vc5.aab` (masaüstü veya Expo artifact)
+Paket: **com.passla.app** · Sürüm: **1.0.2** · **versionCode 9**  
+Kapalı test AAB: https://expo.dev/artifacts/eas/BT5Vi-yNEbF6x3w9NB9dQN1htWAjszZfZm1z3baLp84.aab  
+Adımlar: `KAPALI_TEST_VC9.md` · Tester listesi: `testers.csv`
 
 URL doğrulama (2026-09): tümü **HTTP 200**
 
@@ -74,18 +75,17 @@ URL doğrulama (2026-09): tümü **HTTP 200**
 
 ---
 
-## 3. Dahili test sürümü
+## 3. Kapalı test sürümü (versionCode 9)
 
-1. [Play Console](https://play.google.com/console) → **Passla**  
-2. **Test et ve yayınla → Test → Dahili test**  
-3. **Yeni sürüm oluştur**  
-4. **App bundle** yükle: `Passla-production-1.0.2-vc5.aab`  
-5. Sürüm adı: `1.0.2 (5)`  
-6. Sürüm notları (TR): `INTERNAL_TEST_RELEASE_NOTES.txt` içeriğini yapıştır  
-7. **İncele → Dahili teste dağıt**
+Dahili test yalnızca listedeki tek hesabı indirir. Üretim öncesi kanal **Kapalı test**.
 
-### Test kullanıcıları
-- **Dahili test → Test kullanıcıları** → e-posta listesi → davet linki
+1. [Play Console](https://play.google.com/console) → **Passla**
+2. **Test edin ve yayınlayın → Kapalı test → Yeni sürüm**
+3. AAB: https://expo.dev/artifacts/eas/BT5Vi-yNEbF6x3w9NB9dQN1htWAjszZfZm1z3baLp84.aab
+4. Sürüm adı: `1.0.2 (9)`
+5. Sürüm notları: `INTERNAL_TEST_RELEASE_NOTES.txt`
+6. **Test kullanıcıları:** `testers.csv` içindeki adresleri kendi listenle değiştir (15 kişi)
+7. Ayrıntı: `KAPALI_TEST_VC9.md`
 
 ---
 
@@ -93,8 +93,8 @@ URL doğrulama (2026-09): tümü **HTTP 200**
 
 | Madde | Durum |
 |-------|--------|
-| Production AAB (vc 5) | ✅ Build alındı |
-| GitHub `fix/subscription-plan-seed` @ 9dc76a5 | ✅ |
+| Production AAB (vc 9) | ✅ Expo artifact hazır; Play’e sen yüklersin |
+| Kapalı test listesi | `testers.csv` şablonu — adresleri sen doldur |
 | Play formları (yukarı) | Console’da sen doldur |
 | Ekran görüntüsü min 2 | Klasör boşsa `_generate.py` veya cihazdan çek |
 | `google-play-service-account.json` | Yoksa manuel AAB yükleme |
@@ -107,4 +107,4 @@ URL doğrulama (2026-09): tümü **HTTP 200**
 - **Yeni sürüm oluştur** gri: Dashboard’da eksik politika / mağaza girişi  
 - **Version code** zaten kullanıldı: bir üst build (EAS autoIncrement)  
 - **Harita**: Uygulamada hub haritası kaldırıldı; mağaza metninde “yakındaki görevler” il/ilçe filtresi anlamında geçerli
-
+

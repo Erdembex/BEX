@@ -1,51 +1,40 @@
-import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import Constants from 'expo-constants';
-import { initialWindowMetrics } from 'react-native-safe-area-context';
+import { Dimensions, Image, Platform, StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
-const SPLASH_LOGO = require('../../../assets/branding/splash-ss-white.png');
-const LOGO_ASPECT = 2400 / 1403;
+const APP_ICON = require('../../../assets/icon.png');
 
-const NAVY = '#17264F';
-
-function appVersion(): string {
-  return Constants.expoConfig?.version ?? Constants.nativeAppVersion ?? '1.0.2';
-}
-
-/** SS fiziksel ekranın tam ortasında; yüklenme ve sürüm altta */
+/** Expo Go ile aynı: beyaz zemin, yuvarlatılmış uygulama ikonu, altta Passla */
 export function AppLaunchSplash() {
   const { width: screenW, height: screenH } = Dimensions.get('screen');
-  const bottomInset = initialWindowMetrics?.insets.bottom ?? 0;
-  const version = appVersion();
-
-  const logoWidth = Math.min(screenW * 0.62, 360);
-  const logoHeight = logoWidth / LOGO_ASPECT;
+  const iconSize = Math.min(screenW * 0.34, 132);
+  const iconRadius = Math.round(iconSize * 0.223);
 
   return (
     <View style={[styles.container, { width: screenW, height: screenH }]}>
-      <Image
-        source={SPLASH_LOGO}
-        style={{
-          position: 'absolute',
-          top: screenH / 2 - logoHeight / 2,
-          left: screenW / 2 - logoWidth / 2,
-          width: logoWidth,
-          height: logoHeight,
-        }}
-        resizeMode="contain"
-        accessibilityRole="image"
-        accessibilityLabel="Passla"
-      />
-
-      <View style={[styles.footer, { paddingBottom: Math.max(bottomInset, 28) + 24 }]}>
-        <ActivityIndicator color="#FFFFFF" size="large" />
-        <Text style={styles.version}>{version}</Text>
+      <StatusBar style="dark" />
+      <View style={styles.center}>
+        <View
+          style={[
+            styles.iconShadow,
+            {
+              width: iconSize,
+              height: iconSize,
+              borderRadius: iconRadius,
+            },
+          ]}
+        >
+          <Image
+            source={APP_ICON}
+            style={{ width: iconSize, height: iconSize, borderRadius: iconRadius }}
+            resizeMode="cover"
+            {...(Platform.OS === 'android' ? { resizeMethod: 'scale' as const } : {})}
+            accessibilityRole="image"
+            accessibilityLabel="Passla"
+          />
+        </View>
+        <Text style={styles.title} accessibilityRole="header">
+          Passla
+        </Text>
       </View>
     </View>
   );
@@ -53,19 +42,31 @@ export function AppLaunchSplash() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: NAVY,
+    backgroundColor: '#FFFFFF',
   },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+  center: {
+    flex: 1,
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'center',
+    paddingBottom: '12%',
   },
-  version: {
-    fontSize: 13,
-    letterSpacing: 0.3,
-    color: 'rgba(232, 237, 250, 0.72)',
+  iconShadow: {
+    backgroundColor: '#17264F',
+    shadowColor: '#17264F',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    elevation: 10,
+    overflow: 'hidden',
+  },
+  title: {
+    marginTop: 22,
+    fontSize: 28,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    color: '#0F172A',
+    ...(Platform.OS === 'android'
+      ? { includeFontPadding: false, textBreakStrategy: 'simple' as const }
+      : {}),
   },
 });

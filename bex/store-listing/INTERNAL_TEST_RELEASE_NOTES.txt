@@ -1,16 +1,18 @@
-Passla 1.0.2 (5) — Dahili test
+Passla 1.0.2 (9) — Kapalı test
 
-Yenilikler:
-• Açılış ekranı (spotlight splash)
-• Ana sayfa: sol menü, sağ profil fotoğrafı; profil ekranında geri tuşu
-• İşletme: alt barda Panel sekmesi; görev kotası (2 aktif) sohbetteki özel ilana da uygulanır
-• İşletme UX: panel yönlendirme, başvuru detayı, bildirim rozeti
-• E-posta doğrulama (Resend), başvuru sahibi CV erişimi (işletme)
+Düzeltmeler:
+• Liderlik: isim ve şehir tek satırda
+• Başvurular: tarih ile kupon ayrı
+• Giriş: kart opak, klavye formu kesmiyor
+• Splash: logo kenardan kesilmiyor
+• Mesaj, görev kartı ve alt menü hizası
 
 Test:
-1. Kayıt / giriş → e-posta doğrulama
-2. Hub → görevler → başvuru → mesaj → teslim → cüzdan / QR
-3. İşletme: Panel, görev oluştur (+), 2/2 doluyken yeni görev ve sohbetten özel ilan engeli
-4. API: https://api.passla.com.tr
+1. Kayıt / giriş
+2. Ana sayfa görev kartı → göreve git
+3. Başvuru listesi
+4. Mesaj
+5. Liderlik
+6. İşletme: görev kotası doluyken yeni görev
 
-Bildirim (push): production FCM V1 yüklüyse arka planda test et.
+API: https://api.passla.com.tr

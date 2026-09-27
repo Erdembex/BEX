@@ -10,7 +10,7 @@ Keşif **il/ilçe filtresi** ile; tam ekran harita şu an üründe yok. Backend 
 
 ## 2. Internal test build
 
-- AAB: **1.0.2 (versionCode 5)** — `npm run build:production:android`
+- AAB: **1.0.2 (versionCode 9)** — `store-listing/KAPALI_TEST_VC9.md`
 - Play: `store-listing/PLAY_CONSOLE_INTERNAL_FORMS.md`
 - Test: `store-listing/INTERNAL_E2E_TEST.md`
 
@@ -44,7 +44,7 @@ Firebase Console → App Check → Enforcement: Firestore/Storage/Functions içi
 
 ## 5. Abonelik / ödeme
 
-Varsayılan: `app.payment.provider=manual` — checkout harici POS’a gitmez; referans kodu + admin onayı (`ManualPaymentGateway`).
+Karar: `store-listing/BILLING_KARAR.md` — kapalı test ve ilk üretimde uygulama içi satış yok; işletme ücreti web faturası. Varsayılan kod: `manual`.
 
 Canlı kart ödemesi için: `APP_PAYMENT_PROVIDER=iyzico` + `IyzicoPaymentGateway` tamamlanmalı (şu an placeholder).
 

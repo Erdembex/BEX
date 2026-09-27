@@ -8,7 +8,7 @@ import {
   Platform,
   StyleSheet,
   Keyboard,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -22,6 +22,7 @@ import {
   saveCredentials,
   clearSavedCredentials,
 } from '@/lib/credentialStorage';
+import { usePageColumnStyle } from '@/lib/pageLayout';
 import { Typography, Spacing, Radius } from '@/theme';
 import { Input } from '@/components/ui';
 import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
@@ -31,10 +32,10 @@ import { useTranslation } from '@/i18n';
 const INK = '#17264F';
 const BODY = '#1E293B';
 const MUTED = '#64708C';
-const LINE = '#64708C';
 
 export default function LoginScreen() {
-  const windowHeight = Dimensions.get('window').height;
+  const { height: windowHeight } = useWindowDimensions();
+  const pageColumnStyle = usePageColumnStyle();
   const insets = useSafeAreaInsets();
   const { setBexUser, setFirebaseUser } = useAuthStore();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string | string[] }>();
@@ -44,7 +45,11 @@ export default function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  const horizontalSafe =
+    Platform.OS === 'android' ? Math.max(insets.left, insets.right, 0) : 0;
+  const heroGap = Math.min(Math.max(windowHeight * 0.34, 150), 280);
+  const cardMaxHeight = Math.min(windowHeight * 0.56, 460);
 
   useEffect(() => {
     loadSavedCredentials().then((saved) => {
@@ -54,19 +59,6 @@ export default function LoginScreen() {
         setRememberMe(saved.remember);
       }
     });
-  }, []);
-
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
   }, []);
 
   const handleLogin = async () => {
@@ -137,44 +129,30 @@ export default function LoginScreen() {
 
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-        keyboardVerticalOffset={Platform.OS === 'android' ? insets.top : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <ScrollView
+          style={styles.flex}
           contentContainerStyle={[
             styles.scroll,
+            pageColumnStyle,
             {
-              paddingTop: keyboardVisible ? insets.top + Spacing[2] : 0,
-              paddingBottom: keyboardVisible
-                ? Math.max(insets.bottom, Spacing[4]) + 280
-                : Math.max(insets.bottom, Spacing[4]) + Spacing[4],
+              paddingBottom: Math.max(insets.bottom, Spacing[3]) + Spacing[3],
+              paddingHorizontal: Spacing[4] + horizontalSafe,
             },
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
-          automaticallyAdjustKeyboardInsets
         >
-          {!keyboardVisible ? (
-            <View style={{ minHeight: Math.max(windowHeight * 0.28, 180) }} />
-          ) : (
-            <View style={{ height: Spacing[2] }} />
-          )}
+          <View style={{ height: heroGap }} />
 
-          <AuthFrostCard style={styles.card} compact={keyboardVisible}>
-            {!keyboardVisible ? (
-              <View style={styles.header}>
-                <Text style={styles.title}>{t('auth.loginTitle')}</Text>
-                <Text
-                  style={styles.subtitle}
-                  numberOfLines={2}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.82}
-                >
-                  {t('auth.loginSubtitle')}
-                </Text>
-              </View>
-            ) : null}
+          <AuthFrostCard style={[styles.card, { maxHeight: cardMaxHeight }]} compact>
+            <View style={styles.header}>
+              <Text style={styles.title}>{t('auth.loginTitle')}</Text>
+              <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
+            </View>
 
             <View style={styles.form}>
               {error ? (
@@ -266,7 +244,6 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     justifyContent: 'flex-end',
-    paddingHorizontal: Spacing[4],
   },
   backBtn: {
     position: 'absolute',
@@ -279,24 +256,26 @@ const styles = StyleSheet.create({
   },
   card: {
     alignSelf: 'stretch',
+    flexShrink: 0,
   },
   header: {
-    marginBottom: Spacing[4],
+    marginBottom: Spacing[3],
     gap: Spacing[1],
   },
   title: {
     ...Typography.headingLarge,
     color: INK,
-    fontSize: 26,
+    fontSize: 24,
   },
   subtitle: {
     ...Typography.bodyMedium,
     color: BODY,
-    lineHeight: 22,
+    lineHeight: 20,
+    fontSize: 14,
     opacity: 0.92,
   },
   form: {
-    gap: Spacing[3],
+    gap: Spacing[2],
   },
   errorBanner: {
     backgroundColor: 'rgba(185, 28, 28, 0.08)',
@@ -320,6 +299,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing[2],
+    flexShrink: 1,
+    minWidth: 0,
   },
   checkbox: {
     width: 22,
@@ -342,9 +323,10 @@ const styles = StyleSheet.create({
   forgotText: {
     ...Typography.labelMedium,
     color: INK,
+    flexShrink: 0,
   },
   loginBtn: {
-    height: 56,
+    height: 50,
     borderRadius: Radius.full,
     backgroundColor: INK,
     alignItems: 'center',
@@ -357,22 +339,24 @@ const styles = StyleSheet.create({
   loginLabel: {
     ...Typography.labelLarge,
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 16,
   },
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing[4],
+    marginTop: Spacing[3],
     flexWrap: 'wrap',
     gap: Spacing[1],
   },
   registerText: {
     ...Typography.bodyMedium,
     color: MUTED,
+    fontSize: 14,
   },
   registerLink: {
     ...Typography.labelLarge,
     color: INK,
+    fontSize: 15,
   },
 });
