@@ -11,6 +11,7 @@ import com.takkas.modules.messaging.mapper.ConversationMapper;
 import com.takkas.modules.messaging.mapper.MessageMapper;
 import com.takkas.modules.messaging.repository.ConversationRepository;
 import com.takkas.modules.messaging.repository.MessageRepository;
+import com.takkas.modules.messaging.service.DirectConversationService;
 import com.takkas.modules.messaging.service.MessageImageReportService;
 import com.takkas.modules.messaging.service.MessageBufferService;
 import com.takkas.modules.messaging.service.MessageService;
@@ -19,6 +20,7 @@ import com.takkas.modules.user.service.UserBlockService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +40,7 @@ public class ConversationController {
     private final MessageBufferService bufferService;
     private final MessageService messageService;
     private final OfferService offerService;
+    private final DirectConversationService directConversationService;
     private final MessageImageReportService messageImageReportService;
     private final ListingRepository listingRepository;
     private final UserBlockService userBlockService;
@@ -62,6 +65,13 @@ public class ConversationController {
         userBlockService.ensureCanInteract(p.userId(), conv.peerUserId(p.userId()));
         return ConversationMapper.toResponse(conv,
             bufferService.getUnreadCount(conv.getId(), p.userId()));
+    }
+
+    @PostMapping("/direct")
+    @PreAuthorize("hasRole('BUSINESS')")
+    public ConversationResponse openDirect(@CurrentUser UserPrincipal p,
+                                           @Valid @RequestBody OpenDirectConversationRequest req) {
+        return directConversationService.open(p.userId(), req.individualUserId());
     }
 
     @GetMapping("/{id}")

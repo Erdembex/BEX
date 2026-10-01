@@ -13,6 +13,9 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     boolean existsByApplicationId(UUID applicationId);
     Optional<Conversation> findByApplicationId(UUID applicationId);
 
+    Optional<Conversation> findByBusinessUserIdAndIndividualUserIdAndApplicationIdIsNull(
+        UUID businessUserId, UUID individualUserId);
+
     @Query("SELECT c FROM Conversation c WHERE c.businessUserId = :uid OR c.individualUserId = :uid ORDER BY c.createdAt DESC")
     List<Conversation> findAllByParticipant(@Param("uid") UUID userId);
 

@@ -6,6 +6,7 @@ import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { applicationsRepository, businessesRepository, tasksRepository, usersRepository } from '@/features/data';
 import { canUseApplicationMessages } from '@/features/messages';
+import { parseDirectThreadKey } from '@/features/messages/conversationsApi';
 import { useMessagingInbox, MessagingAudience } from '@/hooks/useMessagingInbox';
 import { ChatThreadView } from '@/components/messaging/ChatThreadView';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
@@ -43,6 +44,14 @@ export function MessageThreadScreen({
       if (!applicationId || !firebaseUser || !bexUser) return;
 
       void (async () => {
+        if (parseDirectThreadKey(applicationId)) {
+          setAllowed(true);
+          setTaskTitle(t('messageThreadScreen.directListing'));
+          setPeerLabel(inboxRow?.peerName ?? t('messageThreadScreen.defaultChat'));
+          setPeerAvatarUrl(inboxRow?.peerAvatarUrl ?? null);
+          return;
+        }
+
         const app = await applicationsRepository.getById(applicationId);
         if (!app) {
           setAllowed(false);

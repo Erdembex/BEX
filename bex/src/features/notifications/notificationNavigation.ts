@@ -1,5 +1,8 @@
 import { Href, router } from 'expo-router';
-import { resolveApplicationIdByConversation } from '@/features/messages/conversationsApi';
+import {
+  directThreadKey,
+  resolveApplicationIdByConversation,
+} from '@/features/messages/conversationsApi';
 import { BexNotification, UserRole } from '@/types';
 
 export function getNotificationsListHref(role?: UserRole): Href {
@@ -102,6 +105,7 @@ export async function resolveNotificationTarget(
       if (applicationId) {
         return messageThreadHref(applicationId, role);
       }
+      return messageThreadHref(directThreadKey(conversationId), role);
     }
     return messagesInboxHref(role);
   }

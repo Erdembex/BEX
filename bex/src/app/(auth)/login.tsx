@@ -3,14 +3,13 @@ import {
   View,
   Text,
   TouchableOpacity,
+  StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
   Keyboard,
   useWindowDimensions,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -22,21 +21,20 @@ import {
   saveCredentials,
   clearSavedCredentials,
 } from '@/lib/credentialStorage';
-import { usePageColumnStyle } from '@/lib/pageLayout';
+import { androidTextLayout } from '@/lib/androidUi';
+import { useResolvedSafeAreaInsets } from '@/components/common/Screen';
 import { Typography, Spacing, Radius } from '@/theme';
 import { Input } from '@/components/ui';
 import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
 import { AuthFrostCard } from '@/components/auth/AuthFrostCard';
+import { AUTH_SHEET } from '@/components/auth/authSheetPalette';
 import { useTranslation } from '@/i18n';
 
-const INK = '#17264F';
-const BODY = '#1E293B';
-const MUTED = '#64708C';
-
 export default function LoginScreen() {
-  const { height: windowHeight } = useWindowDimensions();
-  const pageColumnStyle = usePageColumnStyle();
-  const insets = useSafeAreaInsets();
+  const insets = useResolvedSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  // Kart, duvardaki PASSLA'nın altına otursun; yazının üstünü kapatmasın.
+  const logoClearance = Math.round(height * 0.24);
   const { setBexUser, setFirebaseUser } = useAuthStore();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string | string[] }>();
   const { t } = useTranslation();
@@ -45,11 +43,18 @@ export default function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  const horizontalSafe =
-    Platform.OS === 'android' ? Math.max(insets.left, insets.right, 0) : 0;
-  const heroGap = Math.min(Math.max(windowHeight * 0.34, 150), 280);
-  const cardMaxHeight = Math.min(windowHeight * 0.56, 460);
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardOpen(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardOpen(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     loadSavedCredentials().then((saved) => {
@@ -69,6 +74,7 @@ export default function LoginScreen() {
 
     setLoading(true);
     setError('');
+    Keyboard.dismiss();
 
     try {
       const trimmedEmail = email.trim();
@@ -112,43 +118,28 @@ export default function LoginScreen() {
       <StatusBar style="light" />
       <AuthGlassBackground />
 
-      {router.canGoBack() ? (
-        <TouchableOpacity
-          style={[styles.backBtn, { top: insets.top + Spacing[2] }]}
-          onPress={() => {
-            Keyboard.dismiss();
-            router.back();
-          }}
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-        >
-          <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-      ) : null}
-
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        keyboardVerticalOffset={0}
       >
         <ScrollView
           style={styles.flex}
           contentContainerStyle={[
             styles.scroll,
-            pageColumnStyle,
+            keyboardOpen && styles.scrollKeyboard,
             {
-              paddingBottom: Math.max(insets.bottom, Spacing[3]) + Spacing[3],
-              paddingHorizontal: Spacing[4] + horizontalSafe,
+              paddingTop: keyboardOpen ? Spacing[2] : insets.top + Spacing[2],
+              paddingBottom: keyboardOpen ? Spacing[2] : Math.max(insets.bottom, Spacing[3]),
             },
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
-          <View style={{ height: heroGap }} />
+          {keyboardOpen ? null : <View style={{ height: logoClearance }} />}
 
-          <AuthFrostCard style={[styles.card, { maxHeight: cardMaxHeight }]} compact>
+          <AuthFrostCard compact style={styles.card}>
             <View style={styles.header}>
               <Text style={styles.title}>{t('auth.loginTitle')}</Text>
               <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
@@ -163,6 +154,7 @@ export default function LoginScreen() {
 
               <Input
                 variant="frost"
+                compact
                 placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
@@ -170,11 +162,12 @@ export default function LoginScreen() {
                 autoComplete="email"
                 textContentType="emailAddress"
                 returnKeyType="next"
-                rightIcon={<Ionicons name="mail-outline" size={20} color={MUTED} />}
+                rightIcon={<Ionicons name="mail-outline" size={20} color={AUTH_SHEET.muted} />}
               />
 
               <Input
                 variant="frost"
+                compact
                 placeholder="••••••••"
                 value={password}
                 onChangeText={setPassword}
@@ -192,18 +185,21 @@ export default function LoginScreen() {
                   activeOpacity={0.8}
                 >
                   <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                    {rememberMe ? (
-                      <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                    ) : null}
+                    {rememberMe ? <Ionicons name="checkmark" size={14} color="#FFFFFF" /> : null}
                   </View>
-                  <Text style={styles.rememberText}>{t('auth.rememberMe')}</Text>
+                  <Text style={styles.rememberText} numberOfLines={1}>
+                    {t('auth.rememberMe')}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => router.push('/(auth)/forgot-password')}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={styles.forgotHit}
                 >
-                  <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
+                  <Text style={styles.forgotText} numberOfLines={2}>
+                    {t('auth.forgotPassword')}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -240,45 +236,43 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+    minHeight: 0,
   },
   scroll: {
     flexGrow: 1,
+    paddingHorizontal: Spacing[6],
+  },
+  scrollKeyboard: {
     justifyContent: 'flex-end',
   },
-  backBtn: {
-    position: 'absolute',
-    left: Spacing[4],
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   card: {
-    alignSelf: 'stretch',
-    flexShrink: 0,
+    width: '100%',
+    maxWidth: 360,
+    alignSelf: 'center',
   },
   header: {
-    marginBottom: Spacing[3],
-    gap: Spacing[1],
+    marginBottom: Spacing[1],
+    gap: 2,
   },
   title: {
-    ...Typography.headingLarge,
-    color: INK,
-    fontSize: 24,
+    ...Typography.headingMedium,
+    color: AUTH_SHEET.ink,
+    fontSize: 22,
+    lineHeight: 28,
+    ...androidTextLayout,
   },
   subtitle: {
-    ...Typography.bodyMedium,
-    color: BODY,
-    lineHeight: 20,
-    fontSize: 14,
-    opacity: 0.92,
+    ...Typography.bodySmall,
+    color: AUTH_SHEET.body,
+    lineHeight: 18,
+    fontSize: 13,
+    ...androidTextLayout,
   },
   form: {
     gap: Spacing[2],
   },
   errorBanner: {
-    backgroundColor: 'rgba(185, 28, 28, 0.08)',
+    backgroundColor: AUTH_SHEET.errorBg,
     borderRadius: Radius.xl,
     padding: Spacing[3],
     borderWidth: 1,
@@ -286,51 +280,59 @@ const styles = StyleSheet.create({
   },
   errorBannerText: {
     ...Typography.bodySmall,
-    color: '#B91C1C',
+    color: AUTH_SHEET.error,
   },
   optionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    flexWrap: 'wrap',
     gap: Spacing[2],
   },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing[2],
-    flexShrink: 1,
+    flex: 1,
     minWidth: 0,
+  },
+  forgotHit: {
+    flexShrink: 1,
+    maxWidth: '46%',
+    alignItems: 'flex-end',
   },
   checkbox: {
     width: 22,
     height: 22,
     borderRadius: Radius.sm,
     borderWidth: 2,
-    borderColor: INK,
+    borderColor: AUTH_SHEET.ink,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxActive: {
-    backgroundColor: INK,
-    borderColor: INK,
+    backgroundColor: AUTH_SHEET.ink,
+    borderColor: AUTH_SHEET.ink,
   },
   rememberText: {
     ...Typography.bodySmall,
-    color: BODY,
+    color: AUTH_SHEET.body,
+    flexShrink: 1,
+    ...androidTextLayout,
   },
   forgotText: {
     ...Typography.labelMedium,
-    color: INK,
-    flexShrink: 0,
+    color: AUTH_SHEET.ink,
+    textAlign: 'right',
+    ...androidTextLayout,
   },
   loginBtn: {
-    height: 50,
+    minHeight: 46,
     borderRadius: Radius.full,
-    backgroundColor: INK,
+    backgroundColor: AUTH_SHEET.ink,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: Spacing[2],
     marginTop: Spacing[1],
   },
   loginBtnDisabled: {
@@ -351,12 +353,13 @@ const styles = StyleSheet.create({
   },
   registerText: {
     ...Typography.bodyMedium,
-    color: MUTED,
+    color: AUTH_SHEET.muted,
     fontSize: 14,
   },
   registerLink: {
     ...Typography.labelLarge,
-    color: INK,
+    color: AUTH_SHEET.ink,
     fontSize: 15,
+    fontWeight: '700',
   },
 });

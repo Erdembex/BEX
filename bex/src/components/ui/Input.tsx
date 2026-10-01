@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '../../theme';
-import { readableTextInputStyle, textInputPaddingVertical, webTextInputStyle } from '@/lib/textInputStyle';
+import { readableTextInputStyle, webTextInputStyle } from '@/lib/textInputStyle';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -26,7 +26,7 @@ interface InputProps extends TextInputProps {
 
 /** Buzlu cam kart üzerindeki beyaz pill alanlar (giriş/kayıt) */
 const FROST_INK = '#17264F';
-const FROST_LINE = '#CED2E8';
+const FROST_LINE = '#C4B48A';
 const FROST_MUTED = '#64708C';
 
 const useStyles = createThemedStyles((Colors) => ({
@@ -66,11 +66,11 @@ const useStyles = createThemedStyles((Colors) => ({
   input: {
     flex: 1,
     minWidth: 0,
+    alignSelf: 'stretch',
     fontFamily: Typography.bodyLarge.fontFamily,
     fontSize: Typography.bodyLarge.fontSize,
-    lineHeight: Typography.bodyLarge.lineHeight,
     color: Colors.textPrimary,
-    paddingVertical: textInputPaddingVertical,
+    paddingVertical: 0,
     ...readableTextInputStyle,
   },
   inputMultiline: {
@@ -122,7 +122,7 @@ const useStyles = createThemedStyles((Colors) => ({
   },
   inputCompact: {
     fontSize: 15,
-    paddingVertical: 8,
+    paddingVertical: 0,
   },
   inputGlass: {
     color: '#FFFFFF',
@@ -133,20 +133,25 @@ const useStyles = createThemedStyles((Colors) => ({
     color: FROST_MUTED,
   },
   containerFrost: {
-    minHeight: 50,
-    backgroundColor: '#FFFFFF',
+    minHeight: 48,
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
     borderColor: FROST_LINE,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing[4],
     minWidth: 0,
+    width: '100%',
   },
   containerFrostFocused: {
     borderColor: FROST_INK,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
   },
   inputFrost: {
     color: FROST_INK,
     fontSize: 15,
+    flex: 1,
+    minWidth: 0,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
 }));
 
@@ -220,6 +225,7 @@ export function Input({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           autoCapitalize="none"
+          numberOfLines={1}
           {...props}
         />
 

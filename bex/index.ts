@@ -1,5 +1,6 @@
-import { installAndroidReleaseUiFixes } from './src/lib/androidUi';
+import { installGlobalFontScalingLimits } from './src/lib/androidUi';
 
-installAndroidReleaseUiFixes();
+// Sistem yazı boyutu (iOS/Android) — max ~%120; layout taşmasını azaltır
+installGlobalFontScalingLimits();
 
 import 'expo-router/entry';

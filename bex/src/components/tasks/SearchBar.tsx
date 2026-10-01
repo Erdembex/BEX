@@ -3,7 +3,7 @@ import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Typography, Radius, Spacing, createThemedStyles, useThemeColors } from '../../theme';
 import { useTranslation } from '@/i18n';
-import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
+import { readableTextInputStyle } from '@/lib/textInputStyle';
 
 interface SearchBarProps {
   value: string;
@@ -38,9 +38,8 @@ const useStyles = createThemedStyles((Colors) => ({
     minWidth: 0,
     fontFamily: Typography.bodyMedium.fontFamily,
     fontSize: Typography.bodyMedium.fontSize,
-    lineHeight: Typography.bodyMedium.lineHeight,
     color: Colors.textPrimary,
-    paddingVertical: textInputPaddingVertical,
+    paddingVertical: 0,
     ...readableTextInputStyle,
   },
   clear: {

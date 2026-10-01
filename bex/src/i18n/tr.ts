@@ -817,6 +817,7 @@ export const tr = {
   messageThreadScreen: {
     defaultChat: 'Sohbet',
     defaultTask: 'Görev',
+    directListing: 'Özel ilan',
     defaultBusiness: 'İşletme',
     notOpenedTitle: 'Sohbet henüz açılmadı',
     notOpenedText: 'Mesajlaşma açılamadı. Sayfayı yenileyip tekrar deneyin.',
@@ -1576,6 +1577,9 @@ export const tr = {
   },
   userProfileScreen: {
     back: '← Geri',
+    sendListing: 'İlan gönder',
+    sendListingDone: 'İlan teklifi gönderildi. Kullanıcı sohbetinden onaylayabilir.',
+    sendListingNoRight: 'Aktif ilan hakkın doldu. Yeni teklif için mevcut ilanlardan birini kapat veya planını yükselt.',
     notFoundTitle: 'Profil bulunamadı',
     notFoundText: '@{{username}} kullanıcı adına ait profil yok.',
     backLink: '← Geri dön',

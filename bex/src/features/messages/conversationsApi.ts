@@ -15,9 +15,25 @@ type ConversationDto = {
   createdAt?: string;
 };
 
+export const DIRECT_THREAD_PREFIX = 'direct-';
+
+export function directThreadKey(conversationId: string): string {
+  return `${DIRECT_THREAD_PREFIX}${conversationId}`;
+}
+
+export function parseDirectThreadKey(routeKey: string): string | null {
+  return routeKey.startsWith(DIRECT_THREAD_PREFIX)
+    ? routeKey.slice(DIRECT_THREAD_PREFIX.length)
+    : null;
+}
+
 export type InboxConversation = {
   conversationId: string;
+  /** Başvuru sohbeti: applicationId. Doğrudan ilan sohbeti: direct-{conversationId} */
   applicationId: string;
+  direct: boolean;
+  businessUserId: string;
+  individualUserId: string;
   unreadCount: number;
   createdAt: Timestamp;
 };
@@ -132,13 +148,22 @@ export async function fetchInbox(): Promise<InboxConversation[]> {
   try {
     const { data } = await apiClient.get<ConversationDto[]>('/api/conversations');
     return (Array.isArray(data) ? data : [])
-      .filter((row) => row.applicationId && row.id)
-      .map((row) => ({
-        conversationId: String(row.id),
-        applicationId: String(row.applicationId),
-        unreadCount: row.unreadCount ?? 0,
-        createdAt: toTimestamp(row.createdAt),
-      }));
+      .filter((row) => row.id)
+      .map((row) => {
+        const conversationId = String(row.id);
+        const applicationId = row.applicationId
+          ? String(row.applicationId)
+          : directThreadKey(conversationId);
+        return {
+          conversationId,
+          applicationId,
+          direct: !row.applicationId,
+          businessUserId: String(row.businessUserId ?? ''),
+          individualUserId: String(row.individualUserId ?? ''),
+          unreadCount: row.unreadCount ?? 0,
+          createdAt: toTimestamp(row.createdAt),
+        };
+      });
   } catch (error) {
     throw mapMessagesError(error, 'Sohbetler yüklenemedi.');
   }
@@ -190,7 +215,26 @@ export async function fetchConversationParticipants(
   }
 }
 
+export async function openDirectConversation(individualUserId: string): Promise<string> {
+  try {
+    const { data } = await apiClient.post<ConversationDto>('/api/conversations/direct', {
+      individualUserId,
+    });
+    const conversationId = String(data.id);
+    conversationCache.set(directThreadKey(conversationId), conversationId);
+    return conversationId;
+  } catch (error) {
+    throw mapMessagesError(error, 'Sohbet açılamadı.');
+  }
+}
+
 export async function resolveConversationId(applicationId: string): Promise<string | null> {
+  const directId = parseDirectThreadKey(applicationId);
+  if (directId) {
+    conversationCache.set(applicationId, directId);
+    return directId;
+  }
+
   const cached = conversationCache.get(applicationId);
   if (cached) return cached;
 

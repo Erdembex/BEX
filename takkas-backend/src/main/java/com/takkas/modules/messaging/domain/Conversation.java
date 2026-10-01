@@ -21,7 +21,7 @@ public class Conversation {
 
     @Id @GeneratedValue(strategy = GenerationType.UUID) private UUID id;
 
-    @Column(name = "application_id", nullable = false, unique = true)
+    @Column(name = "application_id", unique = true)
     private UUID applicationId;
 
     @Column(name = "business_user_id",    nullable = false) private UUID businessUserId;

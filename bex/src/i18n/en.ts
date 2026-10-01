@@ -807,6 +807,7 @@ export const en: TranslationSchema = {
   messageThreadScreen: {
     defaultChat: 'Chat',
     defaultTask: 'Task',
+    directListing: 'Private listing',
     defaultBusiness: 'Business',
     notOpenedTitle: 'Chat not opened yet',
     notOpenedText: 'Messaging could not be opened. Refresh and try again.',
@@ -1566,6 +1567,9 @@ export const en: TranslationSchema = {
   },
   userProfileScreen: {
     back: '← Back',
+    sendListing: 'Send listing',
+    sendListingDone: 'Listing offer sent. The user can accept it from chat.',
+    sendListingNoRight: 'You have no remaining listing slots. Close an active listing or upgrade your plan.',
     notFoundTitle: 'Profile not found',
     notFoundText: 'There is no profile for the username @{{username}}.',
     backLink: '← Go back',

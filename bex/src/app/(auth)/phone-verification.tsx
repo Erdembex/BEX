@@ -406,8 +406,12 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   phoneInput: {
     flex: 1,
     paddingHorizontal: Spacing[4],
-    ...Typography.bodyLarge,
+    fontFamily: Typography.bodyLarge.fontFamily,
+    fontSize: Typography.bodyLarge.fontSize,
     color: Colors.textPrimary,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
+    ...readableTextInputStyle,
   },
   otpRow: { flexDirection: 'row', justifyContent: 'space-between', gap: Spacing[2] },
   otpBox: {

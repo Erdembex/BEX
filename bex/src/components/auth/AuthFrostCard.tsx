@@ -10,35 +10,32 @@ type AuthFrostCardProps = {
   compact?: boolean;
 };
 
-/** Android release'te yarı saydam kart duvar yazısını içeri alır. Kart düz beyaz. */
-const FROST_IOS = 'rgba(255, 255, 255, 0.94)';
-const FROST_ANDROID = '#FFFFFF';
-const FROST_WEB = 'rgba(255, 255, 255, 0.96)';
-const BORDER = 'rgba(255, 255, 255, 0.72)';
-const LAMP_SPILL = ['rgba(255, 218, 150, 0.38)', 'rgba(255, 232, 192, 0.10)', 'rgba(255, 255, 255, 0)'] as const;
+/** Hafif buzlu cam — tuğla görünür, yazı okunur. Mat dolgu yok. */
+const FROST_TINT = 'rgba(255, 255, 255, 0.38)';
+const LAMP_SPILL = ['rgba(255, 220, 160, 0.42)', 'rgba(255, 232, 190, 0.08)', 'rgba(255, 255, 255, 0)'] as const;
 
 export function AuthFrostCard({ children, style, compact = false }: AuthFrostCardProps) {
-  const frost = Platform.OS === 'android' ? FROST_ANDROID : FROST_IOS;
-  const useBlur = Platform.OS === 'ios';
-
   return (
-    <View style={[styles.card, { backgroundColor: frost }, style]}>
+    <View style={[styles.card, style]}>
       {Platform.OS === 'web' ? (
-        <View style={[StyleSheet.absoluteFillObject, styles.frostWeb]} pointerEvents="none" />
-      ) : useBlur ? (
+        <View style={[StyleSheet.absoluteFill, styles.webFrost]} pointerEvents="none" />
+      ) : (
         <>
           <BlurView
-            intensity={40}
+            intensity={Platform.OS === 'android' ? 48 : 56}
             tint="light"
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             pointerEvents="none"
+            {...(Platform.OS === 'android'
+              ? { experimentalBlurMethod: 'dimezisBlurView' as const }
+              : {})}
           />
-          <View style={[styles.frostOverlay, { backgroundColor: frost }]} pointerEvents="none" />
+          <View style={[StyleSheet.absoluteFill, styles.frostTint]} pointerEvents="none" />
         </>
-      ) : null}
+      )}
       <LinearGradient
         colors={LAMP_SPILL}
-        locations={[0, 0.45, 1]}
+        locations={[0, 0.4, 1]}
         style={styles.lampSpill}
         pointerEvents="none"
       />
@@ -49,27 +46,39 @@ export function AuthFrostCard({ children, style, compact = false }: AuthFrostCar
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 30,
+    borderRadius: 26,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: 'rgba(255, 255, 255, 0.42)',
+    backgroundColor: 'transparent',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0B1630',
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.22,
+        shadowRadius: 16,
+      },
+      android: { elevation: 6 },
+      default: {},
+    }),
   },
-  frostOverlay: {
-    ...StyleSheet.absoluteFillObject,
+  frostTint: {
+    backgroundColor: FROST_TINT,
   },
-  frostWeb: {
-    backgroundColor: FROST_WEB,
+  webFrost: {
+    backgroundColor: 'rgba(255, 255, 255, 0.55)',
   },
   lampSpill: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 140,
+    height: 72,
   },
   inner: {
-    paddingHorizontal: Spacing[5],
-    paddingVertical: Spacing[6],
+    paddingHorizontal: Spacing[4],
+    paddingTop: Spacing[4],
+    paddingBottom: Spacing[3],
     zIndex: 1,
   },
   innerCompact: {

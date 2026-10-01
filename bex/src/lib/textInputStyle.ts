@@ -1,16 +1,20 @@
 import { Platform, TextStyle } from 'react-native';
 
-/** E-posta, arama ve mesaj alanlarında descender kırpılmasını önler */
+/**
+ * Tek satır kutular: lineHeight metni (özellikle iOS) kutunun altına iter.
+ * Dikey ortalama için padding sıfır, hizayı kutu satırı verir.
+ */
 export const readableTextInputStyle: TextStyle = {
   textAlign: 'left',
   textAlignVertical: 'center',
+  paddingTop: 0,
+  paddingBottom: 0,
+  marginTop: 0,
+  marginBottom: 0,
   ...(Platform.OS === 'android'
     ? {
         includeFontPadding: false,
         textBreakStrategy: 'simple' as const,
-        lineHeight: 22,
-        paddingTop: 0,
-        paddingBottom: 0,
       }
     : {}),
 };
@@ -21,8 +25,5 @@ export const webTextInputStyle: TextStyle | undefined =
     ? ({ outlineStyle: 'none', cursor: 'text' } as unknown as TextStyle)
     : undefined;
 
-export const textInputPaddingVertical = Platform.select({
-  android: 10,
-  ios: 14,
-  default: 12,
-}) as number;
+/** Tek satır alanlarda ekstra dikey boşluk yazıyı aşağı kaydırır. */
+export const textInputPaddingVertical = 0;

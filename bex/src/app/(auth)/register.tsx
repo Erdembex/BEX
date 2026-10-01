@@ -3,12 +3,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  StyleSheet,
   BackHandler,
 } from 'react-native';
-import { Screen } from '@/components/common/Screen';
 import { router } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
@@ -20,15 +17,16 @@ import {
   isRegistrationAgeValid,
   parseBirthDateInput,
 } from '@/lib/birthDateUtils';
-import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
-import { Button, Input, PasslaLogo } from '@/components/ui';
+import { Typography, Spacing, Radius } from '@/theme';
+import { Input } from '@/components/ui';
 import { LocationPicker } from '@/components/common/LocationPicker';
 import { PRIVACY_URL, TERMS_URL, openLegalPage } from '@/lib/legalLinks';
 import { useTranslation } from '@/i18n';
+import { AuthBrandedScreen } from '@/components/auth/AuthBrandedScreen';
+import { AUTH_SHEET } from '@/components/auth/authSheetPalette';
+import { androidTextLayout } from '@/lib/androidUi';
 
 export default function RegisterScreen() {
-  const Colors = useThemeColors();
-  const styles = useScreenStyles();
   const { t } = useTranslation();
   const ROLES: { id: UserRole; label: string; desc: string; emoji: string }[] = [
     {
@@ -163,9 +161,10 @@ export default function RegisterScreen() {
             : {}),
         },
       });
-    } catch (err: any) {
-      const code: string = err?.code ?? '';
-      const message = err?.message || getAuthErrorMessage(code);
+    } catch (err: unknown) {
+      const authErr = err as { code?: string; message?: string };
+      const code = authErr?.code ?? '';
+      const message = authErr?.message || getAuthErrorMessage(code);
       console.error('[RegisterScreen] Kayıt hatası:', code, message);
 
       if (code === 'auth/email-already-in-use') {
@@ -187,265 +186,243 @@ export default function RegisterScreen() {
   };
 
   return (
-    <Screen style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Geri butonu */}
-          <TouchableOpacity onPress={goBackFromRegister} style={styles.back}>
-            <Text style={styles.backText}>{t('registerScreen.back')}</Text>
-          </TouchableOpacity>
+    <AuthBrandedScreen
+      scrollBody
+      showHero={false}
+      onBack={goBackFromRegister}
+      backLabel={t('registerScreen.back')}
+      sheetStyle={styles.sheetExtra}
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>{t('registerScreen.title')}</Text>
+        <Text style={styles.subtitle}>{t('registerScreen.subtitle')}</Text>
+      </View>
 
-          {/* Başlık */}
-          <View style={styles.header}>
-            <PasslaLogo size="md" centered tone="onDark" />
-            <Text style={styles.title}>{t('registerScreen.title')}</Text>
-            <Text style={styles.subtitle}>
-              {t('registerScreen.subtitle')}
-            </Text>
-          </View>
-
-          {/* Rol seçimi */}
-          <View style={styles.roleSection}>
-            <Text style={styles.sectionLabel}>{t('registerScreen.accountType')}</Text>
-            <View style={styles.roleRow}>
-              {ROLES.map((r) => (
-                <TouchableOpacity
-                  key={r.id}
-                  onPress={() => setRole(r.id)}
-                  style={[
-                    styles.roleCard,
-                    role === r.id && styles.roleCardActive,
-                  ]}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.roleEmoji}>{r.emoji}</Text>
-                  <Text
-                    style={[
-                      styles.roleLabel,
-                      role === r.id && styles.roleLabelActive,
-                    ]}
-                  >
-                    {r.label}
-                  </Text>
-                  <Text style={styles.roleDesc}>{r.desc}</Text>
-                  {role === r.id && (
-                    <View style={styles.roleCheck}>
-                      <Text style={styles.roleCheckText}>✓</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.demographicsSection}>
-            <Input
-              label={t('registerScreen.birthDateLabel')}
-              placeholder={t('registerScreen.birthDatePlaceholder')}
-              value={birthDateInput}
-              onChangeText={setBirthDateInput}
-              error={errors.birthDate}
-              keyboardType="numbers-and-punctuation"
-              hint={
-                computedAge != null && !errors.birthDate
-                  ? t('registerScreen.ageLabel', { age: computedAge })
-                  : t('registerScreen.birthDateHint')
-              }
-            />
-
-            <View style={styles.genderSection}>
-              <Text style={styles.sectionLabel}>{t('registerScreen.genderLabel')}</Text>
-              <View style={styles.genderRow}>
-                {GENDERS.map((option) => {
-                  const selected = gender === option.id;
-                  return (
-                    <TouchableOpacity
-                      key={option.id}
-                      onPress={() => setGender(option.id)}
-                      style={[styles.genderChip, selected && styles.genderChipActive]}
-                      activeOpacity={0.85}
-                    >
-                      <Text style={[styles.genderChipText, selected && styles.genderChipTextActive]}>
-                        {option.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              {errors.gender ? <Text style={styles.fieldError}>{errors.gender}</Text> : null}
-            </View>
-          </View>
-
-          <LocationPicker
-            city={city}
-            district={district}
-            onCityChange={setCity}
-            onDistrictChange={setDistrict}
-            error={errors.location}
-          />
-          {role === 'business' ? (
-            <Text style={styles.locationNote}>
-              {t('registerScreen.locationNote')}
-            </Text>
-          ) : null}
-
-          {role === 'business' ? (
-            <Input
-              label={t('registerScreen.openAddressLabel')}
-              placeholder={t('registerScreen.openAddressPlaceholder')}
-              value={openAddress}
-              onChangeText={setOpenAddress}
-              error={errors.openAddress}
-              multiline
-              hint={t('registerScreen.openAddressHint')}
-            />
-          ) : null}
-
-          {/* Form */}
-          <View style={styles.form}>
-            {errors.general && (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerText}>{errors.general}</Text>
-              </View>
-            )}
-
-            <Input
-              label={role === 'business' ? t('registerScreen.businessNameLabel') : t('registerScreen.fullNameLabel')}
-              placeholder={role === 'business' ? t('registerScreen.businessNamePlaceholder') : t('registerScreen.fullNamePlaceholder')}
-              value={displayName}
-              onChangeText={setDisplayName}
-              error={errors.displayName}
-              autoComplete="name"
-              textContentType="name"
-            />
-
-            <Input
-              label={t('registerScreen.emailLabel')}
-              placeholder={t('registerScreen.emailPlaceholder')}
-              value={email}
-              onChangeText={setEmail}
-              error={errors.email}
-              keyboardType="email-address"
-              autoComplete="email"
-              textContentType="emailAddress"
-            />
-
-            {__DEV__ ? (
-              <Text style={styles.devHint}>
-                {t('registerScreen.devHint')}
-              </Text>
-            ) : null}
-
-            <Input
-              label={t('registerScreen.passwordLabel')}
-              placeholder={t('registerScreen.passwordPlaceholder')}
-              value={password}
-              onChangeText={setPassword}
-              error={errors.password}
-              isPassword
-              hint={t('registerScreen.passwordHint')}
-            />
-
-            <Input
-              label={t('registerScreen.confirmPasswordLabel')}
-              placeholder={t('registerScreen.confirmPasswordPlaceholder')}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              error={errors.confirmPassword}
-              isPassword
-            />
-
-            {/* Yasal onay */}
+      <View style={styles.roleSection}>
+        <Text style={styles.sectionLabel}>{t('registerScreen.accountType')}</Text>
+        <View style={styles.roleRow}>
+          {ROLES.map((r) => (
             <TouchableOpacity
-              style={styles.termsRow}
-              onPress={() => setTermsAccepted((prev) => !prev)}
-              activeOpacity={0.8}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: termsAccepted }}
+              key={r.id}
+              onPress={() => setRole(r.id)}
+              style={[styles.roleCard, role === r.id && styles.roleCardActive]}
+              activeOpacity={0.75}
             >
-              <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
-                {termsAccepted ? <Text style={styles.checkboxMark}>✓</Text> : null}
-              </View>
-              <Text style={styles.termsText}>
-                {t('registerScreen.termsPrefix')}
-                <Text style={styles.termsLink} onPress={() => handleOpenLegal(TERMS_URL)}>
-                  {t('registerScreen.termsOfService')}
-                </Text>
-                {t('registerScreen.termsMiddle')}
-                <Text style={styles.termsLink} onPress={() => handleOpenLegal(PRIVACY_URL)}>
-                  {t('registerScreen.privacyPolicy')}
-                </Text>
-                {t('registerScreen.termsSuffix')}
+              <Text style={styles.roleEmoji}>{r.emoji}</Text>
+              <Text style={[styles.roleLabel, role === r.id && styles.roleLabelActive]}>
+                {r.label}
               </Text>
+              <Text style={styles.roleDesc}>{r.desc}</Text>
+              {role === r.id ? (
+                <View style={styles.roleCheck}>
+                  <Text style={styles.roleCheckText}>✓</Text>
+                </View>
+              ) : null}
             </TouchableOpacity>
-            {errors.terms ? <Text style={styles.termsError}>{errors.terms}</Text> : null}
+          ))}
+        </View>
+      </View>
 
-            <Button
-              title={t('registerScreen.submit')}
-              onPress={handleRegister}
-              loading={loading}
-            />
-          </View>
+      <View style={styles.demographicsSection}>
+        <Input
+          variant="frost"
+          label={t('registerScreen.birthDateLabel')}
+          placeholder={t('registerScreen.birthDatePlaceholder')}
+          value={birthDateInput}
+          onChangeText={setBirthDateInput}
+          error={errors.birthDate}
+          keyboardType="numbers-and-punctuation"
+          hint={
+            computedAge != null && !errors.birthDate
+              ? t('registerScreen.ageLabel', { age: computedAge })
+              : t('registerScreen.birthDateHint')
+          }
+        />
 
-          {/* Giriş yap linki */}
-          <View style={styles.loginRow}>
-            <Text style={styles.loginText}>{t('registerScreen.haveAccount')}</Text>
-            <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
-              <Text style={styles.loginLink}>{t('registerScreen.login')}</Text>
-            </TouchableOpacity>
+        <View style={styles.genderSection}>
+          <Text style={styles.sectionLabel}>{t('registerScreen.genderLabel')}</Text>
+          <View style={styles.genderRow}>
+            {GENDERS.map((option) => {
+              const selected = gender === option.id;
+              return (
+                <TouchableOpacity
+                  key={option.id}
+                  onPress={() => setGender(option.id)}
+                  style={[styles.genderChip, selected && styles.genderChipActive]}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.genderChipText, selected && styles.genderChipTextActive]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
+          {errors.gender ? <Text style={styles.fieldError}>{errors.gender}</Text> : null}
+        </View>
+      </View>
+
+      <LocationPicker
+        city={city}
+        district={district}
+        onCityChange={setCity}
+        onDistrictChange={setDistrict}
+        error={errors.location}
+      />
+      {role === 'business' ? (
+        <Text style={styles.locationNote}>{t('registerScreen.locationNote')}</Text>
+      ) : null}
+
+      {role === 'business' ? (
+        <Input
+          variant="frost"
+          label={t('registerScreen.openAddressLabel')}
+          placeholder={t('registerScreen.openAddressPlaceholder')}
+          value={openAddress}
+          onChangeText={setOpenAddress}
+          error={errors.openAddress}
+          multiline
+          hint={t('registerScreen.openAddressHint')}
+        />
+      ) : null}
+
+      <View style={styles.form}>
+        {errors.general ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>{errors.general}</Text>
+          </View>
+        ) : null}
+
+        <Input
+          variant="frost"
+          label={
+            role === 'business'
+              ? t('registerScreen.businessNameLabel')
+              : t('registerScreen.fullNameLabel')
+          }
+          placeholder={
+            role === 'business'
+              ? t('registerScreen.businessNamePlaceholder')
+              : t('registerScreen.fullNamePlaceholder')
+          }
+          value={displayName}
+          onChangeText={setDisplayName}
+          error={errors.displayName}
+          autoComplete="name"
+          textContentType="name"
+        />
+
+        <Input
+          variant="frost"
+          label={t('registerScreen.emailLabel')}
+          placeholder={t('registerScreen.emailPlaceholder')}
+          value={email}
+          onChangeText={setEmail}
+          error={errors.email}
+          keyboardType="email-address"
+          autoComplete="email"
+          textContentType="emailAddress"
+        />
+
+        {__DEV__ ? <Text style={styles.devHint}>{t('registerScreen.devHint')}</Text> : null}
+
+        <Input
+          variant="frost"
+          label={t('registerScreen.passwordLabel')}
+          placeholder={t('registerScreen.passwordPlaceholder')}
+          value={password}
+          onChangeText={setPassword}
+          error={errors.password}
+          isPassword
+          hint={t('registerScreen.passwordHint')}
+        />
+
+        <Input
+          variant="frost"
+          label={t('registerScreen.confirmPasswordLabel')}
+          placeholder={t('registerScreen.confirmPasswordPlaceholder')}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          error={errors.confirmPassword}
+          isPassword
+        />
+
+        <TouchableOpacity
+          style={styles.termsRow}
+          onPress={() => setTermsAccepted((prev) => !prev)}
+          activeOpacity={0.8}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: termsAccepted }}
+        >
+          <View style={[styles.checkbox, termsAccepted && styles.checkboxChecked]}>
+            {termsAccepted ? <Text style={styles.checkboxMark}>✓</Text> : null}
+          </View>
+          <Text style={styles.termsText}>
+            {t('registerScreen.termsPrefix')}
+            <Text style={styles.termsLink} onPress={() => handleOpenLegal(TERMS_URL)}>
+              {t('registerScreen.termsOfService')}
+            </Text>
+            {t('registerScreen.termsMiddle')}
+            <Text style={styles.termsLink} onPress={() => handleOpenLegal(PRIVACY_URL)}>
+              {t('registerScreen.privacyPolicy')}
+            </Text>
+            {t('registerScreen.termsSuffix')}
+          </Text>
+        </TouchableOpacity>
+        {errors.terms ? <Text style={styles.termsError}>{errors.terms}</Text> : null}
+
+        <TouchableOpacity
+          style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
+          onPress={handleRegister}
+          disabled={loading}
+          activeOpacity={0.88}
+          accessibilityRole="button"
+        >
+          <Text style={styles.submitLabel}>
+            {loading ? '...' : `${t('registerScreen.submit')}  →`}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.loginRow}>
+        <Text style={styles.loginText}>{t('registerScreen.haveAccount')}</Text>
+        <TouchableOpacity onPress={() => router.replace('/(auth)/login')}>
+          <Text style={styles.loginLink}>{t('registerScreen.login')}</Text>
+        </TouchableOpacity>
+      </View>
+    </AuthBrandedScreen>
   );
 }
 
-const useScreenStyles = createThemedStyles((Colors) => ({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  kav: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: Spacing[6],
-    paddingTop: Spacing[6],
-    paddingBottom: Spacing[8],
-    gap: Spacing[6],
-  },
-  back: {
-    alignSelf: 'flex-start',
-  },
-  backText: {
-    ...Typography.labelMedium,
-    color: Colors.textSecondary,
+const styles = StyleSheet.create({
+  sheetExtra: {
+    marginTop: -Spacing[2],
   },
   header: {
-    gap: Spacing[3],
+    gap: Spacing[1],
+    marginBottom: Spacing[2],
   },
   title: {
     ...Typography.headingLarge,
-    color: Colors.textPrimary,
-    marginTop: Spacing[2],
+    color: AUTH_SHEET.ink,
+    fontSize: 26,
+    lineHeight: 32,
+    ...androidTextLayout,
   },
   subtitle: {
     ...Typography.bodyMedium,
-    color: Colors.textSecondary,
+    color: AUTH_SHEET.body,
+    lineHeight: 22,
+    fontSize: 15,
+    ...androidTextLayout,
   },
   roleSection: {
     gap: Spacing[3],
+    marginTop: Spacing[2],
   },
   demographicsSection: {
     gap: Spacing[4],
+    marginTop: Spacing[2],
   },
   genderSection: {
     gap: Spacing[2],
@@ -460,33 +437,33 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     paddingVertical: Spacing[3],
     borderRadius: Radius.full,
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: AUTH_SHEET.surfaceBorder,
+    backgroundColor: AUTH_SHEET.surface,
   },
   genderChipActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    borderColor: AUTH_SHEET.ink,
+    backgroundColor: 'rgba(23, 38, 79, 0.08)',
   },
   genderChipText: {
     ...Typography.labelMedium,
-    color: Colors.textSecondary,
+    color: AUTH_SHEET.muted,
   },
   genderChipTextActive: {
-    color: Colors.textPrimary,
+    color: AUTH_SHEET.ink,
     fontWeight: '700',
   },
   fieldError: {
     ...Typography.caption,
-    color: Colors.error,
+    color: AUTH_SHEET.error,
   },
   locationNote: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    color: AUTH_SHEET.muted,
     marginTop: -Spacing[2],
   },
   sectionLabel: {
     ...Typography.labelMedium,
-    color: Colors.textPrimary,
+    color: AUTH_SHEET.ink,
   },
   roleRow: {
     flexDirection: 'row',
@@ -497,14 +474,14 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     padding: Spacing[4],
     borderRadius: Radius.lg,
     borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderColor: AUTH_SHEET.surfaceBorder,
+    backgroundColor: AUTH_SHEET.surface,
     gap: 4,
     position: 'relative',
   },
   roleCardActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    borderColor: AUTH_SHEET.ink,
+    backgroundColor: 'rgba(23, 38, 79, 0.08)',
   },
   roleEmoji: {
     fontSize: 24,
@@ -512,14 +489,14 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   roleLabel: {
     ...Typography.labelLarge,
-    color: Colors.textPrimary,
+    color: AUTH_SHEET.body,
   },
   roleLabelActive: {
-    color: Colors.textPrimary,
+    color: AUTH_SHEET.ink,
   },
   roleDesc: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    color: AUTH_SHEET.muted,
   },
   roleCheck: {
     position: 'absolute',
@@ -528,33 +505,34 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: Colors.primary,
+    backgroundColor: AUTH_SHEET.ink,
     alignItems: 'center',
     justifyContent: 'center',
   },
   roleCheckText: {
     fontSize: 11,
     fontWeight: '700',
-    color: Colors.textOnPrimary,
+    color: '#FFFFFF',
   },
   form: {
-    gap: Spacing[5],
+    gap: Spacing[4],
+    marginTop: Spacing[2],
   },
   errorBanner: {
-    backgroundColor: Colors.errorLight,
-    borderRadius: Radius.md,
-    padding: Spacing[4],
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.error,
+    backgroundColor: AUTH_SHEET.errorBg,
+    borderRadius: Radius.xl,
+    padding: Spacing[3],
+    borderWidth: 1,
+    borderColor: 'rgba(185, 28, 28, 0.28)',
   },
   errorBannerText: {
     ...Typography.bodySmall,
-    color: Colors.error,
+    color: AUTH_SHEET.error,
   },
   devHint: {
     ...Typography.caption,
-    color: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    color: AUTH_SHEET.ink,
+    backgroundColor: AUTH_SHEET.surface,
     padding: Spacing[3],
     borderRadius: Radius.md,
     marginTop: -Spacing[2],
@@ -563,56 +541,76 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: Spacing[3],
-    marginTop: -Spacing[2],
+    marginTop: -Spacing[1],
   },
   checkbox: {
     width: 22,
     height: 22,
     borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: AUTH_SHEET.ink,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
   },
   checkboxChecked: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
+    backgroundColor: AUTH_SHEET.ink,
   },
   checkboxMark: {
     ...Typography.labelSmall,
-    color: Colors.white,
+    color: '#FFFFFF',
     fontWeight: '800',
   },
   termsText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    color: AUTH_SHEET.body,
     flex: 1,
     lineHeight: 18,
   },
   termsLink: {
-    color: Colors.primary,
+    color: AUTH_SHEET.ink,
     fontWeight: '600',
     textDecorationLine: 'underline',
   },
   termsError: {
     ...Typography.caption,
-    color: Colors.error,
+    color: AUTH_SHEET.error,
     marginTop: -Spacing[3],
+  },
+  submitBtn: {
+    minHeight: 52,
+    borderRadius: Radius.full,
+    backgroundColor: AUTH_SHEET.ink,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing[3],
+    marginTop: Spacing[1],
+  },
+  submitBtnDisabled: {
+    opacity: 0.6,
+  },
+  submitLabel: {
+    ...Typography.labelLarge,
+    color: '#FFFFFF',
+    fontSize: 17,
   },
   loginRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing[2],
+    marginTop: Spacing[4],
+    flexWrap: 'wrap',
+    gap: Spacing[1],
   },
   loginText: {
     ...Typography.bodyMedium,
-    color: Colors.textSecondary,
+    color: AUTH_SHEET.muted,
+    fontSize: 14,
   },
   loginLink: {
     ...Typography.labelLarge,
-    color: Colors.primary,
+    color: AUTH_SHEET.ink,
+    fontSize: 15,
   },
-}));
+});

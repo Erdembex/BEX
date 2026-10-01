@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Image, StyleSheet, useWindowDimensions } from 'react-native';
 
-const WORDMARK = require('../../../assets/branding/passla-wordmark-istanbul-letters.png');
+const WORDMARK = require('../../../assets/branding/passla-wordmark-white.png');
 
-/** Giriş ekranı — parşömensiz İstanbul tarzı PASSLA wordmark */
+/** Tuğla duvar üzerinde beyaz PASSLA wordmark (sprey / stencil) */
 export function AuthLoginHero() {
   const { width } = useWindowDimensions();
-  const wordmarkWidth = Math.min(width * 0.86, 340);
+  const wordmarkWidth = Math.min(width * 0.82, 340);
   const wordmarkHeight = Math.round(wordmarkWidth * (551 / 1429));
 
   return (
@@ -25,5 +25,6 @@ export function AuthLoginHero() {
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
+    paddingVertical: 8,
   },
 });

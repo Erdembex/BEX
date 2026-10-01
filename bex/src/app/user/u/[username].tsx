@@ -8,14 +8,27 @@ import { CompletedTask, PortfolioItem } from '@/types';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
 import { PublicProfileSections } from '@/components/profile/PublicProfileSections';
 import { BlockUserButton } from '@/components/user/BlockUserButton';
-import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
+import { SendOfferSheet } from '@/components/messaging/SendOfferSheet';
+import { SendChatOfferInput, sendConversationOffer } from '@/features/messages/offersApi';
+import { openDirectConversation } from '@/features/messages/conversationsApi';
+import { useAuthStore } from '@/store/authStore';
+import { useBusiness } from '@/features/business/useBusiness';
+import { getListingLimitInfo } from '@/lib/listingLimit';
+import { useToast } from '@/components/common/Toast';
+import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
 import { useTranslation } from '@/i18n';
 
 export default function PublicUserProfileByUsernameScreen() {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
   const { t } = useTranslation();
+  const { showToast } = useToast();
+  const role = useAuthStore((s) => s.bexUser?.role);
+  const myUserId = useAuthStore((s) => s.firebaseUser?.uid);
+  const { business } = useBusiness();
   const { username } = useLocalSearchParams<{ username: string }>();
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [offerSending, setOfferSending] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [completedCount, setCompletedCount] = useState(0);
@@ -90,12 +103,42 @@ export default function PublicUserProfileByUsernameScreen() {
     );
   }
 
+  const canSendListing =
+    role === 'business' && !!business?.id && !!targetUserId && targetUserId !== myUserId;
+
+  const handleSendListing = async (input: SendChatOfferInput) => {
+    if (!business?.id || !targetUserId) return;
+    const limit = await getListingLimitInfo(business.id);
+    if (!limit.canCreate) {
+      throw new Error(t('userProfileScreen.sendListingNoRight'));
+    }
+    setOfferSending(true);
+    try {
+      const conversationId = await openDirectConversation(targetUserId);
+      await sendConversationOffer(conversationId, input);
+      showToast(t('userProfileScreen.sendListingDone'));
+    } finally {
+      setOfferSending(false);
+    }
+  };
+
   return (
     <Screen style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-          <Text style={styles.backText}>{t('userProfileScreen.back')}</Text>
-        </TouchableOpacity>
+        <View style={styles.topBar}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
+            <Text style={styles.backText}>{t('userProfileScreen.back')}</Text>
+          </TouchableOpacity>
+          {canSendListing ? (
+            <TouchableOpacity
+              style={styles.sendBtn}
+              onPress={() => setOfferOpen(true)}
+              accessibilityRole="button"
+            >
+              <Text style={styles.sendBtnText}>{t('userProfileScreen.sendListing')}</Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
 
         <View style={styles.hero}>
           <ProfileAvatar name={displayName} avatarUrl={avatarUrl} size={72} />
@@ -119,6 +162,12 @@ export default function PublicUserProfileByUsernameScreen() {
           complaintRate={complaintRate}
         />
       </ScrollView>
+      <SendOfferSheet
+        visible={offerOpen}
+        loading={offerSending}
+        onClose={() => setOfferOpen(false)}
+        onSubmit={handleSendListing}
+      />
     </Screen>
   );
 }
@@ -127,8 +176,21 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   safe: { flex: 1, backgroundColor: Colors.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing[5] },
   scroll: { padding: Spacing[5], paddingBottom: Spacing[10], gap: Spacing[4] },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing[3],
+  },
   back: { alignSelf: 'flex-start' },
   backText: { ...Typography.labelMedium, color: Colors.textSecondary },
+  sendBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.full,
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[2],
+  },
+  sendBtnText: { ...Typography.labelMedium, color: Colors.textOnPrimary, fontWeight: '700' },
   hero: { alignItems: 'center', gap: Spacing[2] },
   title: { ...Typography.headingLarge, color: Colors.textPrimary },
   notFoundTitle: { ...Typography.headingMedium, color: Colors.textPrimary, marginBottom: Spacing[2] },
