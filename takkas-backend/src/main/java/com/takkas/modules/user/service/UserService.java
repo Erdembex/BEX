@@ -76,6 +76,12 @@ public class UserService {
         return buildPublicProfile(profile);
     }
 
+    public BusinessPublicProfileResponse getPublicBusinessProfileByOwner(UUID ownerUserId, UUID viewerUserId) {
+        BusinessProfile profile = businessRepo.findByUserId(ownerUserId)
+            .orElseThrow(() -> new ResourceNotFoundException("İşletme bulunamadı."));
+        return getPublicBusinessProfile(profile.getId(), viewerUserId);
+    }
+
     public BusinessPublicProfileResponse getPublicBusinessProfile(UUID profileId, UUID viewerUserId) {
         BusinessProfile profile = businessRepo.findById(profileId)
             .orElseThrow(() -> new ResourceNotFoundException("İşletme bulunamadı."));

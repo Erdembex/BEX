@@ -109,6 +109,20 @@ function mapError(error: unknown, fallback: string): Error {
   return new Error(fallback);
 }
 
+/** Sohbet başlığı — sahip kullanıcı kimliğiyle herkese açık işletme profili */
+export async function fetchPublicBusinessProfileByOwner(ownerUserId: string): Promise<Business | null> {
+  if (!isBackendId(ownerUserId)) return null;
+  try {
+    const { data } = await apiClient.get<BusinessPublicProfileDto>(
+      `/api/business/profiles/by-owner/${ownerUserId}/public`
+    );
+    return mapPublicBusiness(data);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) return null;
+    throw mapError(error, 'İşletme profili yüklenemedi.');
+  }
+}
+
 /** Herkese açık işletme profili — GET /api/business/profiles/{profileId}/public */
 export async function fetchPublicBusinessProfile(profileId: string): Promise<Business | null> {
   if (!isBackendId(profileId)) return null;

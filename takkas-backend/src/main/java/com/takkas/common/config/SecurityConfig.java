@@ -74,6 +74,7 @@ public class SecurityConfig {
                     "/api/individual/profiles/search",
                     "/api/users/*/public-profile",
                     "/api/business/profiles/*/public",
+                    "/api/business/profiles/by-owner/*/public",
                     "/api/business/profiles/search",
                     "/api/complaints/public",
                     "/api/profiles/*/feedback"

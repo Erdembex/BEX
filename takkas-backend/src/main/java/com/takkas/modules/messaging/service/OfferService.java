@@ -152,6 +152,9 @@ public class OfferService {
             .status(ApplicationStatus.ACCEPTED)
             .build());
         offer.setResultApplicationId(application.getId());
+        if (conv.getApplicationId() == null) {
+            conv.setApplicationId(application.getId());
+        }
 
         UUID businessUserId = userRepository.findUserIdByBusinessProfileId(listing.getBusiness().getId());
         eventPublisher.publish(new ApplicationAcceptedEvent(

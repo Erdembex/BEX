@@ -83,6 +83,14 @@ public class UserController {
         return userService.getPublicIndividualProfileByUsername(username, viewer.userId());
     }
 
+    /** Sohbet başlığından işletme profili — sahip kullanıcı kimliği ile */
+    @GetMapping("/business/profiles/by-owner/{ownerUserId}/public")
+    @PreAuthorize("isAuthenticated()")
+    public BusinessPublicProfileResponse getPublicBusinessProfileByOwner(@CurrentUser UserPrincipal viewer,
+                                                                         @PathVariable UUID ownerUserId) {
+        return userService.getPublicBusinessProfileByOwner(ownerUserId, viewer.userId());
+    }
+
     /** Herkese açık işletme profili — kupon ve görev kartları için */
     @GetMapping("/business/profiles/{profileId}/public")
     @PreAuthorize("isAuthenticated()")

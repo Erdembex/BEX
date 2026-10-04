@@ -8,6 +8,8 @@ import { useTranslation } from '@/i18n';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const THUMB_SIZE = (SCREEN_WIDTH - Spacing[5] * 2 - Spacing[2] * 2) / 3;
+const EMBEDDED_THUMB_SIZE =
+  (SCREEN_WIDTH - Spacing[5] * 2 - Spacing[4] * 2 - Spacing[2] * 2 - 2) / 3;
 
 interface UserPortfolioGalleryProps {
   items: PortfolioItem[];
@@ -16,6 +18,7 @@ interface UserPortfolioGalleryProps {
   emptyText?: string;
   compact?: boolean;
   maxItems?: number;
+  embedded?: boolean;
 }
 
 export function UserPortfolioGallery({
@@ -25,6 +28,7 @@ export function UserPortfolioGallery({
   emptyText,
   compact = false,
   maxItems,
+  embedded = false,
 }: UserPortfolioGalleryProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
@@ -34,11 +38,12 @@ export function UserPortfolioGallery({
   const [preview, setPreview] = useState<PortfolioItem | null>(null);
   const visibleItems = maxItems && maxItems > 0 ? items.slice(0, maxItems) : items;
   const hiddenCount = items.length - visibleItems.length;
+  const thumbSize = embedded ? EMBEDDED_THUMB_SIZE : THUMB_SIZE;
 
   if (items.length === 0) {
     if (emptyText) {
       return (
-        <View style={styles.emptyBox}>
+        <View style={[styles.emptyBox, embedded && styles.embedded]}>
           <Text style={styles.emptyText}>{emptyText}</Text>
         </View>
       );
@@ -48,7 +53,7 @@ export function UserPortfolioGallery({
 
   return (
     <>
-      <View style={styles.wrap}>
+      <View style={[styles.wrap, embedded && styles.embedded]}>
         <Text style={styles.title}>{resolvedTitle}</Text>
         {!compact && resolvedSubtitle ? (
           <Text style={styles.subtitle}>
@@ -61,11 +66,11 @@ export function UserPortfolioGallery({
           {visibleItems.map((item) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.thumbWrap}
+              style={[styles.thumbWrap, { width: thumbSize }]}
               onPress={() => setPreview(item)}
               activeOpacity={0.9}
             >
-              <AuthenticatedImage uri={item.imageUrl} style={styles.thumb} />
+              <AuthenticatedImage uri={item.imageUrl} style={[styles.thumb, { width: thumbSize, height: thumbSize }]} />
               {!compact ? (
                 <Text style={styles.caption} numberOfLines={1}>
                   {item.taskTitle}
@@ -117,4 +122,13 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderColor: Colors.borderLight,
   },
   emptyText: { ...Typography.bodySmall, color: Colors.textMuted, textAlign: 'center' },
+  embedded: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    paddingTop: Spacing[3],
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
 }));

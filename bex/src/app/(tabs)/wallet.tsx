@@ -8,11 +8,12 @@ import { couponsRepository, businessesRepository } from '@/features/data';
 import { fetchRestCoupons, hasRestAuthSession } from '@/features/coupon/couponsApi';
 import { demoStore } from '@/lib/demoStore';
 import { shouldUseDemoData } from '@/lib/devMode';
-import { getCouponDisplayStatus, useCouponStatusLabels, isCouponExpiringSoon } from '@/lib/couponUtils';
+import { getCouponDisplayStatus, isCouponExpiringSoon } from '@/lib/couponUtils';
 import { useTranslation } from '@/i18n';
 import { Coupon } from '@/types';
 import { router, Href } from 'expo-router';
-import { CouponCard, CouponQrModal } from '@/components/wallet';
+import { CouponQrModal } from '@/components/wallet';
+import { WalletArchiveList, WalletReadyShelf } from '@/components/wallet/WalletShelves';
 import { WalletSkeleton } from '@/components/tasks/TaskCardSkeleton';
 import { AppHeader } from '@/components/navigation/AppHeader';
 import { Button } from '@/components/ui';
@@ -23,7 +24,6 @@ export default function WalletScreen() {
   const styles = useScreenStyles();
   const tabBarPadding = useTabBarBottomPadding(32, USER_TAB_BAR_HEIGHT);
   const { t } = useTranslation();
-  const COUPON_STATUS_LABELS = useCouponStatusLabels();
   const { firebaseUser } = useAuthStore();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [businessNames, setBusinessNames] = useState<Record<string, string>>({});
@@ -149,83 +149,36 @@ export default function WalletScreen() {
         ) : (
           <>
             {active.length > 0 && (
-              <>
-                <Text style={styles.section}>{t('walletScreen.activeCoupons')}</Text>
-                {active.map((coupon, index) => (
-                  <CouponCard
-                    key={coupon.id}
-                    coupon={coupon}
-                    businessName={businessNames[coupon.businessId]}
-                    onPress={() => setSelectedCoupon(coupon)}
-                    variant={index === 0 ? 'hero' : 'default'}
-                    layout="stack"
-                  />
-                ))}
-              </>
+              <WalletReadyShelf
+                coupons={active}
+                names={businessNames}
+                fallbackName={t('walletScreen.defaultBusiness')}
+                onPress={setSelectedCoupon}
+              />
             )}
 
             {locked.length > 0 && (
               <>
                 <Text style={styles.section}>{t('walletScreen.lockedCoupons')}</Text>
                 <Text style={styles.lockedHint}>{t('walletScreen.lockedHint')}</Text>
-                {locked.map((coupon) => (
-                  <CouponCard
-                    key={coupon.id}
-                    coupon={coupon}
-                    businessName={businessNames[coupon.businessId]}
-                    onPress={() => setSelectedCoupon(coupon)}
-                  />
-                ))}
+                <WalletArchiveList
+                  coupons={locked}
+                  names={businessNames}
+                  fallbackName={t('walletScreen.defaultBusiness')}
+                  onPress={setSelectedCoupon}
+                />
               </>
             )}
 
             {historyCount > 0 && (
               <>
                 <Text style={[styles.section, styles.sectionArchive]}>{t('walletScreen.history')}</Text>
-
-                {used.length > 0 && (
-                  <>
-                    <Text style={styles.historyGroup}>{t('walletScreen.used')}</Text>
-                    {used.map((coupon) => (
-                      <CouponCard
-                        key={coupon.id}
-                        coupon={coupon}
-                        businessName={businessNames[coupon.businessId]}
-                        onPress={() => setSelectedCoupon(coupon)}
-                      />
-                    ))}
-                  </>
-                )}
-
-                {swapped.length > 0 && (
-                  <>
-                    <Text style={styles.historyGroup}>{t('walletScreen.traded')}</Text>
-                    {swapped.map((coupon) => (
-                      <CouponCard
-                        key={coupon.id}
-                        coupon={coupon}
-                        businessName={businessNames[coupon.businessId]}
-                        onPress={() => setSelectedCoupon(coupon)}
-                      />
-                    ))}
-                  </>
-                )}
-
-                {expired.length > 0 && (
-                  <>
-                    <Text style={styles.historyGroup}>
-                      {COUPON_STATUS_LABELS.expired}
-                    </Text>
-                    {expired.map((coupon) => (
-                      <CouponCard
-                        key={coupon.id}
-                        coupon={coupon}
-                        businessName={businessNames[coupon.businessId]}
-                        onPress={() => setSelectedCoupon(coupon)}
-                      />
-                    ))}
-                  </>
-                )}
+                <WalletArchiveList
+                  coupons={[...used, ...swapped, ...expired]}
+                  names={businessNames}
+                  fallbackName={t('walletScreen.defaultBusiness')}
+                  onPress={setSelectedCoupon}
+                />
               </>
             )}
           </>
@@ -278,15 +231,6 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     color: Colors.textMuted,
     marginBottom: Spacing[3],
     lineHeight: 20,
-  },
-  historyGroup: {
-    ...Typography.caption,
-    color: Colors.textTertiary,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    marginBottom: Spacing[2],
-    marginTop: Spacing[1],
   },
   empty: { alignItems: 'center', paddingTop: Spacing[16] },
   emptyIcon: {

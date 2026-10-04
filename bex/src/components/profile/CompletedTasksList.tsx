@@ -101,6 +101,7 @@ interface CompletedTasksListProps {
   totalCount?: number;
   previewLimit?: number;
   compact?: boolean;
+  embedded?: boolean;
 }
 
 export function CompletedTasksList({
@@ -108,6 +109,7 @@ export function CompletedTasksList({
   totalCount,
   previewLimit = COMPLETED_TASKS_PREVIEW_LIMIT,
   compact = false,
+  embedded = false,
 }: CompletedTasksListProps) {
   const styles = useScreenStyles();
   const [showAll, setShowAll] = useState(false);
@@ -119,7 +121,7 @@ export function CompletedTasksList({
 
   if (tasks.length === 0) {
     return (
-      <View style={styles.emptyBox}>
+      <View style={[styles.emptyBox, embedded && styles.embedded]}>
         <Text style={styles.emptyText}>{t('completedTasksList.empty')}</Text>
       </View>
     );
@@ -127,7 +129,7 @@ export function CompletedTasksList({
 
   return (
     <>
-      <View style={styles.wrap}>
+      <View style={[styles.wrap, embedded && styles.embedded]}>
         <Text style={styles.title}>{t('completedTasksList.title')}</Text>
         {!compact ? (
           <Text style={styles.subtitle}>
@@ -245,6 +247,16 @@ const useScreenStyles = createThemedStyles((Colors) => ({
     borderColor: Colors.borderLight,
   },
   emptyText: { ...Typography.bodySmall, color: Colors.textMuted, textAlign: 'center' },
+  embedded: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    paddingTop: Spacing[3],
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+    width: '100%',
+  },
   statMuted: { ...Typography.bodySmall, color: Colors.textMuted },
   statLink: {
     ...Typography.bodySmall,

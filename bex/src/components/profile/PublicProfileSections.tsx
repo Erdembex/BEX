@@ -7,7 +7,7 @@ import { ProfileFeedbackList } from '@/components/profile/ProfileFeedbackList';
 import { DangerBadge } from '@/components/profile/DangerBadge';
 import { fetchProfileFeedback } from '@/features/feedback/feedbackApi';
 import { PORTFOLIO_GALLERY_LIMIT } from '@/features/portfolio/profileLimits';
-import { Typography, Spacing, createThemedStyles, useThemeColors } from '@/theme';
+import { Typography, Spacing, Radius, createThemedStyles } from '@/theme';
 import { useTranslation } from '@/i18n';
 import { openProtectedMediaUrl } from '@/lib/openProtectedMedia';
 
@@ -23,6 +23,7 @@ interface PublicProfileSectionsProps {
   isDangerous?: boolean;
   approvedComplaintCount?: number;
   complaintRate?: number;
+  grouped?: boolean;
 }
 
 export function PublicProfileSections({
@@ -37,8 +38,8 @@ export function PublicProfileSections({
   isDangerous = false,
   approvedComplaintCount = 0,
   complaintRate = 0,
+  grouped = false,
 }: PublicProfileSectionsProps) {
-  const Colors = useThemeColors();
   const styles = useScreenStyles();
   const { t } = useTranslation();
   const [feedbackItems, setFeedbackItems] = useState<
@@ -57,6 +58,49 @@ export function PublicProfileSections({
       })
       .catch(() => {});
   }, [profileId, averageRating, feedbackCount]);
+
+  const proof = (
+    <>
+      <View style={[styles.statsRow, grouped && styles.statsRowGrouped]}>
+        <CompletedTasksStat
+          count={completedCount}
+          tasks={completedTasks}
+          totalCount={completedCount}
+        />
+        <Text style={styles.statsDivider}>·</Text>
+        <Text style={styles.statsMuted}>{t('publicProfile.approvedPhotos', { count: portfolio.length })}</Text>
+        {feedbackTotal > 0 ? (
+          <>
+            <Text style={styles.statsDivider}>·</Text>
+            <Text style={styles.statsMuted}>
+              ⭐ {feedbackAvg.toFixed(1)} ({feedbackTotal})
+            </Text>
+          </>
+        ) : null}
+      </View>
+
+      <CompletedTasksList tasks={completedTasks} totalCount={completedCount} embedded={grouped} />
+
+      {profileId ? (
+        <ProfileFeedbackList
+          averageStars={feedbackAvg}
+          totalCount={feedbackTotal}
+          items={feedbackItems}
+          title={t('publicProfile.feedbackTitle')}
+          embedded={grouped}
+        />
+      ) : null}
+
+      <UserPortfolioGallery
+        items={portfolio}
+        maxItems={PORTFOLIO_GALLERY_LIMIT}
+        title={t('publicProfile.portfolioTitle')}
+        subtitle={t('publicProfile.portfolioSubtitle')}
+        emptyText={t('publicProfile.portfolioEmpty')}
+        embedded={grouped}
+      />
+    </>
+  );
 
   return (
     <>
@@ -95,42 +139,7 @@ export function PublicProfileSections({
         </TouchableOpacity>
       ) : null}
 
-      <View style={styles.statsRow}>
-        <CompletedTasksStat
-          count={completedCount}
-          tasks={completedTasks}
-          totalCount={completedCount}
-        />
-        <Text style={styles.statsDivider}>·</Text>
-        <Text style={styles.statsMuted}>{t('publicProfile.approvedPhotos', { count: portfolio.length })}</Text>
-        {feedbackTotal > 0 ? (
-          <>
-            <Text style={styles.statsDivider}>·</Text>
-            <Text style={styles.statsMuted}>
-              ⭐ {feedbackAvg.toFixed(1)} ({feedbackTotal})
-            </Text>
-          </>
-        ) : null}
-      </View>
-
-      <CompletedTasksList tasks={completedTasks} totalCount={completedCount} />
-
-      {profileId ? (
-        <ProfileFeedbackList
-          averageStars={feedbackAvg}
-          totalCount={feedbackTotal}
-          items={feedbackItems}
-          title={t('publicProfile.feedbackTitle')}
-        />
-      ) : null}
-
-      <UserPortfolioGallery
-        items={portfolio}
-        maxItems={PORTFOLIO_GALLERY_LIMIT}
-        title={t('publicProfile.portfolioTitle')}
-        subtitle={t('publicProfile.portfolioSubtitle')}
-        emptyText={t('publicProfile.portfolioEmpty')}
-      />
+      {grouped ? <View style={styles.proofCard}>{proof}</View> : proof}
     </>
   );
 }
@@ -149,12 +158,24 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   bioTitle: { ...Typography.labelMedium, color: Colors.textPrimary },
   bioText: { ...Typography.bodyMedium, color: Colors.textSecondary, lineHeight: 22 },
   cvLink: { ...Typography.labelMedium, color: Colors.primary, textAlign: 'center' },
+  proofCard: {
+    width: '100%',
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.lg,
+    padding: Spacing[4],
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing[3],
+  },
   statsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing[2],
     flexWrap: 'wrap',
+  },
+  statsRowGrouped: {
+    justifyContent: 'flex-start',
   },
   statsDivider: { ...Typography.bodySmall, color: Colors.textMuted },
   statsMuted: { ...Typography.bodySmall, color: Colors.textMuted },

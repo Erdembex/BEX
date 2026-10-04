@@ -199,6 +199,20 @@ export async function markConversationReadByApplication(
   }
 }
 
+export async function fetchConversationParties(
+  conversationId: string
+): Promise<{ businessUserId: string; individualUserId: string } | null> {
+  try {
+    const { data } = await apiClient.get<ConversationDto>(`/api/conversations/${conversationId}`);
+    const businessUserId = String(data.businessUserId ?? '');
+    const individualUserId = String(data.individualUserId ?? '');
+    if (!businessUserId || !individualUserId) return null;
+    return { businessUserId, individualUserId };
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchConversationParticipants(
   applicationId: string
 ): Promise<{ businessUserId: string; individualUserId: string } | null> {

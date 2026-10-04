@@ -6,7 +6,8 @@ import { useFocusEffect } from "expo-router/react-navigation";
 import { useAuthStore } from '@/store/authStore';
 import { applicationsRepository, businessesRepository, tasksRepository, usersRepository } from '@/features/data';
 import { canUseApplicationMessages } from '@/features/messages';
-import { parseDirectThreadKey } from '@/features/messages/conversationsApi';
+import { fetchConversationParties, parseDirectThreadKey } from '@/features/messages/conversationsApi';
+import { fetchPublicBusinessProfileByOwner } from '@/features/business/businessProfileApi';
 import { useMessagingInbox, MessagingAudience } from '@/hooks/useMessagingInbox';
 import { ChatThreadView } from '@/components/messaging/ChatThreadView';
 import { ProfileAvatar } from '@/components/profile/ProfileAvatar';
@@ -44,11 +45,41 @@ export function MessageThreadScreen({
       if (!applicationId || !firebaseUser || !bexUser) return;
 
       void (async () => {
-        if (parseDirectThreadKey(applicationId)) {
+        const directConversationId = parseDirectThreadKey(applicationId);
+        if (directConversationId) {
           setAllowed(true);
           setTaskTitle(t('messageThreadScreen.directListing'));
           setPeerLabel(inboxRow?.peerName ?? t('messageThreadScreen.defaultChat'));
           setPeerAvatarUrl(inboxRow?.peerAvatarUrl ?? null);
+          try {
+            const parties = await fetchConversationParties(directConversationId);
+            if (!parties) return;
+
+            if (bexUser.role === 'business') {
+              const stats = await usersRepository.getPublicProfileStats(parties.individualUserId);
+              const label =
+                stats?.displayName?.replace(/^@/, '') ||
+                inboxRow?.peerName ||
+                t('messageThreadScreen.defaultChat');
+              setPeerLabel(label);
+              setPeerAvatarUrl(stats?.avatarUrl ?? inboxRow?.peerAvatarUrl ?? null);
+              setPeerProfileHref({
+                pathname: '/user/[id]',
+                params: { id: parties.individualUserId },
+              } as Href);
+            } else {
+              const business = await fetchPublicBusinessProfileByOwner(parties.businessUserId);
+              setPeerLabel(
+                business?.name ?? inboxRow?.peerName ?? t('messageThreadScreen.defaultBusiness')
+              );
+              setPeerAvatarUrl(business?.logoUrl?.trim() || inboxRow?.peerAvatarUrl || null);
+              if (business?.id) {
+                setPeerProfileHref(`/business/${business.id}` as Href);
+              }
+            }
+          } catch {
+            // Sohbet açık kalsın; profil linki gelmezse başlık yine de durur.
+          }
           return;
         }
 

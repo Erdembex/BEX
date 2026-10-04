@@ -6,7 +6,7 @@ import { AppHeader } from '@/components/navigation/AppHeader';
 import { useOpenNotifications } from '@/hooks/useOpenNotifications';
 import { useNotificationUnreadCount } from '@/hooks/useNotifications';
 import { goUserHub } from '@/lib/userHubNavigation';
-import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
+import { Typography, Spacing, Radius, createThemedStyles } from '@/theme';
 import { useTranslation } from '@/i18n';
 
 type MoreLink = {
@@ -50,7 +50,6 @@ const MORE_LINKS: MoreLink[] = [
 ];
 
 export default function MoreScreen() {
-  const Colors = useThemeColors();
   const styles = useScreenStyles();
   const tabBarPadding = useTabBarBottomPadding();
   const { t } = useTranslation();
@@ -62,20 +61,21 @@ export default function MoreScreen() {
       <AppHeader title={t('moreScreen.title')} showMenu={false} showNotifications={false} onBack={goUserHub} />
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: tabBarPadding }]}>
         <TouchableOpacity style={styles.noticeCard} activeOpacity={0.88} onPress={openNotifications}>
-          <View style={styles.noticeLeft}>
-            <Text style={styles.noticeIcon}>◉</Text>
-            <View>
+          <Text style={styles.noticeIcon}>◉</Text>
+          <View style={styles.noticeBody}>
+            <View style={styles.noticeTitleRow}>
               <Text style={styles.noticeTitle}>{t('moreScreen.notifications')}</Text>
-              <Text style={styles.noticeHint}>{t('moreScreen.notificationsHint')}</Text>
+              {unreadCount > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText} allowFontScaling={false}>
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </Text>
+                </View>
+              ) : null}
             </View>
+            <Text style={styles.noticeHint}>{t('moreScreen.notificationsHint')}</Text>
           </View>
-          {unreadCount > 0 ? (
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
-            </View>
-          ) : (
-            <Text style={styles.chevron}>›</Text>
-          )}
+          <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
 
         <Text style={styles.section}>{t('moreScreen.other')}</Text>
@@ -105,27 +105,34 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   noticeCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: Spacing[3],
     backgroundColor: Colors.card,
     borderRadius: Radius.lg,
     padding: Spacing[4],
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  noticeLeft: { flexDirection: 'row', alignItems: 'center', gap: Spacing[3], flex: 1 },
-  noticeIcon: { fontSize: 22, color: Colors.iconPrimary, fontWeight: '700' },
+  noticeIcon: { width: 28, textAlign: 'center', fontSize: 18, color: Colors.iconPrimary },
+  noticeBody: { flex: 1, gap: 2 },
+  noticeTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[2] },
   noticeTitle: { ...Typography.labelLarge, color: Colors.textPrimary, fontWeight: '700' },
-  noticeHint: { ...Typography.caption, color: Colors.textSecondary, marginTop: 2 },
+  noticeHint: { ...Typography.caption, color: Colors.textSecondary },
   badge: {
-    minWidth: 24,
-    height: 24,
-    borderRadius: 12,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: Colors.error,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
   },
-  badgeText: { ...Typography.caption, color: Colors.textInverse, fontWeight: '800', fontSize: 11 },
+  badgeText: {
+    color: Colors.textOnPrimary,
+    fontWeight: '800',
+    fontSize: 11,
+    lineHeight: 14,
+    textAlign: 'center',
+  },
   section: {
     ...Typography.caption,
     color: Colors.textMuted,

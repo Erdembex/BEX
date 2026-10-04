@@ -161,7 +161,7 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   },
   ctaBtnText: {
     ...Typography.labelLarge,
-    color: Colors.textOnGold,
+    color: Colors.textOnPrimary,
     fontWeight: '700',
   },
 }));

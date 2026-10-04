@@ -90,6 +90,7 @@ export default function ProfileScreen() {
         {bexUser?.role === 'user' ? (
           <View style={styles.fullWidth}>
             <PublicProfileSections
+              grouped
               profileId={profileId}
               completedCount={bexUser.completedTaskCount ?? 0}
               completedTasks={completedTasks}

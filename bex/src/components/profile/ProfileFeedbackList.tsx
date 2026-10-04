@@ -12,6 +12,7 @@ interface ProfileFeedbackListProps {
   totalCount: number;
   items: FeedbackDto[];
   title?: string;
+  embedded?: boolean;
 }
 
 export function ProfileFeedbackList({
@@ -19,6 +20,7 @@ export function ProfileFeedbackList({
   totalCount,
   items,
   title,
+  embedded = false,
 }: ProfileFeedbackListProps) {
   const Colors = useThemeColors();
   const styles = useScreenStyles();
@@ -26,7 +28,7 @@ export function ProfileFeedbackList({
   if (totalCount === 0 && items.length === 0) return null;
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, embedded && styles.embedded]}>
       <View style={styles.header}>
         <Text style={styles.title}>{title ?? t('profileFeedbackList.defaultTitle')}</Text>
         <StarRatingDisplay value={averageStars} />
@@ -70,4 +72,13 @@ const useScreenStyles = createThemedStyles((Colors) => ({
   author: { ...Typography.labelMedium, color: Colors.textPrimary },
   comment: { ...Typography.bodySmall, color: Colors.textSecondary, lineHeight: 20 },
   date: { ...Typography.caption, color: Colors.textMuted },
+  embedded: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+    borderRadius: 0,
+    paddingHorizontal: 0,
+    paddingTop: Spacing[3],
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
 }));

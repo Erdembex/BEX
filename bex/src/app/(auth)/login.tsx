@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Dimensions,
   useWindowDimensions,
+  type KeyboardEvent,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,12 +46,33 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const restingHeight = useRef(height);
+
+  useEffect(() => {
+    if (!keyboardOpen) restingHeight.current = height;
+  }, [height, keyboardOpen]);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSub = Keyboard.addListener(showEvent, () => setKeyboardOpen(true));
-    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardOpen(false));
+    const showSub = Keyboard.addListener(showEvent, (event: KeyboardEvent) => {
+      setKeyboardOpen(true);
+      if (Platform.OS !== 'android') {
+        setKeyboardInset(0);
+        return;
+      }
+      const windowHeight = Dimensions.get('window').height;
+      const fromTop = windowHeight - event.endCoordinates.screenY;
+      const reported =
+        fromTop > 0 && fromTop < windowHeight ? fromTop : event.endCoordinates.height;
+      const alreadyResized = Math.max(0, restingHeight.current - windowHeight);
+      setKeyboardInset(Math.max(0, reported - alreadyResized));
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardOpen(false);
+      setKeyboardInset(0);
+    });
     return () => {
       showSub.remove();
       hideSub.remove();
@@ -119,7 +142,7 @@ export default function LoginScreen() {
       <AuthGlassBackground />
 
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={[styles.flex, keyboardInset > 0 && { marginBottom: keyboardInset }]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
