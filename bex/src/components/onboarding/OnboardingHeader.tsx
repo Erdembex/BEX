@@ -1,77 +1,49 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTranslation } from '@/i18n';
-import { Spacing, Typography, createThemedStyles } from '@/theme';
+import { FontFamily } from '@/theme';
+
+const CREAM = '#F0EEE9';
 
 type Props = {
-  currentStep: number;
-  stepCount: number;
   onSkip?: () => void;
 };
 
-export function OnboardingHeader({ currentStep, stepCount, onSkip }: Props) {
+export function OnboardingHeader({ onSkip }: Props) {
   const { t } = useTranslation();
-  const styles = useStyles();
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.topRow}>
-        {onSkip ? (
-          <TouchableOpacity onPress={onSkip} hitSlop={12} accessibilityRole="button">
-            <Text style={styles.skip}>{t('auth.onboarding.skip')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View />
-        )}
-      </View>
-
-      <View
-        style={styles.dots}
-        accessibilityLabel={t('auth.onboarding.stepLabel', {
-          current: currentStep + 1,
-          total: stepCount,
-        })}
-      >
-        {Array.from({ length: stepCount }, (_, i) => (
-          <View key={i} style={[styles.dot, i === currentStep && styles.dotActive]} />
-        ))}
-      </View>
+      <Text style={styles.brand}>Passla</Text>
+      {onSkip ? (
+        <TouchableOpacity onPress={onSkip} hitSlop={12} accessibilityRole="button">
+          <Text style={styles.skip}>{t('auth.onboarding.skip')}</Text>
+        </TouchableOpacity>
+      ) : (
+        <View />
+      )}
     </View>
   );
 }
 
-const useStyles = createThemedStyles((Colors) =>
-  StyleSheet.create({
-    wrap: {
-      paddingHorizontal: Spacing[6],
-      paddingBottom: Spacing[4],
-    },
-    topRow: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      minHeight: 32,
-      alignItems: 'center',
-    },
-    skip: {
-      ...Typography.labelMedium,
-      color: Colors.textSecondary,
-    },
-    dots: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: Spacing[2],
-      marginTop: Spacing[2],
-    },
-    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-      backgroundColor: Colors.border,
-    },
-    dotActive: {
-      backgroundColor: Colors.primary,
-      width: 24,
-    },
-  })
-);
+const styles = StyleSheet.create({
+  wrap: {
+    paddingHorizontal: 28,
+    paddingTop: 10,
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  brand: {
+    fontFamily: FontFamily.bold,
+    fontSize: 20,
+    letterSpacing: -0.6,
+    color: CREAM,
+  },
+  skip: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 15,
+    color: 'rgba(240,238,233,0.72)',
+  },
+});

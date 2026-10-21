@@ -67,8 +67,8 @@ export default function UserHomeScreen() {
     (async () => {
       setLoading(true);
       try {
-        const featured = await tasksRepository.getFeatured(12);
-        if (!cancelled) setTasks(featured);
+        const page = await tasksRepository.getActive(50);
+        if (!cancelled) setTasks(page.tasks);
       } catch {
         if (!cancelled) setTasks([]);
       } finally {

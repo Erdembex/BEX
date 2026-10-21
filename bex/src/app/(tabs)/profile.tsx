@@ -107,14 +107,6 @@ export default function ProfileScreen() {
           onPress={() => router.push('/settings' as Href)}
         />
 
-        {__DEV__ ? (
-          <Button
-            title={t('profileScreen.releaseChecklist')}
-            variant="outline"
-            onPress={() => router.push('/setup-guide' as Href)}
-          />
-        ) : null}
-
         <Button title={t('profileScreen.logout')} variant="outline" onPress={handleLogout} />
 
         <View style={styles.meta}>

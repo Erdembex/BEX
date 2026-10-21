@@ -7,13 +7,13 @@
   <meta name="description" content="Passla pilot işletme programı: nakit ödemeden görev karşılığı dijital iş, 3 ay ücretsiz Standart paket." />
   <style>
     :root {
-      --bg: #0E0618;
+      --bg: #F0EEE9;
       --navy: #051F45;
-      --accent: #F5B301;
+      --accent: #051F45;
       --gold: #D4B86A;
-      --text: #f3f0f7;
-      --muted: #a89bb8;
-      --card: #1a1028;
+      --text: #051F45;
+      --muted: #5A6572;
+      --card: #FFFFFF;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
@@ -27,13 +27,13 @@
     nav { margin-bottom: 2rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
     nav a { color: var(--accent); text-decoration: none; }
     .hero {
-      background: linear-gradient(160deg, var(--navy), #1a1028);
-      border: 1px solid rgba(212,184,106,0.35);
+      background: var(--navy);
+      border: 1px solid rgba(240, 238, 233, 0.28);
       border-radius: 14px;
       padding: 1.4rem 1.3rem;
       margin-bottom: 1.5rem;
     }
-    .hero p { color: #d8d0e4; margin-bottom: 0; }
+    .hero p { color: #F0EEE9; margin-bottom: 0; }
     .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin: 1.25rem 0 0.25rem; }
     .btn {
       display: inline-block;
@@ -44,22 +44,25 @@
       border: 1px solid var(--accent);
       color: var(--accent);
     }
-    .btn.primary { background: var(--accent); color: var(--navy); }
+    .btn.primary { background: var(--navy); color: #F0EEE9; }
+    .hero .btn { border-color: #F0EEE9; color: #F0EEE9; background: transparent; }
+    .hero .btn.primary { background: #F0EEE9; color: var(--navy); border-color: #F0EEE9; }
+    strong { color: var(--text); }
     .btn:hover { filter: brightness(1.08); }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin: 1rem 0; }
     @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
     .card {
       background: var(--card);
-      border: 1px solid rgba(245,179,1,0.28);
+      border: 1px solid #DDD8CF;
       border-radius: 12px;
       padding: 1.1rem 1.15rem;
     }
     .card h3 { color: var(--text); font-size: 1rem; margin-bottom: 0.5rem; }
     .note {
       font-size: 0.9rem;
-      border-left: 3px solid var(--gold);
+      border-left: 3px solid var(--navy);
       padding: 0.65rem 0.9rem;
-      background: rgba(212,184,106,0.08);
+      background: rgba(5, 31, 69, 0.06);
       border-radius: 0 8px 8px 0;
       color: var(--muted);
     }

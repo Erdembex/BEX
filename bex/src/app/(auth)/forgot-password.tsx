@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
-import { Typography, Spacing, Radius } from '@/theme';
-import { Button, Input } from '@/components/ui';
+import { Typography, Spacing, Radius, FontFamily } from '@/theme';
+import { Input } from '@/components/ui';
 import { useTranslation } from '@/i18n';
 import { AuthBrandedScreen } from '@/components/auth/AuthBrandedScreen';
 import { AUTH_SHEET } from '@/components/auth/authSheetPalette';
+import { maskEmail } from '@/lib/maskEmail';
+import { androidTextLayout } from '@/lib/androidUi';
+
+const NAVY = '#051F45';
+const CREAM = '#F0EEE9';
+const SS_MARK = require('../../../assets/branding/splash-ss-white.png');
 
 type Step = 'form' | 'success';
 
@@ -49,18 +54,17 @@ export default function ForgotPasswordScreen() {
 
   return (
     <AuthBrandedScreen
-      scrollSheet
-      heroMinRatio={0.34}
+      bare
+      scrollBody
+      center
       onBack={() => router.back()}
-      backLabel={t('common.back')}
+      backLabel={t('forgotPasswordScreen.back')}
     >
+      <Image source={SS_MARK} style={styles.mark} resizeMode="contain" accessibilityIgnoresInvertColors />
       {step === 'form' ? (
         <>
-          <View style={styles.header}>
-            <Text style={styles.emoji}>🔑</Text>
-            <Text style={styles.title}>{t('forgotPasswordScreen.title')}</Text>
-            <Text style={styles.subtitle}>{t('forgotPasswordScreen.subtitle')}</Text>
-          </View>
+          <Text style={styles.title}>{t('forgotPasswordScreen.title')}</Text>
+          <Text style={styles.subtitle}>{t('forgotPasswordScreen.subtitle')}</Text>
 
           <View style={styles.form}>
             {error ? (
@@ -69,25 +73,25 @@ export default function ForgotPasswordScreen() {
               </View>
             ) : null}
 
+            <Text style={styles.sectionLabel}>{t('forgotPasswordScreen.emailLabel')}</Text>
             <Input
               variant="frost"
-              label={t('forgotPasswordScreen.emailLabel')}
-              placeholder={t('forgotPasswordScreen.emailPlaceholder')}
+              placeholder={t('auth.email')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoComplete="email"
               textContentType="emailAddress"
-              rightIcon={<Ionicons name="mail-outline" size={20} color={AUTH_SHEET.muted} />}
             />
 
             <TouchableOpacity
-              style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+              style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
               onPress={handleReset}
               disabled={loading}
               activeOpacity={0.88}
+              accessibilityRole="button"
             >
-              <Text style={styles.primaryBtnText}>
+              <Text style={styles.submitLabel}>
                 {loading ? '...' : t('forgotPasswordScreen.submit')}
               </Text>
             </TouchableOpacity>
@@ -98,11 +102,10 @@ export default function ForgotPasswordScreen() {
           </View>
         </>
       ) : (
-        <View style={styles.successBlock}>
-          <Text style={styles.emoji}>✉️</Text>
+        <>
           <Text style={styles.title}>{t('forgotPasswordScreen.successTitle')}</Text>
           <Text style={styles.subtitle}>
-            <Text style={styles.emailHighlight}>{email}</Text>
+            <Text style={styles.emailMark}>{maskEmail(email)}</Text>
             {t('forgotPasswordScreen.successText')}
           </Text>
 
@@ -116,8 +119,8 @@ export default function ForgotPasswordScreen() {
             </View>
           ) : null}
 
-          <Button
-            title={t('forgotPasswordScreen.enterCode')}
+          <TouchableOpacity
+            style={styles.submitBtn}
             onPress={() =>
               router.push(
                 devResetToken
@@ -125,39 +128,62 @@ export default function ForgotPasswordScreen() {
                   : '/(auth)/reset-password'
               )
             }
-          />
-          <Button
-            title={t('forgotPasswordScreen.backToLoginFull')}
-            onPress={() => router.replace('/(auth)/login')}
-            variant="outline"
-          />
-          <Button
-            title={t('forgotPasswordScreen.resend')}
-            onPress={() => setStep('form')}
-            variant="ghost"
-          />
-        </View>
+            activeOpacity={0.88}
+            accessibilityRole="button"
+          >
+            <Text style={styles.submitLabel}>{t('forgotPasswordScreen.enterCode')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.replace('/(auth)/login')} style={styles.linkBtn}>
+            <Text style={styles.linkText}>{t('forgotPasswordScreen.backToLoginFull')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setStep('form')} style={styles.linkBtn}>
+            <Text style={styles.linkText}>{t('forgotPasswordScreen.resend')}</Text>
+          </TouchableOpacity>
+        </>
       )}
     </AuthBrandedScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { alignItems: 'center', gap: Spacing[2], marginBottom: Spacing[4] },
-  emoji: { fontSize: 48 },
+  mark: {
+    width: 124,
+    height: 72,
+    alignSelf: 'center',
+    marginBottom: 28,
+  },
   title: {
-    ...Typography.headingMedium,
-    color: AUTH_SHEET.ink,
-    fontWeight: '800',
+    fontFamily: FontFamily.bold,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -0.8,
+    color: CREAM,
     textAlign: 'center',
+    marginBottom: 10,
+    ...androidTextLayout,
   },
   subtitle: {
-    ...Typography.bodyMedium,
-    color: AUTH_SHEET.body,
+    fontFamily: FontFamily.regular,
+    fontSize: 15,
     lineHeight: 22,
+    color: 'rgba(240,238,233,0.72)',
     textAlign: 'center',
+    marginBottom: 28,
+    ...androidTextLayout,
   },
-  form: { gap: Spacing[4] },
+  emailMark: {
+    fontFamily: FontFamily.bold,
+    color: CREAM,
+  },
+  form: { gap: Spacing[3] },
+  sectionLabel: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 13,
+    color: 'rgba(240,238,233,0.78)',
+    marginLeft: 8,
+    marginBottom: 8,
+  },
   errorBanner: {
     backgroundColor: AUTH_SHEET.errorBg,
     borderRadius: Radius.xl,
@@ -167,55 +193,54 @@ const styles = StyleSheet.create({
   },
   errorBannerText: {
     ...Typography.bodySmall,
-    color: AUTH_SHEET.error,
-    lineHeight: 20,
+    color: '#F0B4B4',
   },
-  primaryBtn: {
-    backgroundColor: AUTH_SHEET.ink,
+  submitBtn: {
+    minHeight: 56,
     borderRadius: Radius.full,
-    minHeight: 52,
-    paddingVertical: Spacing[3],
+    backgroundColor: CREAM,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: Spacing[2],
   },
-  primaryBtnDisabled: { opacity: 0.6 },
-  primaryBtnText: {
-    ...Typography.labelLarge,
-    color: '#FFFFFF',
-    fontWeight: '800',
+  submitBtnDisabled: { opacity: 0.6 },
+  submitLabel: {
+    fontFamily: FontFamily.bold,
+    color: NAVY,
+    fontSize: 17,
+    textAlign: 'center',
   },
-  linkBtn: { alignItems: 'center', paddingVertical: Spacing[2] },
+  linkBtn: { alignItems: 'center', marginTop: 18 },
   linkText: {
-    ...Typography.labelMedium,
-    color: AUTH_SHEET.ink,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
+    fontFamily: FontFamily.bold,
+    color: CREAM,
+    fontSize: 15,
   },
-  successBlock: { gap: Spacing[4], alignItems: 'stretch' },
-  emailHighlight: { fontWeight: '700', color: AUTH_SHEET.ink },
   devCodeBox: {
-    backgroundColor: 'rgba(23, 38, 79, 0.08)',
+    backgroundColor: 'rgba(240,238,233,0.08)',
     borderRadius: Radius.lg,
     padding: Spacing[4],
     borderWidth: 1,
-    borderColor: 'rgba(23, 38, 79, 0.2)',
+    borderColor: 'rgba(240,238,233,0.2)',
     gap: Spacing[2],
+    marginBottom: Spacing[4],
   },
   devCodeLabel: {
     ...Typography.labelMedium,
-    color: AUTH_SHEET.ink,
+    color: CREAM,
     fontWeight: '700',
+    textAlign: 'center',
   },
   devCodeValue: {
     ...Typography.headingMedium,
-    color: AUTH_SHEET.ink,
+    color: CREAM,
     letterSpacing: 2,
     textAlign: 'center',
     fontWeight: '800',
   },
   devCodeHint: {
     ...Typography.bodySmall,
-    color: AUTH_SHEET.muted,
+    color: 'rgba(240,238,233,0.72)',
     lineHeight: 20,
     textAlign: 'center',
   },

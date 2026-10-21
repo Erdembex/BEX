@@ -1,16 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  Dimensions,
-  useWindowDimensions,
-  type KeyboardEvent,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,18 +23,18 @@ import {
 } from '@/lib/credentialStorage';
 import { androidTextLayout } from '@/lib/androidUi';
 import { useResolvedSafeAreaInsets } from '@/components/common/Screen';
-import { Typography, Spacing, Radius } from '@/theme';
+import { Typography, Spacing, Radius, FontFamily } from '@/theme';
 import { Input } from '@/components/ui';
-import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
-import { AuthFrostCard } from '@/components/auth/AuthFrostCard';
 import { AUTH_SHEET } from '@/components/auth/authSheetPalette';
 import { useTranslation } from '@/i18n';
+import { useKeyboardOverlap } from '@/components/auth/useKeyboardOverlap';
+
+const NAVY = '#051F45';
+const CREAM = '#F0EEE9';
+const SS_MARK = require('../../../assets/branding/splash-ss-white.png');
 
 export default function LoginScreen() {
   const insets = useResolvedSafeAreaInsets();
-  const { height } = useWindowDimensions();
-  // Kart, duvardaki PASSLA'nın altına otursun; yazının üstünü kapatmasın.
-  const logoClearance = Math.round(height * 0.24);
   const { setBexUser, setFirebaseUser } = useAuthStore();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string | string[] }>();
   const { t } = useTranslation();
@@ -45,39 +43,7 @@ export default function LoginScreen() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [keyboardOpen, setKeyboardOpen] = useState(false);
-  const [keyboardInset, setKeyboardInset] = useState(0);
-  const restingHeight = useRef(height);
-
-  useEffect(() => {
-    if (!keyboardOpen) restingHeight.current = height;
-  }, [height, keyboardOpen]);
-
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-    const showSub = Keyboard.addListener(showEvent, (event: KeyboardEvent) => {
-      setKeyboardOpen(true);
-      if (Platform.OS !== 'android') {
-        setKeyboardInset(0);
-        return;
-      }
-      const windowHeight = Dimensions.get('window').height;
-      const fromTop = windowHeight - event.endCoordinates.screenY;
-      const reported =
-        fromTop > 0 && fromTop < windowHeight ? fromTop : event.endCoordinates.height;
-      const alreadyResized = Math.max(0, restingHeight.current - windowHeight);
-      setKeyboardInset(Math.max(0, reported - alreadyResized));
-    });
-    const hideSub = Keyboard.addListener(hideEvent, () => {
-      setKeyboardOpen(false);
-      setKeyboardInset(0);
-    });
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
+  const { open: keyboardOpen, overlap: keyboardOverlap } = useKeyboardOverlap();
 
   useEffect(() => {
     loadSavedCredentials().then((saved) => {
@@ -139,10 +105,9 @@ export default function LoginScreen() {
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <AuthGlassBackground />
 
       <KeyboardAvoidingView
-        style={[styles.flex, keyboardInset > 0 && { marginBottom: keyboardInset }]}
+        style={[styles.flex, keyboardOverlap > 0 ? { paddingBottom: keyboardOverlap } : null]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={0}
       >
@@ -150,102 +115,95 @@ export default function LoginScreen() {
           style={styles.flex}
           contentContainerStyle={[
             styles.scroll,
-            keyboardOpen && styles.scrollKeyboard,
+            keyboardOpen ? styles.scrollOpen : styles.scrollRest,
             {
-              paddingTop: keyboardOpen ? Spacing[2] : insets.top + Spacing[2],
-              paddingBottom: keyboardOpen ? Spacing[2] : Math.max(insets.bottom, Spacing[3]),
+              paddingTop: insets.top + 18,
+              paddingBottom: Math.max(insets.bottom, Spacing[4]),
             },
           ]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
+          automaticallyAdjustKeyboardInsets={false}
         >
-          {keyboardOpen ? null : <View style={{ height: logoClearance }} />}
+          <Image
+            source={SS_MARK}
+            style={[styles.mark, keyboardOpen && styles.markCompact]}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+          />
 
-          <AuthFrostCard compact style={styles.card}>
-            <View style={styles.header}>
-              <Text style={styles.title}>{t('auth.loginTitle')}</Text>
-              <Text style={styles.subtitle}>{t('auth.loginSubtitle')}</Text>
-            </View>
+          <Text style={styles.title}>{t('auth.loginTitle')}</Text>
 
-            <View style={styles.form}>
-              {error ? (
-                <View style={styles.errorBanner}>
-                  <Text style={styles.errorBannerText}>{error}</Text>
-                </View>
-              ) : null}
-
-              <Input
-                variant="frost"
-                compact
-                placeholder={t('auth.emailPlaceholder')}
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoComplete="email"
-                textContentType="emailAddress"
-                returnKeyType="next"
-                rightIcon={<Ionicons name="mail-outline" size={20} color={AUTH_SHEET.muted} />}
-              />
-
-              <Input
-                variant="frost"
-                compact
-                placeholder="••••••••"
-                value={password}
-                onChangeText={setPassword}
-                isPassword
-                autoComplete="password"
-                textContentType="password"
-                returnKeyType="done"
-                onSubmitEditing={handleLogin}
-              />
-
-              <View style={styles.optionsRow}>
-                <TouchableOpacity
-                  style={styles.rememberRow}
-                  onPress={() => setRememberMe((v) => !v)}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
-                    {rememberMe ? <Ionicons name="checkmark" size={14} color="#FFFFFF" /> : null}
-                  </View>
-                  <Text style={styles.rememberText} numberOfLines={1}>
-                    {t('auth.rememberMe')}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => router.push('/(auth)/forgot-password')}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  style={styles.forgotHit}
-                >
-                  <Text style={styles.forgotText} numberOfLines={2}>
-                    {t('auth.forgotPassword')}
-                  </Text>
-                </TouchableOpacity>
+          <View style={styles.form}>
+            {error ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorBannerText}>{error}</Text>
               </View>
+            ) : null}
 
-              <TouchableOpacity
-                style={[styles.loginBtn, loading && styles.loginBtnDisabled]}
-                onPress={handleLogin}
-                disabled={loading}
-                activeOpacity={0.88}
-                accessibilityRole="button"
-              >
-                <Text style={styles.loginLabel}>
-                  {loading ? '...' : `${t('auth.login')}  →`}
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <Input
+              variant="frost"
+              compact
+              placeholder={t('auth.email')}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              rightIcon={<Ionicons name="mail-outline" size={20} color={AUTH_SHEET.muted} />}
+            />
 
-            <View style={styles.registerRow}>
-              <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
-                <Text style={styles.registerLink}>{t('auth.register')}</Text>
-              </TouchableOpacity>
-            </View>
-          </AuthFrostCard>
+            <Input
+              variant="frost"
+              compact
+              placeholder={t('auth.password')}
+              value={password}
+              onChangeText={setPassword}
+              isPassword
+              autoComplete="password"
+              textContentType="password"
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+            />
+
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/forgot-password')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              style={styles.forgotHit}
+            >
+              <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.rememberRow}
+              onPress={() => setRememberMe((v) => !v)}
+              activeOpacity={0.8}
+            >
+              <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                {rememberMe ? <Ionicons name="checkmark" size={14} color={NAVY} /> : null}
+              </View>
+              <Text style={styles.rememberText}>{t('auth.rememberMe')}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.loginBtn, loading && styles.loginBtnDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+              activeOpacity={0.88}
+              accessibilityRole="button"
+            >
+              <Text style={styles.loginLabel}>{loading ? '...' : t('auth.loginTitle')}</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.registerRow}>
+            <Text style={styles.registerText}>{t('auth.noAccount')}</Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+              <Text style={styles.registerLink}>{t('auth.register')}</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -255,7 +213,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#17264F',
+    backgroundColor: NAVY,
   },
   flex: {
     flex: 1,
@@ -263,36 +221,38 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: Spacing[6],
+    paddingHorizontal: 24,
   },
-  scrollKeyboard: {
-    justifyContent: 'flex-end',
+  scrollRest: {
+    justifyContent: 'center',
   },
-  card: {
-    width: '100%',
-    maxWidth: 360,
+  scrollOpen: {
+    flexGrow: 0,
+    justifyContent: 'flex-start',
+  },
+  mark: {
+    width: 156,
+    height: 92,
     alignSelf: 'center',
+    marginBottom: 36,
   },
-  header: {
-    marginBottom: Spacing[1],
-    gap: 2,
+  markCompact: {
+    width: 72,
+    height: 42,
+    marginTop: 0,
+    marginBottom: 12,
   },
   title: {
-    ...Typography.headingMedium,
-    color: AUTH_SHEET.ink,
-    fontSize: 22,
-    lineHeight: 28,
-    ...androidTextLayout,
-  },
-  subtitle: {
-    ...Typography.bodySmall,
-    color: AUTH_SHEET.body,
-    lineHeight: 18,
-    fontSize: 13,
+    fontFamily: FontFamily.bold,
+    fontSize: 34,
+    lineHeight: 38,
+    letterSpacing: -1.1,
+    color: CREAM,
+    marginBottom: 32,
     ...androidTextLayout,
   },
   form: {
-    gap: Spacing[2],
+    gap: Spacing[3],
   },
   errorBanner: {
     backgroundColor: AUTH_SHEET.errorBg,
@@ -305,84 +265,76 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: AUTH_SHEET.error,
   },
-  optionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: Spacing[2],
-  },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing[2],
-    flex: 1,
-    minWidth: 0,
+    gap: 10,
+    marginTop: 2,
+    marginBottom: 4,
+    paddingHorizontal: 8,
   },
   forgotHit: {
-    flexShrink: 1,
-    maxWidth: '46%',
-    alignItems: 'flex-end',
+    alignSelf: 'flex-end',
+    paddingHorizontal: 8,
+    marginTop: -4,
   },
   checkbox: {
     width: 22,
     height: 22,
-    borderRadius: Radius.sm,
+    borderRadius: 6,
     borderWidth: 2,
-    borderColor: AUTH_SHEET.ink,
-    backgroundColor: '#FFFFFF',
+    borderColor: CREAM,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxActive: {
-    backgroundColor: AUTH_SHEET.ink,
-    borderColor: AUTH_SHEET.ink,
+    backgroundColor: CREAM,
+    borderColor: CREAM,
   },
   rememberText: {
-    ...Typography.bodySmall,
-    color: AUTH_SHEET.body,
-    flexShrink: 1,
+    fontFamily: FontFamily.regular,
+    fontSize: 14,
+    color: 'rgba(240,238,233,0.78)',
     ...androidTextLayout,
   },
   forgotText: {
-    ...Typography.labelMedium,
-    color: AUTH_SHEET.ink,
-    textAlign: 'right',
+    fontFamily: FontFamily.semiBold,
+    fontSize: 14,
+    color: CREAM,
     ...androidTextLayout,
   },
   loginBtn: {
-    minHeight: 46,
+    minHeight: 56,
     borderRadius: Radius.full,
-    backgroundColor: AUTH_SHEET.ink,
+    backgroundColor: CREAM,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing[2],
-    marginTop: Spacing[1],
+    marginTop: Spacing[2],
   },
   loginBtnDisabled: {
     opacity: 0.6,
   },
   loginLabel: {
-    ...Typography.labelLarge,
-    color: '#FFFFFF',
-    fontSize: 16,
+    fontFamily: FontFamily.bold,
+    color: NAVY,
+    fontSize: 17,
   },
   registerRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing[3],
     flexWrap: 'wrap',
     gap: Spacing[1],
+    marginTop: 36,
   },
   registerText: {
-    ...Typography.bodyMedium,
-    color: AUTH_SHEET.muted,
-    fontSize: 14,
+    fontFamily: FontFamily.regular,
+    color: 'rgba(240,238,233,0.72)',
+    fontSize: 15,
   },
   registerLink: {
-    ...Typography.labelLarge,
-    color: AUTH_SHEET.ink,
+    fontFamily: FontFamily.bold,
+    color: CREAM,
     fontSize: 15,
-    fontWeight: '700',
   },
 });

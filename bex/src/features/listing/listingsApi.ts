@@ -76,6 +76,19 @@ type ListingResponseDto = ListingDetailDto & {
   businessVerified?: boolean;
 };
 
+/** Backend Skill enum — “Hepsi” eski sunucuda boş skill listesi 500 verdiği için yedek */
+const ALL_DISCOVER_SKILLS = [
+  'SOCIAL_MEDIA',
+  'GRAPHIC_DESIGN',
+  'VIDEO',
+  'PHOTOGRAPHY',
+  'WRITING',
+  'WEB_DESIGN',
+  'SEO',
+  'MUSIC',
+  'OTHER',
+];
+
 const CATEGORY_TO_SKILL: Record<TaskCategory, string> = {
   design: 'GRAPHIC_DESIGN',
   development: 'WEB_DESIGN',
@@ -296,7 +309,37 @@ export type DiscoverListingsResult = {
   nextCursor: string | null;
 };
 
-/** Keşfet — GET /api/listings */
+async function requestDiscoverListings(options?: {
+  pageSize?: number;
+  cursor?: string;
+  city?: string;
+  district?: string;
+  skills?: string[];
+  q?: string;
+  rewardType?: string;
+}): Promise<DiscoverListingsResult> {
+  const { data } = await apiClient.get<ListingsPageDto>('/api/listings', {
+    params: {
+      pageSize: options?.pageSize ?? 20,
+      cursor: options?.cursor,
+      city: options?.city || undefined,
+      district: options?.district || undefined,
+      skills: options?.skills?.length ? options.skills : undefined,
+      q: options?.q?.trim() || undefined,
+      rewardType: options?.rewardType || undefined,
+    },
+    paramsSerializer: {
+      indexes: null,
+    },
+  });
+  const content = Array.isArray(data?.content) ? data.content : [];
+  return {
+    tasks: content.map((item) => mapCardToTask(item)),
+    nextCursor: data?.nextCursor ?? null,
+  };
+}
+
+/** Keşfet — GET /api/listings. Kategori seçilmemişse tüm aktif ilanlar gelir. */
 export async function discoverListings(options?: {
   pageSize?: number;
   cursor?: string;
@@ -307,26 +350,15 @@ export async function discoverListings(options?: {
   rewardType?: string;
 }): Promise<DiscoverListingsResult> {
   try {
-    const { data } = await apiClient.get<ListingsPageDto>('/api/listings', {
-      params: {
-        pageSize: options?.pageSize ?? 20,
-        cursor: options?.cursor,
-        city: options?.city || undefined,
-        district: options?.district || undefined,
-        skills: options?.skills?.length ? options.skills : undefined,
-        q: options?.q?.trim() || undefined,
-        rewardType: options?.rewardType || undefined,
-      },
-      paramsSerializer: {
-        indexes: null,
-      },
-    });
-    const content = Array.isArray(data?.content) ? data.content : [];
-    return {
-      tasks: content.map((item) => mapCardToTask(item)),
-      nextCursor: data?.nextCursor ?? null,
-    };
+    return await requestDiscoverListings(options);
   } catch (error) {
+    if (!options?.skills?.length) {
+      try {
+        return await requestDiscoverListings({ ...options, skills: ALL_DISCOVER_SKILLS });
+      } catch (retryError) {
+        throw mapListingsError(retryError, 'Görevler yüklenemedi.');
+      }
+    }
     throw mapListingsError(error, 'Görevler yüklenemedi.');
   }
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   KeyboardAvoidingView,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
+  TextInput,
+  Dimensions,
   useWindowDimensions,
   type StyleProp,
   type ViewStyle,
@@ -16,6 +18,7 @@ import { useResolvedSafeAreaInsets } from '@/components/common/Screen';
 import { Spacing } from '@/theme';
 import { AuthGlassBackground } from '@/components/auth/AuthGlassBackground';
 import { AuthLoginHero } from '@/components/auth/AuthLoginHero';
+import { useKeyboardOverlap } from '@/components/auth/useKeyboardOverlap';
 
 type Props = {
   children: React.ReactNode;
@@ -29,9 +32,14 @@ type Props = {
   sheetStyle?: StyleProp<ViewStyle>;
   /** Kayıt gibi ekranlarda üst PASSLA alanı yok */
   showHero?: boolean;
+  /** Düz lacivert sayfa. Duvar görseli ve beyaz kart yok. */
+  bare?: boolean;
+  /** Kısa formları dikeyde ortalar. Klavye açıkken üste yaslanır. */
+  center?: boolean;
+  headerRight?: React.ReactNode;
 };
 
-const NAVY = '#17264F';
+const NAVY = '#051F45';
 
 export function AuthBrandedScreen({
   children,
@@ -42,17 +50,50 @@ export function AuthBrandedScreen({
   backLabel = 'Back',
   sheetStyle,
   showHero = true,
+  bare = false,
+  center = false,
+  headerRight,
 }: Props) {
   const insets = useResolvedSafeAreaInsets();
   const { height } = useWindowDimensions();
   const heroMin = Math.max(Math.round(height * heroMinRatio), 140);
+  const { open: keyboardOpen, overlap: keyboardOverlap } = useKeyboardOverlap();
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollY = useRef(0);
+
+  useEffect(() => {
+    if (!scrollBody || !keyboardOpen || Platform.OS !== 'android') return undefined;
+    const timer = setTimeout(() => {
+      const input = TextInput.State.currentlyFocusedInput() as {
+        measureInWindow?: (
+          cb: (x: number, y: number, width: number, height: number) => void,
+        ) => void;
+      } | null;
+      const scroll = scrollRef.current;
+      if (!scroll || !input?.measureInWindow) return;
+      const visibleBottom = Dimensions.get('window').height - keyboardOverlap - 24;
+      input.measureInWindow((_x, y, _width, fieldHeight) => {
+        const overflow = y + fieldHeight - visibleBottom;
+        if (overflow > 4) {
+          const next = scrollY.current + overflow;
+          scrollY.current = next;
+          scroll.scrollTo({ y: next, animated: true });
+        }
+      });
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [keyboardOpen, keyboardOverlap, scrollBody]);
 
   const hero = showHero ? (
     <View style={[styles.hero, { minHeight: heroMin, paddingTop: insets.top + Spacing[2] }]}>
       <AuthLoginHero />
     </View>
   ) : (
-    <View style={{ height: insets.top + Spacing[10] }} />
+    <View
+      style={{
+        height: keyboardOpen ? insets.top + Spacing[1] : insets.top + Spacing[10],
+      }}
+    />
   );
 
   const sheetInner = scrollSheet ? (
@@ -79,13 +120,41 @@ export function AuthBrandedScreen({
     </View>
   );
 
-  const body = scrollBody ? (
+  const bareBody = (
     <ScrollView
+      ref={scrollRef}
       style={styles.flex}
-      contentContainerStyle={styles.scrollBodyGrow}
+      contentContainerStyle={[
+        styles.bare,
+        { paddingTop: insets.top + 8, paddingBottom: insets.bottom + Spacing[6] },
+        center && !keyboardOpen && styles.bareCenter,
+        keyboardOpen && { paddingBottom: insets.bottom + Spacing[8] },
+      ]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      automaticallyAdjustKeyboardInsets
+      onScroll={(event) => {
+        scrollY.current = event.nativeEvent.contentOffset.y;
+      }}
+      scrollEventThrottle={16}
+    >
+      {children}
+    </ScrollView>
+  );
+
+  const body = bare ? bareBody : scrollBody ? (
+    <ScrollView
+      ref={scrollRef}
+      style={styles.flex}
+      contentContainerStyle={[
+        styles.scrollBodyGrow,
+        keyboardOpen && { paddingBottom: Spacing[8] },
+      ]}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      onScroll={(event) => {
+        scrollY.current = event.nativeEvent.contentOffset.y;
+      }}
+      scrollEventThrottle={16}
     >
       {hero}
       {sheet}
@@ -100,7 +169,7 @@ export function AuthBrandedScreen({
   return (
     <View style={styles.root}>
       <StatusBar style="light" />
-      <AuthGlassBackground />
+      {bare ? null : <AuthGlassBackground />}
 
       {onBack ? (
         <TouchableOpacity
@@ -114,10 +183,14 @@ export function AuthBrandedScreen({
         </TouchableOpacity>
       ) : null}
 
+      {headerRight ? (
+        <View style={[styles.headerRight, { top: insets.top + Spacing[2] }]}>{headerRight}</View>
+      ) : null}
+
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={[styles.flex, keyboardOverlap > 0 ? { paddingBottom: keyboardOverlap } : null]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        keyboardVerticalOffset={0}
       >
         {body}
       </KeyboardAvoidingView>
@@ -168,6 +241,13 @@ const styles = StyleSheet.create({
     paddingTop: Spacing[6],
     gap: Spacing[3],
   },
+  bare: {
+    paddingHorizontal: 24,
+    flexGrow: 1,
+  },
+  bareCenter: {
+    justifyContent: 'center',
+  },
   backBtn: {
     position: 'absolute',
     left: Spacing[4],
@@ -175,6 +255,13 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerRight: {
+    position: 'absolute',
+    right: Spacing[5],
+    zIndex: 10,
+    height: 40,
     justifyContent: 'center',
   },
 });

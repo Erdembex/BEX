@@ -186,14 +186,6 @@ export default function BusinessProfileScreen() {
           onPress={() => router.push('/settings' as Href)}
         />
 
-        {__DEV__ ? (
-          <Button
-            title={t('businessProfileScreen.publishChecklist')}
-            variant="outline"
-            onPress={() => router.push('/setup-guide' as Href)}
-          />
-        ) : null}
-
         <Button title={t('businessProfileScreen.logout')} variant="outline" onPress={handleLogout} />
 
         <View style={styles.meta}>

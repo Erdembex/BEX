@@ -11,6 +11,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,10 +22,22 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final AllowedOrigins allowedOrigins;
+    private static final String[] API_DOC_PATHS = {
+        "/swagger-ui/**",
+        "/swagger-ui.html",
+        "/v3/api-docs/**",
+        "/v3/api-docs"
+    };
 
-    public SecurityConfig(AllowedOrigins allowedOrigins) {
+    private final AllowedOrigins allowedOrigins;
+    private final boolean apiDocsEnabled;
+
+    public SecurityConfig(
+        AllowedOrigins allowedOrigins,
+        @Value("${springdoc.api-docs.enabled:false}") boolean apiDocsEnabled
+    ) {
         this.allowedOrigins = allowedOrigins;
+        this.apiDocsEnabled = apiDocsEnabled;
     }
 
     @Bean
@@ -47,8 +60,8 @@ public class SecurityConfig {
             .cors(c -> c.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
+            .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(
                     "/api/auth/login",
                     "/api/auth/register/business",
                     "/api/auth/register/individual",
@@ -61,13 +74,14 @@ public class SecurityConfig {
                     "/api/listings/{id}",
                     "/api/plans",
                     "/api/webhooks/stripe",
-                    "/actuator/health",
-                    "/swagger-ui/**",
-                    "/swagger-ui.html",
-                    "/v3/api-docs/**",
-                    "/v3/api-docs"
-                ).permitAll()
-                .requestMatchers("/uploads/**").authenticated()
+                    "/actuator/health"
+                ).permitAll();
+                if (apiDocsEnabled) {
+                    auth.requestMatchers(API_DOC_PATHS).permitAll();
+                } else {
+                    auth.requestMatchers(API_DOC_PATHS).denyAll();
+                }
+                auth.requestMatchers("/uploads/**").authenticated()
                 .requestMatchers(
                     "/api/individual/profiles/*/public",
                     "/api/individual/profiles/by-username/*/public",
@@ -82,8 +96,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/business/**").hasRole("BUSINESS")
                 .requestMatchers("/api/individual/**").hasRole("INDIVIDUAL")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
+                .anyRequest().authenticated();
+            })
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(e -> e
                 .authenticationEntryPoint((req, res, ex) -> {

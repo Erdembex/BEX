@@ -53,7 +53,8 @@ public class ProductionSecurityValidator implements ApplicationRunner {
             log.warn("[ProductionSecurityValidator] Admin seed production'da açık — kapatmanız önerilir.");
         }
         if (swaggerEnabled) {
-            log.warn("[ProductionSecurityValidator] Swagger production'da açık — kapatmanız önerilir.");
+            throw new IllegalStateException(
+                "Production ortamında Swagger açık olamaz (SWAGGER_ENABLED).");
         }
     }
 }

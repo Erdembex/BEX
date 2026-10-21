@@ -10,7 +10,7 @@ function extensionFromMime(mime: string): string {
 
 /** Sohbet görselini cihaz galerisine kaydeder. Korumalı uploadlar data URI üzerinden indirilir. */
 export async function saveChatImageToGallery(mediaUrl: string): Promise<void> {
-  const permission = await MediaLibrary.requestPermissionsAsync();
+  const permission = await MediaLibrary.requestPermissionsAsync(true);
   if (!permission.granted) {
     throw new Error('Galeriye kaydetmek için izin vermelisin.');
   }

@@ -1,32 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AUTH_HOME_ROUTE } from '@/lib/authRouting';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
 import { useAuthStore } from '@/store/authStore';
 import { clearTokens } from '@/lib/auth/tokenStorage';
-import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
-import { Button } from '@/components/ui';
+import { Typography, Spacing, Radius, FontFamily } from '@/theme';
+import { Input } from '@/components/ui';
 import { useTranslation } from '@/i18n';
-import { readableTextInputStyle, textInputPaddingVertical } from '@/lib/textInputStyle';
+import { AuthBrandedScreen } from '@/components/auth/AuthBrandedScreen';
+import { AUTH_SHEET } from '@/components/auth/authSheetPalette';
+import { maskEmail } from '@/lib/maskEmail';
+import { androidTextLayout } from '@/lib/androidUi';
 
 const CODE_LENGTH = 8;
+const NAVY = '#051F45';
+const CREAM = '#F0EEE9';
+const SS_MARK = require('../../../assets/branding/splash-ss-white.png');
 
 export default function EmailVerificationScreen() {
-  const Colors = useThemeColors();
-  const styles = useScreenStyles();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ email?: string; devCode?: string }>();
   const email = (params.email ?? '').toString();
+  const maskedEmail = email ? maskEmail(email) : '';
   const { setBexUser, setFirebaseUser, signOut } = useAuthStore();
 
   const [code, setCode] = useState('');
@@ -36,8 +32,6 @@ export default function EmailVerificationScreen() {
   const [devCode, setDevCode] = useState<string | null>(
     __DEV__ && params.devCode ? params.devCode.toString().toUpperCase() : null
   );
-
-  const codeRef = useRef<TextInput | null>(null);
 
   useEffect(() => {
     void clearTokens();
@@ -50,11 +44,6 @@ export default function EmailVerificationScreen() {
       return () => clearTimeout(timer);
     }
   }, [resendTimer]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => codeRef.current?.focus(), 300);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleVerify = async () => {
     const normalized = code.trim().toUpperCase();
@@ -117,156 +106,181 @@ export default function EmailVerificationScreen() {
   };
 
   return (
-    <Screen style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
+    <AuthBrandedScreen
+      bare
+      scrollBody
+      center
+      onBack={() => router.back()}
+      backLabel={t('emailVerificationScreen.back')}
+    >
+      <Image source={SS_MARK} style={styles.mark} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <Text style={styles.title}>{t('emailVerificationScreen.title')}</Text>
+      <Text style={styles.subtitle}>
+        {maskedEmail ? <Text style={styles.emailMark}>{maskedEmail}</Text> : null}
+        {t('emailVerificationScreen.subtitleSuffix')}
+      </Text>
+
+      {__DEV__ && devCode ? (
+        <Text style={styles.devNote}>{t('emailVerificationScreen.devCode', { code: devCode })}</Text>
+      ) : null}
+
+      <View style={styles.form}>
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>{error}</Text>
+          </View>
+        ) : null}
+
+        <Text style={styles.sectionLabel}>{t('emailVerificationScreen.codeLabel')}</Text>
+        <Input
+          variant="frost"
+          placeholder="AB12CD34"
+          value={code}
+          onChangeText={(value) => {
+            setCode(value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH));
+            setError('');
+          }}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          autoComplete="off"
+          textContentType="none"
+          maxLength={CODE_LENGTH}
+          autoFocus
+          style={styles.codeInput}
+        />
+
+        <TouchableOpacity
+          style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
+          onPress={handleVerify}
+          disabled={loading}
+          activeOpacity={0.88}
+          accessibilityRole="button"
         >
-          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-            <Text style={styles.backText}>{t('emailVerificationScreen.back')}</Text>
-          </TouchableOpacity>
+          <Text style={styles.submitLabel}>
+            {loading ? '...' : t('emailVerificationScreen.verify')}
+          </Text>
+        </TouchableOpacity>
 
-          <View style={styles.iconContainer}>
-            <View style={styles.iconBg}>
-              <Text style={styles.icon}>✉️</Text>
-            </View>
-          </View>
+        <View style={styles.resendRow}>
+          <Text style={styles.resendText}>{t('emailVerificationScreen.resendPrompt')}</Text>
+          {resendTimer > 0 ? (
+            <Text style={styles.resendTimer}>{resendTimer}s</Text>
+          ) : (
+            <TouchableOpacity onPress={handleResend} disabled={loading}>
+              <Text style={styles.resendLink}>{t('emailVerificationScreen.resend')}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
-          <View style={styles.header}>
-            <Text style={styles.title}>{t('emailVerificationScreen.title')}</Text>
-            <Text style={styles.subtitle}>
-              <Text style={styles.emailHighlight}>{email}</Text>
-              {t('emailVerificationScreen.subtitleSuffix')}
-            </Text>
-          </View>
-
-          {__DEV__ && devCode ? (
-            <View style={styles.hintBox}>
-              <Text style={styles.hintText}>
-                {t('emailVerificationScreen.devCode', { code: devCode })}
-              </Text>
-            </View>
-          ) : null}
-
-          <View style={styles.form}>
-            {error ? (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorText}>{error}</Text>
-              </View>
-            ) : null}
-
-            <Text style={styles.inputLabel}>{t('emailVerificationScreen.codeLabel')}</Text>
-            <TextInput
-              ref={codeRef}
-              style={styles.codeInput}
-              placeholder="AB12CD34"
-              placeholderTextColor={Colors.textTertiary}
-              value={code}
-              onChangeText={(value) => {
-                setCode(value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, CODE_LENGTH));
-                setError('');
-              }}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              autoComplete="off"
-              textContentType="none"
-              maxLength={CODE_LENGTH}
-            />
-
-            <Button
-              title={t('emailVerificationScreen.verify')}
-              onPress={handleVerify}
-              loading={loading}
-            />
-
-            <View style={styles.resendRow}>
-              <Text style={styles.resendText}>{t('emailVerificationScreen.resendPrompt')}</Text>
-              {resendTimer > 0 ? (
-                <Text style={styles.resendTimer}>{resendTimer}s</Text>
-              ) : (
-                <TouchableOpacity onPress={handleResend}>
-                  <Text style={styles.resendLink}>{t('emailVerificationScreen.resend')}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            <Button
-              title={t('emailVerificationScreen.backToLogin')}
-              onPress={() => router.replace('/(auth)/login')}
-              variant="ghost"
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
+        <TouchableOpacity onPress={() => router.replace('/(auth)/login')} style={styles.linkBtn}>
+          <Text style={styles.linkText}>{t('emailVerificationScreen.backToLogin')}</Text>
+        </TouchableOpacity>
+      </View>
+    </AuthBrandedScreen>
   );
 }
 
-const useScreenStyles = createThemedStyles((Colors) => ({
-  safe: { flex: 1, backgroundColor: Colors.background },
-  kav: { flex: 1 },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: Spacing[6],
-    paddingTop: Spacing[6],
-    paddingBottom: Spacing[8],
-    gap: Spacing[6],
+const styles = StyleSheet.create({
+  mark: {
+    width: 124,
+    height: 72,
+    alignSelf: 'center',
+    marginBottom: 28,
   },
-  back: { alignSelf: 'flex-start' },
-  backText: { ...Typography.labelMedium, color: Colors.textSecondary },
-  iconContainer: { alignItems: 'center', marginTop: Spacing[4] },
-  iconBg: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+  title: {
+    fontFamily: FontFamily.bold,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -0.8,
+    color: CREAM,
+    textAlign: 'center',
+    marginBottom: 10,
+    ...androidTextLayout,
   },
-  icon: { fontSize: 48 },
-  header: { gap: Spacing[2] },
-  title: { ...Typography.headingLarge, color: Colors.textPrimary },
-  subtitle: { ...Typography.bodyLarge, color: Colors.textSecondary, lineHeight: 24 },
-  emailHighlight: { color: Colors.textPrimary, fontWeight: '600' },
-  hintBox: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radius.lg,
-    padding: Spacing[4],
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.primary,
+  subtitle: {
+    fontFamily: FontFamily.regular,
+    fontSize: 15,
+    lineHeight: 22,
+    color: 'rgba(240,238,233,0.72)',
+    textAlign: 'center',
+    marginBottom: 28,
+    ...androidTextLayout,
   },
-  hintText: { ...Typography.bodySmall, color: Colors.textSecondary, lineHeight: 20 },
-  form: { gap: Spacing[5] },
-  inputLabel: { ...Typography.labelMedium, color: Colors.textPrimary },
+  emailMark: {
+    fontFamily: FontFamily.bold,
+    color: CREAM,
+  },
+  devNote: {
+    ...Typography.bodySmall,
+    color: 'rgba(240,238,233,0.72)',
+    textAlign: 'center',
+    marginTop: -12,
+    marginBottom: 20,
+  },
+  form: { gap: Spacing[3] },
+  sectionLabel: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 13,
+    color: 'rgba(240,238,233,0.78)',
+    marginLeft: 8,
+    marginBottom: 8,
+  },
   codeInput: {
-    minHeight: 58,
-    borderRadius: Radius.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing[4],
-    fontSize: 20,
-    fontWeight: '700',
-    letterSpacing: 2,
-    color: Colors.textPrimary,
-    paddingVertical: textInputPaddingVertical,
-    ...readableTextInputStyle,
+    textAlign: 'center',
+    letterSpacing: 4,
+    fontFamily: FontFamily.bold,
+    fontSize: 18,
   },
   errorBanner: {
-    backgroundColor: Colors.errorLight,
-    borderRadius: Radius.md,
-    padding: Spacing[4],
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.error,
+    backgroundColor: AUTH_SHEET.errorBg,
+    borderRadius: Radius.xl,
+    padding: Spacing[3],
+    borderWidth: 1,
+    borderColor: 'rgba(185, 28, 28, 0.28)',
   },
-  errorText: { ...Typography.bodySmall, color: Colors.error },
-  resendRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  resendText: { ...Typography.bodySmall, color: Colors.textSecondary },
-  resendLink: { ...Typography.labelMedium, color: Colors.primary },
-  resendTimer: { ...Typography.labelMedium, color: Colors.textTertiary },
-}));
+  errorBannerText: {
+    ...Typography.bodySmall,
+    color: '#F0B4B4',
+  },
+  submitBtn: {
+    minHeight: 56,
+    borderRadius: Radius.full,
+    backgroundColor: CREAM,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing[2],
+  },
+  submitBtnDisabled: { opacity: 0.6 },
+  submitLabel: {
+    fontFamily: FontFamily.bold,
+    color: NAVY,
+    fontSize: 17,
+  },
+  resendRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  resendText: {
+    fontFamily: FontFamily.regular,
+    fontSize: 15,
+    color: 'rgba(240,238,233,0.72)',
+  },
+  resendLink: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: CREAM,
+  },
+  resendTimer: {
+    fontFamily: FontFamily.bold,
+    fontSize: 15,
+    color: 'rgba(240,238,233,0.72)',
+  },
+  linkBtn: { alignItems: 'center', marginTop: 14 },
+  linkText: {
+    fontFamily: FontFamily.bold,
+    color: CREAM,
+    fontSize: 15,
+  },
+});

@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { Screen } from '@/components/common/Screen';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { authService, getAuthErrorMessage } from '@/features/auth/authService';
-import { Typography, Spacing, Radius, createThemedStyles, useThemeColors } from '@/theme';
-import { Button, Input } from '@/components/ui';
+import { Typography, Spacing, Radius, FontFamily } from '@/theme';
+import { Input } from '@/components/ui';
 import { useTranslation } from '@/i18n';
+import { AuthBrandedScreen } from '@/components/auth/AuthBrandedScreen';
+import { AUTH_SHEET } from '@/components/auth/authSheetPalette';
+import { androidTextLayout } from '@/lib/androidUi';
+
+const NAVY = '#051F45';
+const CREAM = '#F0EEE9';
+const SS_MARK = require('../../../assets/branding/splash-ss-white.png');
 
 type Step = 'form' | 'success';
 
 export default function ResetPasswordScreen() {
-  const Colors = useThemeColors();
-  const styles = useScreenStyles();
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ token?: string }>();
   const [token, setToken] = useState((params.token ?? '').toString().toUpperCase());
@@ -57,180 +61,172 @@ export default function ResetPasswordScreen() {
   };
 
   return (
-    <Screen style={styles.safe}>
-      <KeyboardAvoidingView
-        style={styles.kav}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-            <Text style={styles.backText}>{t('resetPasswordScreen.back')}</Text>
-          </TouchableOpacity>
+    <AuthBrandedScreen
+      bare
+      scrollBody
+      center
+      onBack={() => router.back()}
+      backLabel={t('resetPasswordScreen.back')}
+    >
+      <Image source={SS_MARK} style={styles.mark} resizeMode="contain" accessibilityIgnoresInvertColors />
 
-          {step === 'form' ? (
-            <>
-              <View style={styles.iconContainer}>
-                <Text style={styles.icon}>🔐</Text>
+      {step === 'form' ? (
+        <>
+          <Text style={styles.title}>{t('resetPasswordScreen.title')}</Text>
+          <Text style={styles.subtitle}>{t('resetPasswordScreen.subtitle')}</Text>
+
+          <View style={styles.form}>
+            {error ? (
+              <View style={styles.errorBanner}>
+                <Text style={styles.errorBannerText}>{error}</Text>
               </View>
+            ) : null}
 
-              <View style={styles.header}>
-                <Text style={styles.title}>{t('resetPasswordScreen.title')}</Text>
-                <Text style={styles.subtitle}>
-                  {t('resetPasswordScreen.subtitle')}
-                </Text>
-              </View>
+            <Text style={styles.sectionLabel}>{t('resetPasswordScreen.codeLabel')}</Text>
+            <Input
+              variant="frost"
+              placeholder="AB12CD34"
+              value={token}
+              onChangeText={(value) => setToken(value.toUpperCase())}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              style={styles.codeInput}
+            />
 
-              <View style={styles.form}>
-                {error ? (
-                  <View style={styles.errorBanner}>
-                    <Text style={styles.errorBannerText}>{error}</Text>
-                  </View>
-                ) : null}
+            <Text style={styles.sectionLabel}>{t('resetPasswordScreen.newPasswordLabel')}</Text>
+            <Input
+              variant="frost"
+              placeholder={t('resetPasswordScreen.newPasswordPlaceholder')}
+              value={password}
+              onChangeText={setPassword}
+              isPassword
+            />
+            <Text style={styles.hint}>{t('resetPasswordScreen.newPasswordHint')}</Text>
 
-                <Input
-                  label={t('resetPasswordScreen.codeLabel')}
-                  placeholder="AB12CD34"
-                  value={token}
-                  onChangeText={(value) => setToken(value.toUpperCase())}
-                  autoCapitalize="characters"
-                  autoCorrect={false}
-                />
+            <Text style={styles.sectionLabel}>{t('resetPasswordScreen.confirmPasswordLabel')}</Text>
+            <Input
+              variant="frost"
+              placeholder={t('resetPasswordScreen.confirmPasswordPlaceholder')}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              isPassword
+            />
 
-                <Input
-                  label={t('resetPasswordScreen.newPasswordLabel')}
-                  placeholder={t('resetPasswordScreen.newPasswordPlaceholder')}
-                  value={password}
-                  onChangeText={setPassword}
-                  isPassword
-                  hint={t('resetPasswordScreen.newPasswordHint')}
-                />
-
-                <Input
-                  label={t('resetPasswordScreen.confirmPasswordLabel')}
-                  placeholder={t('resetPasswordScreen.confirmPasswordPlaceholder')}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  isPassword
-                />
-
-                <Button title={t('resetPasswordScreen.submit')} onPress={handleSubmit} loading={loading} />
-
-                <Button
-                  title={t('resetPasswordScreen.resendCode')}
-                  onPress={() => router.replace('/(auth)/forgot-password')}
-                  variant="ghost"
-                />
-              </View>
-            </>
-          ) : (
-            <View style={styles.successContainer}>
-              <View style={styles.successIcon}>
-                <Text style={styles.successEmoji}>✅</Text>
-              </View>
-
-              <Text style={styles.successTitle}>{t('resetPasswordScreen.successTitle')}</Text>
-              <Text style={styles.successText}>
-                {t('resetPasswordScreen.successText')}
+            <TouchableOpacity
+              style={[styles.submitBtn, loading && styles.submitBtnDisabled]}
+              onPress={handleSubmit}
+              disabled={loading}
+              activeOpacity={0.88}
+              accessibilityRole="button"
+            >
+              <Text style={styles.submitLabel}>
+                {loading ? '...' : t('resetPasswordScreen.submit')}
               </Text>
+            </TouchableOpacity>
 
-              <Button
-                title={t('resetPasswordScreen.goToLogin')}
-                onPress={() => router.replace('/(auth)/login')}
-              />
-            </View>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
+            <TouchableOpacity
+              onPress={() => router.replace('/(auth)/forgot-password')}
+              style={styles.linkBtn}
+            >
+              <Text style={styles.linkText}>{t('resetPasswordScreen.resendCode')}</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : (
+        <>
+          <Text style={styles.title}>{t('resetPasswordScreen.successTitle')}</Text>
+          <Text style={styles.subtitle}>{t('resetPasswordScreen.successText')}</Text>
+          <TouchableOpacity
+            style={styles.submitBtn}
+            onPress={() => router.replace('/(auth)/login')}
+            activeOpacity={0.88}
+            accessibilityRole="button"
+          >
+            <Text style={styles.submitLabel}>{t('resetPasswordScreen.goToLogin')}</Text>
+          </TouchableOpacity>
+        </>
+      )}
+    </AuthBrandedScreen>
   );
 }
 
-const useScreenStyles = createThemedStyles((Colors) => ({
-  safe: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  kav: {
-    flex: 1,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: Spacing[6],
-    paddingTop: Spacing[6],
-    paddingBottom: Spacing[8],
-    gap: Spacing[6],
-  },
-  back: {
-    alignSelf: 'flex-start',
-  },
-  backText: {
-    ...Typography.labelMedium,
-    color: Colors.textSecondary,
-  },
-  iconContainer: {
-    alignItems: 'center',
-    marginTop: Spacing[8],
-  },
-  icon: {
-    fontSize: 64,
-  },
-  header: {
-    gap: Spacing[2],
+const styles = StyleSheet.create({
+  mark: {
+    width: 124,
+    height: 72,
+    alignSelf: 'center',
+    marginBottom: 28,
   },
   title: {
-    ...Typography.headingLarge,
-    color: Colors.textPrimary,
+    fontFamily: FontFamily.bold,
+    fontSize: 32,
+    lineHeight: 38,
+    letterSpacing: -0.8,
+    color: CREAM,
+    textAlign: 'center',
+    marginBottom: 10,
+    ...androidTextLayout,
   },
   subtitle: {
-    ...Typography.bodyLarge,
-    color: Colors.textSecondary,
-    lineHeight: 24,
+    fontFamily: FontFamily.regular,
+    fontSize: 15,
+    lineHeight: 22,
+    color: 'rgba(240,238,233,0.72)',
+    textAlign: 'center',
+    marginBottom: 28,
+    ...androidTextLayout,
   },
-  form: {
-    gap: Spacing[5],
+  form: { gap: Spacing[3] },
+  sectionLabel: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 13,
+    color: 'rgba(240,238,233,0.78)',
+    marginLeft: 8,
+    marginBottom: 8,
+  },
+  codeInput: {
+    textAlign: 'center',
+    letterSpacing: 4,
+    fontFamily: FontFamily.bold,
+    fontSize: 18,
+  },
+  hint: {
+    fontFamily: FontFamily.regular,
+    fontSize: 12,
+    color: 'rgba(240,238,233,0.55)',
+    marginLeft: 8,
+    marginTop: -4,
   },
   errorBanner: {
-    backgroundColor: Colors.errorLight,
-    borderRadius: Radius.md,
-    padding: Spacing[4],
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.error,
+    backgroundColor: AUTH_SHEET.errorBg,
+    borderRadius: Radius.xl,
+    padding: Spacing[3],
+    borderWidth: 1,
+    borderColor: 'rgba(185, 28, 28, 0.28)',
   },
   errorBannerText: {
     ...Typography.bodySmall,
-    color: Colors.error,
+    color: '#F0B4B4',
   },
-  successContainer: {
-    flex: 1,
+  submitBtn: {
+    minHeight: 56,
+    borderRadius: Radius.full,
+    backgroundColor: CREAM,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: Spacing[16],
-    gap: Spacing[5],
+    marginTop: Spacing[2],
   },
-  successIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
+  submitBtnDisabled: { opacity: 0.6 },
+  submitLabel: {
+    fontFamily: FontFamily.bold,
+    color: NAVY,
+    fontSize: 17,
   },
-  successEmoji: {
-    fontSize: 48,
-  },
-  successTitle: {
-    ...Typography.headingLarge,
-    color: Colors.textPrimary,
+  linkBtn: { alignItems: 'center', marginTop: 18 },
+  linkText: {
+    fontFamily: FontFamily.bold,
+    color: CREAM,
+    fontSize: 15,
     textAlign: 'center',
   },
-  successText: {
-    ...Typography.bodyLarge,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 24,
-  },
-}));
+});

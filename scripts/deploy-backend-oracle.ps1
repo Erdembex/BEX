@@ -15,7 +15,7 @@ if (-not (Test-Path $SshKey)) {
 
 Write-Host "==> Backend kaynak kodu sunucuya gonderiliyor..."
 $backendSrc = Join-Path $Root "takkas-backend"
-scp -i $SshKey -r "$backendSrc\src" "$backendSrc\pom.xml" "${Remote}:${RemoteRepo}/takkas-backend/"
+scp -i $SshKey -o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 -r "$backendSrc\src" "$backendSrc\pom.xml" "${Remote}:${RemoteRepo}/takkas-backend/"
 
 Write-Host "==> Sunucuda Maven build + restart..."
 $repoPath = $RemoteRepo -replace '~/', '/home/ubuntu/'

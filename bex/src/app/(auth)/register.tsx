@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   BackHandler,
@@ -14,10 +15,15 @@ import { UserRole, UserGender } from '@/types';
 import {
   calculateAge,
   formatBirthDateIso,
+  formatBirthDateTyping,
   isRegistrationAgeValid,
   parseBirthDateInput,
 } from '@/lib/birthDateUtils';
-import { Typography, Spacing, Radius } from '@/theme';
+import { Typography, Spacing, Radius, FontFamily } from '@/theme';
+
+const NAVY = '#051F45';
+const CREAM = '#F0EEE9';
+const SS_MARK = require('../../../assets/branding/splash-ss-white.png');
 import { Input } from '@/components/ui';
 import { LocationPicker } from '@/components/common/LocationPicker';
 import { PRIVACY_URL, TERMS_URL, openLegalPage } from '@/lib/legalLinks';
@@ -28,19 +34,9 @@ import { androidTextLayout } from '@/lib/androidUi';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
-  const ROLES: { id: UserRole; label: string; desc: string; emoji: string }[] = [
-    {
-      id: 'user',
-      label: t('registerScreen.roleUser'),
-      desc: t('registerScreen.roleUserDesc'),
-      emoji: '🎯',
-    },
-    {
-      id: 'business',
-      label: t('registerScreen.roleBusiness'),
-      desc: t('registerScreen.roleBusinessDesc'),
-      emoji: '🏢',
-    },
+  const ROLES: { id: UserRole; label: string }[] = [
+    { id: 'user', label: t('registerScreen.roleUser') },
+    { id: 'business', label: t('registerScreen.roleBusiness') },
   ];
   const { signOut } = useAuthStore();
   const [displayName, setDisplayName] = useState('');
@@ -187,51 +183,43 @@ export default function RegisterScreen() {
 
   return (
     <AuthBrandedScreen
+      bare
       scrollBody
-      showHero={false}
       onBack={goBackFromRegister}
       backLabel={t('registerScreen.back')}
-      sheetStyle={styles.sheetExtra}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>{t('registerScreen.title')}</Text>
-        <Text style={styles.subtitle}>{t('registerScreen.subtitle')}</Text>
-      </View>
+      <Image source={SS_MARK} style={styles.mark} resizeMode="contain" accessibilityIgnoresInvertColors />
+      <Text style={styles.title}>{t('registerScreen.title')}</Text>
 
       <View style={styles.roleSection}>
         <Text style={styles.sectionLabel}>{t('registerScreen.accountType')}</Text>
         <View style={styles.roleRow}>
-          {ROLES.map((r) => (
-            <TouchableOpacity
-              key={r.id}
-              onPress={() => setRole(r.id)}
-              style={[styles.roleCard, role === r.id && styles.roleCardActive]}
-              activeOpacity={0.75}
-            >
-              <Text style={styles.roleEmoji}>{r.emoji}</Text>
-              <Text style={[styles.roleLabel, role === r.id && styles.roleLabelActive]}>
-                {r.label}
-              </Text>
-              <Text style={styles.roleDesc}>{r.desc}</Text>
-              {role === r.id ? (
-                <View style={styles.roleCheck}>
-                  <Text style={styles.roleCheckText}>✓</Text>
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          ))}
+          {ROLES.map((r) => {
+            const selected = role === r.id;
+            return (
+              <TouchableOpacity
+                key={r.id}
+                onPress={() => setRole(r.id)}
+                style={[styles.pill, selected && styles.pillOn]}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.pillText, selected && styles.pillTextOn]}>{r.label}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
       <View style={styles.demographicsSection}>
+        <Text style={styles.sectionLabel}>{t('registerScreen.birthDateLabel')}</Text>
         <Input
           variant="frost"
-          label={t('registerScreen.birthDateLabel')}
           placeholder={t('registerScreen.birthDatePlaceholder')}
           value={birthDateInput}
-          onChangeText={setBirthDateInput}
+          onChangeText={(text) => setBirthDateInput((prev) => formatBirthDateTyping(text, prev))}
           error={errors.birthDate}
-          keyboardType="numbers-and-punctuation"
+          keyboardType="number-pad"
+          maxLength={10}
           hint={
             computedAge != null && !errors.birthDate
               ? t('registerScreen.ageLabel', { age: computedAge })
@@ -248,12 +236,10 @@ export default function RegisterScreen() {
                 <TouchableOpacity
                   key={option.id}
                   onPress={() => setGender(option.id)}
-                  style={[styles.genderChip, selected && styles.genderChipActive]}
+                  style={[styles.pill, styles.genderPill, selected && styles.pillOn]}
                   activeOpacity={0.85}
                 >
-                  <Text style={[styles.genderChipText, selected && styles.genderChipTextActive]}>
-                    {option.label}
-                  </Text>
+                  <Text style={[styles.pillText, selected && styles.pillTextOn]}>{option.label}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -268,15 +254,16 @@ export default function RegisterScreen() {
         onCityChange={setCity}
         onDistrictChange={setDistrict}
         error={errors.location}
+        appearance="sheet"
       />
       {role === 'business' ? (
         <Text style={styles.locationNote}>{t('registerScreen.locationNote')}</Text>
       ) : null}
 
       {role === 'business' ? (
+        <Text style={styles.sectionLabel}>{t('registerScreen.openAddressLabel')}</Text>
         <Input
           variant="frost"
-          label={t('registerScreen.openAddressLabel')}
           placeholder={t('registerScreen.openAddressPlaceholder')}
           value={openAddress}
           onChangeText={setOpenAddress}
@@ -293,13 +280,13 @@ export default function RegisterScreen() {
           </View>
         ) : null}
 
+        <Text style={styles.sectionLabel}>
+          {role === 'business'
+            ? t('registerScreen.businessNameLabel')
+            : t('registerScreen.fullNameLabel')}
+        </Text>
         <Input
           variant="frost"
-          label={
-            role === 'business'
-              ? t('registerScreen.businessNameLabel')
-              : t('registerScreen.fullNameLabel')
-          }
           placeholder={
             role === 'business'
               ? t('registerScreen.businessNamePlaceholder')
@@ -312,10 +299,10 @@ export default function RegisterScreen() {
           textContentType="name"
         />
 
+        <Text style={styles.sectionLabel}>{t('registerScreen.emailLabel')}</Text>
         <Input
           variant="frost"
-          label={t('registerScreen.emailLabel')}
-          placeholder={t('registerScreen.emailPlaceholder')}
+          placeholder={t('auth.email')}
           value={email}
           onChangeText={setEmail}
           error={errors.email}
@@ -326,9 +313,9 @@ export default function RegisterScreen() {
 
         {__DEV__ ? <Text style={styles.devHint}>{t('registerScreen.devHint')}</Text> : null}
 
+        <Text style={styles.sectionLabel}>{t('registerScreen.passwordLabel')}</Text>
         <Input
           variant="frost"
-          label={t('registerScreen.passwordLabel')}
           placeholder={t('registerScreen.passwordPlaceholder')}
           value={password}
           onChangeText={setPassword}
@@ -337,9 +324,9 @@ export default function RegisterScreen() {
           hint={t('registerScreen.passwordHint')}
         />
 
+        <Text style={styles.sectionLabel}>{t('registerScreen.confirmPasswordLabel')}</Text>
         <Input
           variant="frost"
-          label={t('registerScreen.confirmPasswordLabel')}
           placeholder={t('registerScreen.confirmPasswordPlaceholder')}
           value={confirmPassword}
           onChangeText={setConfirmPassword}
@@ -378,9 +365,7 @@ export default function RegisterScreen() {
           activeOpacity={0.88}
           accessibilityRole="button"
         >
-          <Text style={styles.submitLabel}>
-            {loading ? '...' : `${t('registerScreen.submit')}  →`}
-          </Text>
+          <Text style={styles.submitLabel}>{loading ? '...' : t('registerScreen.submit')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -395,30 +380,51 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  sheetExtra: {
-    marginTop: -Spacing[2],
-  },
-  header: {
-    gap: Spacing[1],
-    marginBottom: Spacing[2],
+  mark: {
+    width: 124,
+    height: 72,
+    alignSelf: 'center',
+    marginTop: 12,
+    marginBottom: 28,
   },
   title: {
-    ...Typography.headingLarge,
-    color: AUTH_SHEET.ink,
-    fontSize: 26,
-    lineHeight: 32,
-    ...androidTextLayout,
-  },
-  subtitle: {
-    ...Typography.bodyMedium,
-    color: AUTH_SHEET.body,
-    lineHeight: 22,
-    fontSize: 15,
+    fontFamily: FontFamily.bold,
+    fontSize: 34,
+    lineHeight: 38,
+    letterSpacing: -1.1,
+    color: CREAM,
+    marginBottom: 26,
     ...androidTextLayout,
   },
   roleSection: {
-    gap: Spacing[3],
-    marginTop: Spacing[2],
+    gap: Spacing[2],
+    marginBottom: Spacing[2],
+  },
+  pill: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+    borderColor: 'rgba(240,238,233,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[3],
+  },
+  pillOn: {
+    backgroundColor: CREAM,
+    borderColor: CREAM,
+  },
+  pillText: {
+    fontFamily: FontFamily.semiBold,
+    fontSize: 15,
+    color: CREAM,
+  },
+  pillTextOn: {
+    color: NAVY,
+  },
+  genderPill: {
+    flex: 1,
   },
   demographicsSection: {
     gap: Spacing[4],
@@ -432,87 +438,25 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: Spacing[2],
   },
-  genderChip: {
-    paddingHorizontal: Spacing[4],
-    paddingVertical: Spacing[3],
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: AUTH_SHEET.surfaceBorder,
-    backgroundColor: AUTH_SHEET.surface,
-  },
-  genderChipActive: {
-    borderColor: AUTH_SHEET.ink,
-    backgroundColor: 'rgba(23, 38, 79, 0.08)',
-  },
-  genderChipText: {
-    ...Typography.labelMedium,
-    color: AUTH_SHEET.muted,
-  },
-  genderChipTextActive: {
-    color: AUTH_SHEET.ink,
-    fontWeight: '700',
-  },
   fieldError: {
     ...Typography.caption,
-    color: AUTH_SHEET.error,
+    color: '#F0B4B4',
   },
   locationNote: {
     ...Typography.caption,
-    color: AUTH_SHEET.muted,
+    color: 'rgba(240,238,233,0.62)',
     marginTop: -Spacing[2],
   },
   sectionLabel: {
-    ...Typography.labelMedium,
-    color: AUTH_SHEET.ink,
+    fontFamily: FontFamily.semiBold,
+    fontSize: 13,
+    color: 'rgba(240,238,233,0.78)',
+    marginLeft: 8,
+    marginBottom: 8,
   },
   roleRow: {
     flexDirection: 'row',
     gap: Spacing[3],
-  },
-  roleCard: {
-    flex: 1,
-    padding: Spacing[4],
-    borderRadius: Radius.lg,
-    borderWidth: 1.5,
-    borderColor: AUTH_SHEET.surfaceBorder,
-    backgroundColor: AUTH_SHEET.surface,
-    gap: 4,
-    position: 'relative',
-  },
-  roleCardActive: {
-    borderColor: AUTH_SHEET.ink,
-    backgroundColor: 'rgba(23, 38, 79, 0.08)',
-  },
-  roleEmoji: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
-  roleLabel: {
-    ...Typography.labelLarge,
-    color: AUTH_SHEET.body,
-  },
-  roleLabelActive: {
-    color: AUTH_SHEET.ink,
-  },
-  roleDesc: {
-    ...Typography.caption,
-    color: AUTH_SHEET.muted,
-  },
-  roleCheck: {
-    position: 'absolute',
-    top: Spacing[2],
-    right: Spacing[2],
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: AUTH_SHEET.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  roleCheckText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#FFFFFF',
   },
   form: {
     gap: Spacing[4],
@@ -531,8 +475,7 @@ const styles = StyleSheet.create({
   },
   devHint: {
     ...Typography.caption,
-    color: AUTH_SHEET.ink,
-    backgroundColor: AUTH_SHEET.surface,
+    color: CREAM,
     padding: Spacing[3],
     borderRadius: Radius.md,
     marginTop: -Spacing[2],
@@ -548,30 +491,29 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: AUTH_SHEET.ink,
-    backgroundColor: '#FFFFFF',
+    borderColor: CREAM,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 1,
   },
   checkboxChecked: {
-    backgroundColor: AUTH_SHEET.ink,
+    backgroundColor: CREAM,
+    borderColor: CREAM,
   },
   checkboxMark: {
     ...Typography.labelSmall,
-    color: '#FFFFFF',
+    color: NAVY,
     fontWeight: '800',
   },
   termsText: {
     ...Typography.caption,
-    color: AUTH_SHEET.body,
+    color: 'rgba(240,238,233,0.78)',
     flex: 1,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   termsLink: {
-    color: AUTH_SHEET.ink,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
+    color: CREAM,
+    fontWeight: '700',
   },
   termsError: {
     ...Typography.caption,
@@ -579,38 +521,37 @@ const styles = StyleSheet.create({
     marginTop: -Spacing[3],
   },
   submitBtn: {
-    minHeight: 52,
+    minHeight: 56,
     borderRadius: Radius.full,
-    backgroundColor: AUTH_SHEET.ink,
+    backgroundColor: CREAM,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: Spacing[3],
-    marginTop: Spacing[1],
+    marginTop: Spacing[2],
   },
   submitBtnDisabled: {
     opacity: 0.6,
   },
   submitLabel: {
-    ...Typography.labelLarge,
-    color: '#FFFFFF',
+    fontFamily: FontFamily.bold,
+    color: NAVY,
     fontSize: 17,
   },
   loginRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: Spacing[4],
+    marginTop: 22,
     flexWrap: 'wrap',
     gap: Spacing[1],
   },
   loginText: {
-    ...Typography.bodyMedium,
-    color: AUTH_SHEET.muted,
-    fontSize: 14,
+    fontFamily: FontFamily.regular,
+    color: 'rgba(240,238,233,0.72)',
+    fontSize: 15,
   },
   loginLink: {
-    ...Typography.labelLarge,
-    color: AUTH_SHEET.ink,
+    fontFamily: FontFamily.bold,
+    color: CREAM,
     fontSize: 15,
   },
 });

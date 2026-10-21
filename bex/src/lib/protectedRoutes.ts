@@ -16,7 +16,7 @@ const PROTECTED_ROOTS = new Set([
   'swap-chat',
 ]);
 
-const PUBLIC_ROOTS = new Set(['about', 'setup-guide', 'expo-test-guide']);
+const PUBLIC_ROOTS = new Set(['about']);
 
 /** Her zaman oturum gerektiren grup layout'ları */
 const PROTECTED_GROUPS = new Set(['(tabs)', '(business)', '(admin)']);

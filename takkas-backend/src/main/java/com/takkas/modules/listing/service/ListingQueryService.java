@@ -11,6 +11,7 @@ import com.takkas.modules.listing.api.dto.*;
 import com.takkas.modules.listing.domain.enums.ListingStatus;
 import com.takkas.modules.listing.mapper.ListingMapper;
 import com.takkas.modules.listing.repository.ListingRepository;
+import com.takkas.modules.user.domain.enums.Skill;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -49,11 +50,14 @@ public class ListingQueryService {
         String q = blankToNull(filter.q());
         var rewardType = filter.rewardType();
         var page = PageRequest.of(0, size);
+        boolean hasSkills = filter.skills() != null && !filter.skills().isEmpty();
+        int applySkills = hasSkills ? 1 : 0;
+        List<Skill> skills = hasSkills ? filter.skills() : List.of(Skill.OTHER);
         var listings = q == null
             ? listingRepository.findActiveListingsForDiscover(
-                city, district, filter.skills(), rewardType, now, cursor, page)
+                city, district, applySkills, skills, rewardType, now, cursor, page)
             : listingRepository.searchActiveListingsForDiscover(
-                city, district, filter.skills(), rewardType, q, now, cursor, page);
+                city, district, applySkills, skills, rewardType, q, now, cursor, page);
         var cards = enrichCards(listings.stream().map(ListingMapper::toCardResponse).toList());
         var nextCursor = listings.isEmpty() ? null : listings.getLast().getCreatedAt();
         return PageResponse.of(cards, nextCursor);
@@ -142,8 +146,8 @@ public class ListingQueryService {
                 card.businessVerified(),
                 card.businessLatitude(),
                 card.businessLongitude(),
-                rating != null ? rating.averageStars() : card.businessAverageRating(),
-                rating != null ? rating.totalCount() : card.businessFeedbackCount());
+                rating != null ? Double.valueOf(rating.averageStars()) : card.businessAverageRating(),
+                rating != null ? Long.valueOf(rating.totalCount()) : card.businessFeedbackCount());
         }).toList();
     }
 

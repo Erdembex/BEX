@@ -127,8 +127,6 @@ export default function RootLayout() {
                 <Stack.Screen name="complaint" />
                 <Stack.Screen name="application" />
                 <Stack.Screen name="notifications/index" />
-                <Stack.Screen name="setup-guide" />
-                <Stack.Screen name="expo-test-guide" />
                 <Stack.Screen name="settings" />
                 <Stack.Screen name="delete-account" />
                 <Stack.Screen name="blocked-users" />

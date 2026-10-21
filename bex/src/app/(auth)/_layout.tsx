@@ -19,13 +19,13 @@ export default function AuthLayout() {
         animationDuration: 150,
       }}
     >
-      <Stack.Screen name="onboarding" />
+      <Stack.Screen name="onboarding" options={{ contentStyle: { backgroundColor: '#051F45' } }} />
       <Stack.Screen name="login" options={{ animation: 'none' }} />
-      <Stack.Screen name="register" />
-      <Stack.Screen name="forgot-password" />
-      <Stack.Screen name="reset-password" />
-      <Stack.Screen name="email-verification" />
-      <Stack.Screen name="phone-verification" />
+      <Stack.Screen name="register" options={{ contentStyle: { backgroundColor: '#051F45' } }} />
+      <Stack.Screen name="forgot-password" options={{ contentStyle: { backgroundColor: '#051F45' } }} />
+      <Stack.Screen name="reset-password" options={{ contentStyle: { backgroundColor: '#051F45' } }} />
+      <Stack.Screen name="email-verification" options={{ contentStyle: { backgroundColor: '#051F45' } }} />
+      <Stack.Screen name="phone-verification" options={{ contentStyle: { backgroundColor: '#051F45' } }} />
       <Stack.Screen name="banned" />
     </Stack>
   );

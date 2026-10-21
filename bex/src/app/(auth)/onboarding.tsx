@@ -1,22 +1,20 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { BackHandler, ScrollView, StyleSheet, View } from 'react-native';
+import { BackHandler, StyleSheet, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import { markOnboardingComplete } from '@/lib/onboardingStorage';
 import { ONBOARDING_STEPS } from '@/components/onboarding/onboardingSteps';
 import { OnboardingHeader } from '@/components/onboarding/OnboardingHeader';
 import { OnboardingStepContent } from '@/components/onboarding/OnboardingStepContent';
 import { OnboardingFooter } from '@/components/onboarding/OnboardingFooter';
-import { useOnboardingLayout } from '@/components/onboarding/onboardingTheme';
 import { Screen } from '@/components/common/Screen';
-import { createThemedStyles } from '@/theme';
 
 const STEP_COUNT = ONBOARDING_STEPS.length;
+const NAVY = '#051F45';
 
 type Destination = '/(auth)/login' | '/(auth)/register';
 
 export default function OnboardingScreen() {
-  const styles = useScreenStyles();
-  const { IS_COMPACT_HEIGHT } = useOnboardingLayout();
   const [currentStep, setCurrentStep] = useState(0);
 
   const step = ONBOARDING_STEPS[currentStep];
@@ -44,54 +42,34 @@ export default function OnboardingScreen() {
     return () => sub.remove();
   }, [currentStep, goBack]);
 
-  const body = (
-    <>
-      <OnboardingStepContent step={step} />
+  return (
+    <Screen style={styles.screen}>
+      <StatusBar style="light" />
+      <OnboardingHeader
+        onSkip={isLast ? undefined : () => void finishOnboarding('/(auth)/login')}
+      />
+      <View style={styles.flex}>
+        <OnboardingStepContent step={step} />
+      </View>
       <OnboardingFooter
+        currentStep={currentStep}
+        stepCount={STEP_COUNT}
         isLast={isLast}
         onNext={goNext}
         onRegister={() => void finishOnboarding('/(auth)/register')}
         onLogin={() => void finishOnboarding('/(auth)/login')}
       />
-    </>
-  );
-
-  return (
-    <Screen style={styles.screen}>
-      <OnboardingHeader
-        currentStep={currentStep}
-        stepCount={STEP_COUNT}
-        onSkip={isLast ? undefined : () => void finishOnboarding('/(auth)/login')}
-      />
-
-      {IS_COMPACT_HEIGHT ? (
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-        >
-          {body}
-        </ScrollView>
-      ) : (
-        <View style={styles.flex}>{body}</View>
-      )}
     </Screen>
   );
 }
 
-const useScreenStyles = createThemedStyles((Colors) =>
-  StyleSheet.create({
-    screen: {
-      flex: 1,
-      backgroundColor: Colors.background,
-    },
-    flex: {
-      flex: 1,
-      minHeight: 0,
-    },
-    scroll: {
-      flexGrow: 1,
-    },
-  })
-);
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: NAVY,
+  },
+  flex: {
+    flex: 1,
+    minHeight: 0,
+  },
+});

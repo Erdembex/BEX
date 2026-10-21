@@ -1,9 +1,11 @@
 import React, { useMemo } from 'react';
-import { View, Text, Image, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { useTranslation } from '@/i18n';
+import { FontFamily } from '@/theme';
 import type { OnboardingStep } from './onboardingSteps';
-import { Spacing, Typography, createThemedStyles } from '@/theme';
-import { useOnboardingLayout } from './onboardingTheme';
+import { OnboardingArt } from './OnboardingArt';
+
+const CREAM = '#F0EEE9';
 
 type Props = {
   step: OnboardingStep;
@@ -11,56 +13,49 @@ type Props = {
 
 export function OnboardingStepContent({ step }: Props) {
   const { t } = useTranslation();
-  const styles = useStyles();
-  const { IS_COMPACT_HEIGHT } = useOnboardingLayout();
-  const { width, height } = useWindowDimensions();
-
-  const artHeight = useMemo(() => {
-    const max = IS_COMPACT_HEIGHT ? 200 : 260;
-    return Math.min(Math.round(width * 0.65), Math.round(height * 0.28), max);
-  }, [IS_COMPACT_HEIGHT, height, width]);
+  const { height } = useWindowDimensions();
+  const artHeight = useMemo(() => Math.min(320, Math.max(168, height - 520)), [height]);
 
   return (
     <View style={styles.wrap}>
-      <View style={[styles.artWrap, { height: artHeight }]}>
-        <Image source={step.illustration} style={styles.art} resizeMode="contain" />
+      <View style={styles.art}>
+        <OnboardingArt id={step.id} height={artHeight} />
       </View>
-      <Text style={styles.title}>{t(step.titleKey).replace(/\n/g, ' ')}</Text>
+      <Text style={styles.title}>{t(step.titleKey)}</Text>
       <Text style={styles.description}>{t(step.descriptionKey)}</Text>
     </View>
   );
 }
 
-const useStyles = createThemedStyles((Colors) =>
-  StyleSheet.create({
-    wrap: {
-      flex: 1,
-      paddingHorizontal: Spacing[6],
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: Spacing[4],
-    },
-    artWrap: {
-      width: '100%',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    art: {
-      width: '100%',
-      height: '100%',
-      maxWidth: 320,
-    },
-    title: {
-      ...Typography.headingMedium,
-      color: Colors.textPrimary,
-      textAlign: 'center',
-    },
-    description: {
-      ...Typography.bodyMedium,
-      color: Colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 22,
-      maxWidth: 340,
-    },
-  })
-);
+const styles = StyleSheet.create({
+  wrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  art: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 28,
+  },
+  title: {
+    fontFamily: FontFamily.bold,
+    fontSize: 34,
+    lineHeight: 37,
+    letterSpacing: -1.2,
+    color: CREAM,
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  description: {
+    fontFamily: FontFamily.regular,
+    fontSize: 16,
+    lineHeight: 23,
+    color: 'rgba(240,238,233,0.78)',
+    textAlign: 'center',
+    marginTop: 16,
+    maxWidth: 320,
+  },
+});

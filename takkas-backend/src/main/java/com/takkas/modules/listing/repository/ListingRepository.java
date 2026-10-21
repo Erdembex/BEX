@@ -24,11 +24,10 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
     boolean existsByIdAndBusinessId(UUID listingId, UUID businessId);
 
     @Query("""
-        SELECT DISTINCT l FROM Listing l
+        SELECT l FROM Listing l
         JOIN l.business b
         JOIN b.user u
         JOIN l.reward r
-        LEFT JOIN l.skills s
         WHERE l.status = 'ACTIVE'
           AND b.businessName NOT LIKE 'Test Cafe%'
           AND u.email NOT LIKE '%@test.dev'
@@ -36,7 +35,9 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
           AND (l.expiresAt IS NULL OR l.expiresAt > :now)
           AND (:city IS NULL OR b.city = :city)
           AND (:district IS NULL OR LOWER(TRIM(b.district)) = :district)
-          AND (:#{#skills == null || #skills.isEmpty()} = true OR s.skill IN :skills)
+          AND (:applySkills = 0 OR EXISTS (
+                SELECT 1 FROM ListingSkill ls
+                WHERE ls.listing = l AND ls.skill IN :skills))
           AND (:rewardType IS NULL OR r.rewardType = :rewardType)
           AND l.createdAt < :cursor
         ORDER BY l.createdAt DESC
@@ -44,6 +45,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
     List<Listing> findActiveListingsForDiscover(
         @Param("city") String city,
         @Param("district") String district,
+        @Param("applySkills") int applySkills,
         @Param("skills") List<Skill> skills,
         @Param("rewardType") com.takkas.modules.listing.domain.enums.RewardType rewardType,
         @Param("now") Instant now,
@@ -51,11 +53,10 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
         Pageable pageable);
 
     @Query("""
-        SELECT DISTINCT l FROM Listing l
+        SELECT l FROM Listing l
         JOIN l.business b
         JOIN b.user u
         JOIN l.reward r
-        LEFT JOIN l.skills s
         WHERE l.status = 'ACTIVE'
           AND b.businessName NOT LIKE 'Test Cafe%'
           AND u.email NOT LIKE '%@test.dev'
@@ -63,7 +64,9 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
           AND (l.expiresAt IS NULL OR l.expiresAt > :now)
           AND (:city IS NULL OR b.city = :city)
           AND (:district IS NULL OR LOWER(TRIM(b.district)) = :district)
-          AND (:#{#skills == null || #skills.isEmpty()} = true OR s.skill IN :skills)
+          AND (:applySkills = 0 OR EXISTS (
+                SELECT 1 FROM ListingSkill ls
+                WHERE ls.listing = l AND ls.skill IN :skills))
           AND (:rewardType IS NULL OR r.rewardType = :rewardType)
           AND (LOWER(l.title) LIKE LOWER(CONCAT('%', :q, '%'))
                OR LOWER(l.description) LIKE LOWER(CONCAT('%', :q, '%'))
@@ -76,6 +79,7 @@ public interface ListingRepository extends JpaRepository<Listing, UUID> {
     List<Listing> searchActiveListingsForDiscover(
         @Param("city") String city,
         @Param("district") String district,
+        @Param("applySkills") int applySkills,
         @Param("skills") List<Skill> skills,
         @Param("rewardType") com.takkas.modules.listing.domain.enums.RewardType rewardType,
         @Param("q") String q,

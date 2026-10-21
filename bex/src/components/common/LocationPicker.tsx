@@ -4,7 +4,9 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import {
   TURKEY_CITIES,
   formatLocationLabel,
@@ -32,6 +34,10 @@ type LocationFieldsProps = {
   required?: boolean;
   showGps?: boolean;
   error?: string;
+  /** Kayıt ekranı girişteki lacivert butonu kullanır */
+  buttonColor?: string;
+  /** Kayıt sheet'i: beyaz pill alanlar. Diğer ekranlar temayı kullanır. */
+  appearance?: 'default' | 'sheet';
 };
 
 function SelectField({
@@ -41,6 +47,7 @@ function SelectField({
   onPress,
   disabled,
   highlight,
+  appearance = 'default',
 }: {
   label: string;
   value: string | null;
@@ -48,21 +55,40 @@ function SelectField({
   onPress: () => void;
   disabled?: boolean;
   highlight?: boolean;
+  appearance?: 'default' | 'sheet';
 }) {
   const styles = useScreenStyles();
+  const sheet = appearance === 'sheet';
   return (
     <View style={styles.fieldWrap}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={[styles.fieldLabel, sheet && sheetStyles.label]}>{label}</Text>
       <TouchableOpacity
-        style={[styles.field, disabled && styles.fieldDisabled, highlight && styles.fieldHighlight]}
+        style={[
+          styles.field,
+          sheet && sheetStyles.field,
+          disabled && styles.fieldDisabled,
+          highlight && styles.fieldHighlight,
+          highlight && sheet && sheetStyles.fieldHighlight,
+        ]}
         onPress={onPress}
         disabled={disabled}
         activeOpacity={0.8}
       >
-        <Text style={[styles.fieldValue, !value && styles.fieldPlaceholder]}>
+        <Text
+          style={[
+            styles.fieldValue,
+            sheet && sheetStyles.value,
+            !value && styles.fieldPlaceholder,
+            !value && sheet && sheetStyles.placeholder,
+          ]}
+        >
           {value || placeholder}
         </Text>
-        <Text style={styles.chevron}>▼</Text>
+        {sheet ? (
+          <Ionicons name="chevron-down" size={18} color={SHEET_MUTED} />
+        ) : (
+          <Text style={styles.chevron}>▼</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -77,6 +103,8 @@ function LocationFields({
   required = false,
   showGps = true,
   error,
+  buttonColor,
+  appearance = 'default',
 }: LocationFieldsProps) {
   const styles = useScreenStyles();
   const Colors = useThemeColors();
@@ -140,19 +168,36 @@ function LocationFields({
         : null;
   const districtDisabled = !city || (showAllOption && isLocationAll(city));
 
+  const sheet = appearance === 'sheet';
+  const gpsLabel = t('locationPicker.useMyLocation').replace(/^📍\s*/, '');
+
   return (
     <View style={styles.wrap}>
       {showGps ? (
         <TouchableOpacity
-          style={styles.gpsBtn}
+          style={[
+            styles.gpsBtn,
+            sheet && sheetStyles.gpsBtn,
+            !sheet && buttonColor ? { backgroundColor: buttonColor } : null,
+          ]}
           onPress={handleGps}
           disabled={gpsLoading}
           activeOpacity={0.85}
         >
           {gpsLoading ? (
-            <ActivityIndicator color={Colors.textOnPrimary} size="small" />
+            <ActivityIndicator
+              color={sheet ? SHEET_INK : buttonColor ? '#FFFFFF' : Colors.textOnPrimary}
+              size="small"
+            />
+          ) : sheet ? (
+            <>
+              <Ionicons name="location-outline" size={18} color={SHEET_INK} />
+              <Text style={sheetStyles.gpsText}>{gpsLabel}</Text>
+            </>
           ) : (
-            <Text style={styles.gpsBtnText}>{t('locationPicker.useMyLocation')}</Text>
+            <Text style={[styles.gpsBtnText, buttonColor ? { color: '#FFFFFF' } : null]}>
+              {t('locationPicker.useMyLocation')}
+            </Text>
           )}
         </TouchableOpacity>
       ) : null}
@@ -162,6 +207,7 @@ function LocationFields({
         value={cityDisplay}
         placeholder={t('locationPicker.cityPlaceholder')}
         onPress={() => setCityModal(true)}
+        appearance={appearance}
       />
 
       <SelectField
@@ -184,9 +230,10 @@ function LocationFields({
         }}
         disabled={districtDisabled}
         highlight={districtManualRequired && !district}
+        appearance={appearance}
       />
 
-      {summary && !allowClear ? (
+      {summary && !allowClear && !sheet ? (
         <Text style={styles.summary}>{t('locationPicker.selected', { summary })}</Text>
       ) : null}
 
@@ -195,11 +242,18 @@ function LocationFields({
       ) : null}
 
       {gpsHint ? (
-        <Text style={[styles.gpsHint, districtManualRequired && styles.gpsHintWarning]}>
+        <Text
+          style={[
+            styles.gpsHint,
+            sheet && sheetStyles.hint,
+            districtManualRequired && styles.gpsHintWarning,
+            districtManualRequired && sheet && sheetStyles.hintWarning,
+          ]}
+        >
           {gpsHint}
         </Text>
       ) : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <Text style={[styles.error, sheet && sheetStyles.error]}>{error}</Text> : null}
 
       <LocationSelectorModal
         visible={cityModal}
@@ -278,6 +332,8 @@ type LocationPickerProps = {
   onCityChange: (city: string) => void;
   onDistrictChange: (district: string) => void;
   error?: string;
+  buttonColor?: string;
+  appearance?: 'default' | 'sheet';
 };
 
 /** Kayıt / profil — zorunlu il + ilçe (manuel veya GPS) */
@@ -287,6 +343,8 @@ export function LocationPicker({
   onCityChange,
   onDistrictChange,
   error,
+  buttonColor,
+  appearance = 'default',
 }: LocationPickerProps) {
   return (
     <LocationFields
@@ -297,9 +355,63 @@ export function LocationPicker({
       required
       showGps
       error={error}
+      buttonColor={buttonColor}
+      appearance={appearance}
     />
   );
 }
+
+const SHEET_INK = '#17264F';
+const SHEET_LINE = '#C4B48A';
+const SHEET_MUTED = '#64708C';
+
+const sheetStyles = StyleSheet.create({
+  label: {
+    ...Typography.labelMedium,
+    color: 'rgba(240,238,233,0.78)',
+  },
+  field: {
+    minHeight: 48,
+    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+    borderColor: SHEET_LINE,
+    borderRadius: Radius.full,
+    borderWidth: 1.5,
+  },
+  fieldHighlight: {
+    borderColor: '#B45309',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+  },
+  value: {
+    color: SHEET_INK,
+    fontSize: 15,
+  },
+  placeholder: {
+    color: SHEET_MUTED,
+  },
+  gpsBtn: {
+    flexDirection: 'row',
+    gap: Spacing[2],
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    borderColor: '#F0EEE9',
+    borderRadius: Radius.full,
+    minHeight: 48,
+  },
+  gpsText: {
+    ...Typography.labelMedium,
+    color: '#F0EEE9',
+    fontWeight: '700',
+  },
+  hint: {
+    color: 'rgba(240,238,233,0.62)',
+  },
+  hintWarning: {
+    color: '#B45309',
+  },
+  error: {
+    color: '#B91C1C',
+  },
+});
 
 const useScreenStyles = createThemedStyles((Colors) => ({
   wrap: { gap: Spacing[3] },

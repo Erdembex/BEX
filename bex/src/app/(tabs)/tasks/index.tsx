@@ -37,7 +37,7 @@ export default function TasksScreen() {
     ...difficultyLabels,
   };
   const { q } = useLocalSearchParams<{ q?: string }>();
-  const { bexUser, isInitialized } = useAuthStore();
+  const { isInitialized } = useAuthStore();
   const didInitFilter = useRef(false);
   const didInitSearch = useRef(false);
   const [search, setSearch] = useState('');
@@ -76,7 +76,7 @@ export default function TasksScreen() {
     let cancelled = false;
 
     (async () => {
-      const resolved = await resolveLocationFilter(bexUser);
+      const resolved = await resolveLocationFilter(null);
       if (cancelled) return;
 
       setCity(resolved.city);
@@ -89,7 +89,7 @@ export default function TasksScreen() {
     return () => {
       cancelled = true;
     };
-  }, [isInitialized, bexUser?.city, bexUser?.district]);
+  }, [isInitialized]);
 
   useEffect(() => {
     if (!filterReady) return;

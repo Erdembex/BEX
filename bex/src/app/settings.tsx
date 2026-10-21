@@ -199,22 +199,6 @@ export default function SettingsScreen() {
           onPress={() => router.push('/about' as Href)}
         />
 
-        {__DEV__ ? (
-          <>
-            <Button
-              title={t('settings.expoGuide')}
-              variant="primary"
-              onPress={() => router.push('/expo-test-guide' as Href)}
-            />
-
-            <Button
-              title={t('settings.releaseChecklist')}
-              variant="outline"
-              onPress={() => router.push('/setup-guide' as Href)}
-            />
-          </>
-        ) : null}
-
         {firebaseUser ? (
           <Button title={t('common.logout')} variant="outline" onPress={handleLogout} />
         ) : null}

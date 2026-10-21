@@ -79,12 +79,6 @@ export function AccountSettings({
   const handlePickAvatar = async () => {
     if (!firebaseUser) return;
 
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(t('accountSettings.permissionRequiredTitle'), t('accountSettings.permissionRequiredBody'));
-      return;
-    }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,

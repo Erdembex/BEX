@@ -1,3 +1,35 @@
+/** Yazarken GG.AA.YYYY. Noktayı kullanıcı basmaz; gün ve aydan sonra kendisi gelir. */
+export function formatBirthDateTyping(next: string, previous = ''): string {
+  const prevDigits = previous.replace(/\D/g, '').slice(0, 8);
+  let digits = next.replace(/\D/g, '').slice(0, 8);
+
+  if (next.length < previous.length && digits === prevDigits && prevDigits.length > 0) {
+    const removedAt = indexOfFirstDifference(previous, next);
+    const digitsBeforeSeparator = previous.slice(0, removedAt).replace(/\D/g, '').length;
+    const dropAt = Math.max(0, digitsBeforeSeparator - 1);
+    digits = prevDigits.slice(0, dropAt) + prevDigits.slice(dropAt + 1);
+  }
+
+  return applyBirthDateMask(digits);
+}
+
+function indexOfFirstDifference(previous: string, next: string): number {
+  const limit = Math.min(previous.length, next.length);
+  for (let i = 0; i < limit; i += 1) {
+    if (previous[i] !== next[i]) return i;
+  }
+  return next.length;
+}
+
+function applyBirthDateMask(digits: string): string {
+  const d = digits.slice(0, 8);
+  if (d.length <= 1) return d;
+  if (d.length === 2) return `${d}.`;
+  if (d.length === 3) return `${d.slice(0, 2)}.${d.slice(2)}`;
+  if (d.length === 4) return `${d.slice(0, 2)}.${d.slice(2)}.`;
+  return `${d.slice(0, 2)}.${d.slice(2, 4)}.${d.slice(4)}`;
+}
+
 /** ISO (YYYY-MM-DD) veya GG.AA.YYYY formatında doğum tarihi ayrıştırır. */
 export function parseBirthDateInput(input: string): Date | null {
   const trimmed = input.trim();

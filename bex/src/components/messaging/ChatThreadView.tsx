@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   KeyboardAvoidingView,
-  Alert,
   Image,
   NativeSyntheticEvent,
   NativeScrollEvent,
@@ -285,12 +284,6 @@ export function ChatThreadView({
 
   const handlePickImage = async () => {
     if (imageSending || sending) return;
-
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(t('chatThreadView.permissionRequiredTitle'), t('chatThreadView.permissionRequiredText'));
-      return;
-    }
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],

@@ -1,0 +1,19 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "version": "1.0.2",
+    "copyright": "2026 Erdem Yılmaz",
+    "info": {
+      "tr": {
+        "title": "Passla",
+        "subtitle": "Görev yap, ödül kazan",
+        "description": "Passla, işletmenin web sitesi, tasarım, sosyal medya, video ve ayak işini nakit ödemeden, kendi hizmeti karşılığında yaptırdığı uygulamadır.\n\nNasıl çalışır?\n• Yakınındaki işletme görevlerini keşfet\n• Becerine uygun göreve başvur, işletmeyle mesajlaş\n• Teslimini yükle. Onay sonrası dijital kupon cüzdanına düşer\n• İşletmeye git, QR kodu göster, hizmetini al\n\nİşletme misin?\nGörev aç, başvuruları yönet, kuponu QR ile doğrula. Karşılık nakit değil, kendi hizmetindir.\n\nKonum yalnızca uygulama açıkken, yakındaki görevleri göstermek için kullanılır. Uygulama ücretsizdir. Uygulama içi satın alma yoktur.\n\nGizlilik: https://passla.com.tr/gizlilik.html\nDestek: https://passla.com.tr/destek.html",
+        "keywords": ["görev", "ödül", "kupon", "iş", "beceri", "takas", "yakın", "freelance"],
+        "promoText": "Görevi sen yap, hizmeti işletme sunsun. Nakit yok, kupon var.",
+        "marketingUrl": "https://passla.com.tr",
+        "supportUrl": "https://passla.com.tr/destek.html",
+        "privacyPolicyUrl": "https://passla.com.tr/gizlilik.html"
+      }
+    }
+  }
+}
